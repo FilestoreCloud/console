@@ -116,6 +116,24 @@ export const TenantShow: React.FC = () => {
   const [cloneModalVisible, setCloneModalVisible] = useState(false);
   const [cloneLoading, setCloneLoading] = useState(false);
 
+  // Live Telemetry Stream Auto-Refresh State
+  const [metricsIntervalSec, setMetricsIntervalSec] = useState(15);
+  const [metricsCountdown, setMetricsCountdown] = useState(15);
+
+  useEffect(() => {
+    if (metricsIntervalSec === 0) return;
+    const timer = setInterval(() => {
+      setMetricsCountdown((prev) => {
+        if (prev <= 1) {
+          refetch();
+          return metricsIntervalSec;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [metricsIntervalSec, refetch]);
+
   if (isLoading || !tenantData) {
     return (
       <Card style={{ margin: 24, textAlign: "center" }}>
@@ -830,24 +848,50 @@ export const TenantShow: React.FC = () => {
                         <Space>
                           <LineChartOutlined style={{ color: "#ec7211" }} />
                           <span>Amazon CloudWatch Live Telemetry Stream</span>
-                          <Tag color="orange">60s Resolution</Tag>
+                          <Tag
+                            color={
+                              metricsIntervalSec > 0 ? "processing" : "default"
+                            }
+                          >
+                            {metricsIntervalSec > 0
+                              ? `STREAMING (${metricsCountdown}s)`
+                              : "PAUSED"}
+                          </Tag>
                         </Space>
                       }
                       extra={
                         <Space>
+                          <Select
+                            size="small"
+                            value={metricsIntervalSec}
+                            onChange={(val) => {
+                              setMetricsIntervalSec(val);
+                              setMetricsCountdown(val);
+                            }}
+                            style={{ width: 125 }}
+                            options={[
+                              { value: 15, label: "Every 15s" },
+                              { value: 30, label: "Every 30s" },
+                              { value: 60, label: "Every 60s" },
+                              { value: 0, label: "⏸ Pause" },
+                            ]}
+                          />
                           <Button
                             size="small"
                             icon={<ReloadOutlined />}
-                            onClick={() => refetch()}
+                            onClick={() => {
+                              refetch();
+                              setMetricsCountdown(metricsIntervalSec);
+                            }}
                           >
-                            Refresh Metrics
+                            Sync Now
                           </Button>
                         </Space>
                       }
                       bordered={false}
                       style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
                     >
-                      {metrics.widget_image_base64 ? (
+                      {metrics?.widget_image_base64 ? (
                         <div style={{ textAlign: "center", padding: "8px 0" }}>
                           <img
                             src={`data:image/png;base64,${metrics.widget_image_base64}`}
@@ -870,7 +914,7 @@ export const TenantShow: React.FC = () => {
                             </Text>
                           </div>
                         </div>
-                      ) : (
+                      ) : isLoading ? (
                         <div style={{ textAlign: "center", padding: 40 }}>
                           <SyncOutlined
                             spin
@@ -884,6 +928,22 @@ export const TenantShow: React.FC = () => {
                           <Text type="secondary">
                             Streaming CloudWatch metrics...
                           </Text>
+                        </div>
+                      ) : (
+                        <div style={{ textAlign: "center", padding: 32 }}>
+                          <Alert
+                            type="info"
+                            showIcon
+                            message="No CloudWatch Telemetry Data Yet"
+                            description={`Amazon CloudWatch has not collected metrics for service-${tenantId} yet, or the tenant service is suspended. Data will appear automatically once traffic is received.`}
+                          />
+                          <Button
+                            style={{ marginTop: 12 }}
+                            icon={<ReloadOutlined />}
+                            onClick={() => refetch()}
+                          >
+                            Retry Loading Telemetry
+                          </Button>
                         </div>
                       )}
                     </Card>

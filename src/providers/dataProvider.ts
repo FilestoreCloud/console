@@ -77,6 +77,7 @@ export const dataProvider: DataProvider = {
           incident: data.incident,
           incidents_history: data.incidents_history,
           audit_logs: data.audit_logs,
+          metrics: data.metrics,
         },
       } as any;
     }
