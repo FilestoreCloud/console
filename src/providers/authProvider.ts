@@ -10,7 +10,12 @@ export interface LoginParams {
 }
 
 export const authProvider: AuthProvider = {
-  login: async ({ email, password, challenge_token, mfa_code }: LoginParams) => {
+  login: async ({
+    email,
+    password,
+    challenge_token,
+    mfa_code,
+  }: LoginParams) => {
     try {
       // 1. If verifying MFA challenge
       if (challenge_token && mfa_code) {
@@ -26,7 +31,10 @@ export const authProvider: AuthProvider = {
         const data = await res.json();
         if (res.ok && data.token) {
           sessionStorage.setItem("saas_admin_token", data.token);
-          sessionStorage.setItem("saas_admin_email", data.user || email || "admin@png261.dev");
+          sessionStorage.setItem(
+            "saas_admin_email",
+            data.user || email || "admin@png261.dev",
+          );
           sessionStorage.setItem("saas_admin_role", data.role || "SuperAdmin");
           return {
             success: true,

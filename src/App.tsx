@@ -1,13 +1,23 @@
 import React from "react";
 import { Refine, Authenticated } from "@refinedev/core";
-import { ThemedLayoutV2, notificationProvider, ThemedSiderV2 } from "@refinedev/antd";
+import {
+  ThemedLayoutV2,
+  notificationProvider,
+  ThemedSiderV2,
+} from "@refinedev/antd";
 import { ConfigProvider, App as AntdApp } from "antd";
 import routerBindings, {
   CatchAllNavigate,
   NavigateToResource,
   UnsavedChangesNotifier,
 } from "@refinedev/react-router-v6";
-import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Outlet,
+  Navigate,
+} from "react-router-dom";
 import {
   ClusterOutlined,
   SafetyCertificateOutlined,
@@ -92,17 +102,31 @@ const App: React.FC = () => {
               {/* Authenticated Layout */}
               <Route
                 element={
-                  <Authenticated key="authenticated-routes" fallback={<CatchAllNavigate to="/login" />}>
+                  <Authenticated
+                    key="authenticated-routes"
+                    fallback={<CatchAllNavigate to="/login" />}
+                  >
                     <ThemedLayoutV2
                       Header={() => <CustomHeader />}
                       Sider={(props) => (
                         <ThemedSiderV2
                           {...props}
                           Title={({ collapsed }) => (
-                            <div style={{ padding: "12px", display: "flex", alignItems: "center", gap: 8 }}>
+                            <div
+                              style={{
+                                padding: "12px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                              }}
+                            >
                               <span style={{ fontSize: 20 }}>☁️</span>
                               {!collapsed && (
-                                <strong style={{ color: "#ffffff", fontSize: 14 }}>Nextcloud SaaS</strong>
+                                <strong
+                                  style={{ color: "#ffffff", fontSize: 14 }}
+                                >
+                                  Nextcloud SaaS
+                                </strong>
                               )}
                             </div>
                           )}
@@ -119,7 +143,10 @@ const App: React.FC = () => {
                 <Route path="/tenants/:id" element={<TenantShow />} />
                 <Route path="/audit-logs" element={<AuditLogList />} />
                 <Route path="/telemetry" element={<TelemetryDashboard />} />
-                <Route path="/settings/webhooks" element={<WebhooksSettings />} />
+                <Route
+                  path="/settings/webhooks"
+                  element={<WebhooksSettings />}
+                />
               </Route>
 
               {/* Login Route */}

@@ -27,7 +27,8 @@ export const accessControlProvider: AccessControlProvider = {
       }
       return {
         can: false,
-        reason: "Compliance policy: 'SecurityAuditor' role has read-only access.",
+        reason:
+          "Compliance policy: 'SecurityAuditor' role has read-only access.",
       };
     }
 

@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useCustom } from "@refinedev/core";
-import { Card, Row, Col, Typography, Space, Select, Button, Tag, Spin } from "antd";
+import {
+  Card,
+  Row,
+  Col,
+  Typography,
+  Space,
+  Select,
+  Button,
+  Tag,
+  Spin,
+} from "antd";
 import {
   LineChartOutlined,
   ReloadOutlined,
@@ -18,19 +28,31 @@ export const TelemetryDashboard: React.FC = () => {
   const [lastUpdate, setLastUpdate] = useState<string>("--:--:--");
 
   // Fetch widgets
-  const { data: wSaas, refetch: refetchSaas, isFetching: loadingSaas } = useCustom({
+  const {
+    data: wSaas,
+    refetch: refetchSaas,
+    isFetching: loadingSaas,
+  } = useCustom({
     url: "/api",
     method: "post",
     config: { payload: { action: "WIDGET", widget: "saas_fleet" } },
   });
 
-  const { data: wEcs, refetch: refetchEcs, isFetching: loadingEcs } = useCustom({
+  const {
+    data: wEcs,
+    refetch: refetchEcs,
+    isFetching: loadingEcs,
+  } = useCustom({
     url: "/api",
     method: "post",
     config: { payload: { action: "WIDGET", widget: "ecs_compute" } },
   });
 
-  const { data: wAlb, refetch: refetchAlb, isFetching: loadingAlb } = useCustom({
+  const {
+    data: wAlb,
+    refetch: refetchAlb,
+    isFetching: loadingAlb,
+  } = useCustom({
     url: "/api",
     method: "post",
     config: { payload: { action: "WIDGET", widget: "alb_traffic" } },
@@ -65,7 +87,10 @@ export const TelemetryDashboard: React.FC = () => {
   return (
     <div>
       {/* 1. Control Bar */}
-      <Card bordered={false} style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+      <Card
+        bordered={false}
+        style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+      >
         <Row justify="space-between" align="middle" gutter={[16, 16]}>
           <Col>
             <Space align="center" size="middle">
@@ -155,7 +180,10 @@ export const TelemetryDashboard: React.FC = () => {
                 <Text type="secondary">Widget loading or inactive</Text>
               )}
             </div>
-            <Text type="secondary" style={{ fontSize: 11, display: "block", marginTop: 8 }}>
+            <Text
+              type="secondary"
+              style={{ fontSize: 11, display: "block", marginTop: 8 }}
+            >
               Metric: Nextcloud/SaaS &gt; TenantActiveStatus
             </Text>
           </Card>
@@ -195,7 +223,10 @@ export const TelemetryDashboard: React.FC = () => {
                 <Text type="secondary">Widget loading or inactive</Text>
               )}
             </div>
-            <Text type="secondary" style={{ fontSize: 11, display: "block", marginTop: 8 }}>
+            <Text
+              type="secondary"
+              style={{ fontSize: 11, display: "block", marginTop: 8 }}
+            >
               Namespace: AWS/ECS (prod-nextcloud-cluster)
             </Text>
           </Card>
@@ -235,7 +266,10 @@ export const TelemetryDashboard: React.FC = () => {
                 <Text type="secondary">Widget loading or inactive</Text>
               )}
             </div>
-            <Text type="secondary" style={{ fontSize: 11, display: "block", marginTop: 8 }}>
+            <Text
+              type="secondary"
+              style={{ fontSize: 11, display: "block", marginTop: 8 }}
+            >
               Namespace: AWS/ApplicationELB (Dual-Axis)
             </Text>
           </Card>

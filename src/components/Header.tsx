@@ -1,6 +1,15 @@
 import React from "react";
 import { useGetIdentity, useLogout } from "@refinedev/core";
-import { Layout, Space, Tag, Dropdown, Button, Typography, Avatar, MenuProps } from "antd";
+import {
+  Layout,
+  Space,
+  Tag,
+  Dropdown,
+  Button,
+  Typography,
+  Avatar,
+  MenuProps,
+} from "antd";
 import {
   SafetyCertificateFilled,
   LogoutOutlined,
@@ -99,10 +108,23 @@ export const CustomHeader: React.FC = () => {
         <Text strong style={{ color: "#ffffff", fontSize: 16 }}>
           Nextcloud SaaS Control Plane
         </Text>
-        <Tag color="default" style={{ backgroundColor: "#1e293b", color: "#cbd5e1", borderColor: "#334155" }}>
+        <Tag
+          color="default"
+          style={{
+            backgroundColor: "#1e293b",
+            color: "#cbd5e1",
+            borderColor: "#334155",
+          }}
+        >
           <GlobalOutlined style={{ marginRight: 4 }} /> Region: ap-southeast-1
         </Tag>
-        <Tag color="success" style={{ backgroundColor: "rgba(82, 196, 26, 0.15)", borderColor: "#52c41a" }}>
+        <Tag
+          color="success"
+          style={{
+            backgroundColor: "rgba(82, 196, 26, 0.15)",
+            borderColor: "#52c41a",
+          }}
+        >
           <CheckCircleFilled style={{ marginRight: 4 }} /> Online
         </Tag>
       </Space>
@@ -120,9 +142,25 @@ export const CustomHeader: React.FC = () => {
 
         {getRoleBadge()}
 
-        <Dropdown menu={{ items: menuItems }} placement="bottomRight" trigger={["click"]}>
-          <Button type="text" style={{ color: "#ffffff", display: "flex", alignItems: "center", gap: 8 }}>
-            <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: "#ec7211" }} />
+        <Dropdown
+          menu={{ items: menuItems }}
+          placement="bottomRight"
+          trigger={["click"]}
+        >
+          <Button
+            type="text"
+            style={{
+              color: "#ffffff",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <Avatar
+              size="small"
+              icon={<UserOutlined />}
+              style={{ backgroundColor: "#ec7211" }}
+            />
             <span>{user?.name || "ADMIN"}</span>
           </Button>
         </Dropdown>

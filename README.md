@@ -50,6 +50,7 @@ Generates optimized, production-ready static assets in `dist/`.
 ## CI/CD Deployment
 
 Automated deployment is configured via GitHub Actions (`.github/workflows/deploy.yml`):
+
 - Automatically triggers on every `push` to `main` branch.
 - Compiles the React + Vite bundle (`npm ci && npm run build`).
 - Deploys static assets to Amazon S3 (`s3://prod-nextcloud-admin-web-649519997247/`).

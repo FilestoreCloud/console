@@ -44,7 +44,7 @@ async function computeTotpInBrowser(secretBase32: string): Promise<string> {
       bytes,
       { name: "HMAC", hash: "SHA-1" },
       false,
-      ["sign"]
+      ["sign"],
     );
     const epoch = Math.floor(Date.now() / 1000);
     const counter = Math.floor(epoch / 30);
@@ -118,9 +118,11 @@ export const LoginPage: React.FC = () => {
             // Already handled via mfaData return
             return;
           }
-          setErrorMessage(err?.message || "Invalid administrative credentials.");
+          setErrorMessage(
+            err?.message || "Invalid administrative credentials.",
+          );
         },
-      }
+      },
     );
   };
 
@@ -137,7 +139,7 @@ export const LoginPage: React.FC = () => {
         onError: (err: any) => {
           setErrorMessage(err?.message || "Invalid 6-digit TOTP code.");
         },
-      }
+      },
     );
   };
 
@@ -165,7 +167,8 @@ export const LoginPage: React.FC = () => {
         style={{
           width: "100%",
           maxWidth: 440,
-          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+          boxShadow:
+            "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
           borderRadius: 12,
         }}
         bordered={false}
@@ -197,12 +200,17 @@ export const LoginPage: React.FC = () => {
               form={form}
               layout="vertical"
               onFinish={handleCredentialsSubmit}
-              initialValues={{ email: "admin@png261.dev", password: "AdminPassword123!" }}
+              initialValues={{
+                email: "admin@png261.dev",
+                password: "AdminPassword123!",
+              }}
             >
               <Form.Item
                 name="email"
                 label={<Text strong>Administrator Email</Text>}
-                rules={[{ required: true, message: "Please enter your admin email" }]}
+                rules={[
+                  { required: true, message: "Please enter your admin email" },
+                ]}
               >
                 <Input
                   prefix={<MailOutlined style={{ color: "#94a3b8" }} />}
@@ -215,7 +223,9 @@ export const LoginPage: React.FC = () => {
                 name="password"
                 label={<Text strong>Master Password / Access Key</Text>}
                 extra="Verified via PBKDF2 (100k rounds) & AWS Secrets Manager"
-                rules={[{ required: true, message: "Please enter your password" }]}
+                rules={[
+                  { required: true, message: "Please enter your password" },
+                ]}
               >
                 <Input.Password
                   prefix={<LockOutlined style={{ color: "#94a3b8" }} />}
@@ -250,11 +260,18 @@ export const LoginPage: React.FC = () => {
             <Space direction="vertical" style={{ width: "100%" }}>
               <Button
                 block
-                style={{ textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                style={{
+                  textAlign: "left",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
                 onClick={() => fillPersona("admin")}
               >
                 <span>
-                  <SafetyCertificateOutlined style={{ color: "#ef4444", marginRight: 8 }} />
+                  <SafetyCertificateOutlined
+                    style={{ color: "#ef4444", marginRight: 8 }}
+                  />
                   <strong>SuperAdmin</strong> (Full Access)
                 </span>
                 <Tag color="error">admin@png261.dev</Tag>
@@ -262,7 +279,12 @@ export const LoginPage: React.FC = () => {
 
               <Button
                 block
-                style={{ textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                style={{
+                  textAlign: "left",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
                 onClick={() => fillPersona("ops")}
               >
                 <span>
@@ -274,11 +296,18 @@ export const LoginPage: React.FC = () => {
 
               <Button
                 block
-                style={{ textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                style={{
+                  textAlign: "left",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
                 onClick={() => fillPersona("auditor")}
               >
                 <span>
-                  <CheckCircleFilled style={{ color: "#f59e0b", marginRight: 8 }} />
+                  <CheckCircleFilled
+                    style={{ color: "#f59e0b", marginRight: 8 }}
+                  />
                   <strong>SecurityAuditor</strong> (Read-Only)
                 </span>
                 <Tag color="warning">auditor@png261.dev</Tag>
@@ -288,14 +317,19 @@ export const LoginPage: React.FC = () => {
         ) : (
           <div>
             <div style={{ textAlign: "center", marginBottom: 20 }}>
-              <Tag color="processing" style={{ padding: "6px 12px", borderRadius: 20, fontSize: 13 }}>
-                <SafetyCertificateOutlined style={{ marginRight: 6 }} /> Two-Factor Authentication
+              <Tag
+                color="processing"
+                style={{ padding: "6px 12px", borderRadius: 20, fontSize: 13 }}
+              >
+                <SafetyCertificateOutlined style={{ marginRight: 6 }} />{" "}
+                Two-Factor Authentication
               </Tag>
               <Title level={4} style={{ marginTop: 12, marginBottom: 4 }}>
                 Enter Authenticator Code
               </Title>
               <Text type="secondary" style={{ fontSize: 13 }}>
-                Signing in as <strong>{pendingMfa?.user}</strong> ({pendingMfa?.role})
+                Signing in as <strong>{pendingMfa?.user}</strong> (
+                {pendingMfa?.role})
               </Text>
             </div>
 
@@ -333,7 +367,13 @@ export const LoginPage: React.FC = () => {
                   marginBottom: 16,
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: 6,
+                  }}
+                >
                   <Text type="secondary" style={{ fontSize: 12 }}>
                     Demo Secret:
                   </Text>
@@ -342,14 +382,23 @@ export const LoginPage: React.FC = () => {
                     size="small"
                     style={{ padding: 0, fontSize: 12 }}
                     onClick={() => {
-                      navigator.clipboard.writeText(pendingMfa?.demo_totp_secret || "");
+                      navigator.clipboard.writeText(
+                        pendingMfa?.demo_totp_secret || "",
+                      );
                       message.success("Secret copied to clipboard");
                     }}
                   >
                     Copy Secret
                   </Button>
                 </div>
-                <Text code style={{ fontSize: 11, display: "block", wordBreak: "break-all" }}>
+                <Text
+                  code
+                  style={{
+                    fontSize: 11,
+                    display: "block",
+                    wordBreak: "break-all",
+                  }}
+                >
                   {pendingMfa?.demo_totp_secret}
                 </Text>
                 <Button
@@ -369,7 +418,11 @@ export const LoginPage: React.FC = () => {
                 size="large"
                 block
                 loading={isLoading}
-                style={{ backgroundColor: "#ec7211", borderColor: "#ec7211", fontWeight: 600 }}
+                style={{
+                  backgroundColor: "#ec7211",
+                  borderColor: "#ec7211",
+                  fontWeight: 600,
+                }}
               >
                 Verify &amp; Complete Sign In
               </Button>

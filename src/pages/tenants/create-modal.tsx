@@ -40,7 +40,9 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
       onOk={handleOk}
       confirmLoading={loading}
       okText="Launch Tenant Instance"
-      okButtonProps={{ style: { backgroundColor: "#ec7211", borderColor: "#ec7211" } }}
+      okButtonProps={{
+        style: { backgroundColor: "#ec7211", borderColor: "#ec7211" },
+      }}
       destroyOnClose
     >
       <Form
@@ -54,7 +56,10 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
           label="Tenant Identifier (Slug)"
           rules={[
             { required: true, message: "Please input tenant slug" },
-            { pattern: /^[a-z0-9-]+$/, message: "Lowercase letters, numbers, and hyphens only" },
+            {
+              pattern: /^[a-z0-9-]+$/,
+              message: "Lowercase letters, numbers, and hyphens only",
+            },
           ]}
           extra="Unique identifier used for ECS task service and DynamoDB partition key."
         >
@@ -85,7 +90,12 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
           label="Storage Quota (GB)"
           rules={[{ required: true, message: "Please enter quota" }]}
         >
-          <InputNumber min={10} max={5000} style={{ width: "100%" }} addonAfter="GB" />
+          <InputNumber
+            min={10}
+            max={5000}
+            style={{ width: "100%" }}
+            addonAfter="GB"
+          />
         </Form.Item>
 
         <Alert

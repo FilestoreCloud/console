@@ -69,9 +69,14 @@ export const TenantShow: React.FC = () => {
 
   // Modals state
   const [incidentModalVisible, setIncidentModalVisible] = useState(false);
-  const [createAccountModalVisible, setCreateAccountModalVisible] = useState(false);
-  const [resetPasswordModalVisible, setResetPasswordModalVisible] = useState(false);
-  const [tempPasswordInfo, setTempPasswordInfo] = useState<{ username: string; password: string } | null>(null);
+  const [createAccountModalVisible, setCreateAccountModalVisible] =
+    useState(false);
+  const [resetPasswordModalVisible, setResetPasswordModalVisible] =
+    useState(false);
+  const [tempPasswordInfo, setTempPasswordInfo] = useState<{
+    username: string;
+    password: string;
+  } | null>(null);
 
   const [incidentForm] = Form.useForm();
   const [accountForm] = Form.useForm();
@@ -81,7 +86,13 @@ export const TenantShow: React.FC = () => {
   const [occCommand, setOccCommand] = useState("status");
   const [occLoading, setOccLoading] = useState(false);
   const [terminalOutput, setTerminalOutput] = useState<
-    Array<{ cmd: string; output: string; exit_code: number; duration_ms: number; timestamp: string }>
+    Array<{
+      cmd: string;
+      output: string;
+      exit_code: number;
+      duration_ms: number;
+      timestamp: string;
+    }>
   >([
     {
       cmd: "occ status",
@@ -107,9 +118,14 @@ export const TenantShow: React.FC = () => {
   if (isLoading || !tenantData) {
     return (
       <Card style={{ margin: 24, textAlign: "center" }}>
-        <SyncOutlined spin style={{ fontSize: 28, color: "#ec7211", marginBottom: 12 }} />
+        <SyncOutlined
+          spin
+          style={{ fontSize: 28, color: "#ec7211", marginBottom: 12 }}
+        />
         <br />
-        <Text type="secondary">Loading tenant configuration & agent telemetry...</Text>
+        <Text type="secondary">
+          Loading tenant configuration & agent telemetry...
+        </Text>
       </Card>
     );
   }
@@ -130,13 +146,29 @@ export const TenantShow: React.FC = () => {
   const renderStatusTag = (status: string) => {
     switch (status) {
       case "ACTIVE":
-        return <Tag color="success" icon={<CheckCircleOutlined />}>ACTIVE</Tag>;
+        return (
+          <Tag color="success" icon={<CheckCircleOutlined />}>
+            ACTIVE
+          </Tag>
+        );
       case "DEGRADED":
-        return <Tag color="warning" icon={<AlertOutlined />}>DEGRADED</Tag>;
+        return (
+          <Tag color="warning" icon={<AlertOutlined />}>
+            DEGRADED
+          </Tag>
+        );
       case "INCIDENT":
-        return <Tag color="error" icon={<WarningOutlined />}>INCIDENT / OUTAGE</Tag>;
+        return (
+          <Tag color="error" icon={<WarningOutlined />}>
+            INCIDENT / OUTAGE
+          </Tag>
+        );
       case "MAINTENANCE":
-        return <Tag color="processing" icon={<ClockCircleOutlined />}>MAINTENANCE</Tag>;
+        return (
+          <Tag color="processing" icon={<ClockCircleOutlined />}>
+            MAINTENANCE
+          </Tag>
+        );
       case "SUSPENDED":
         return <Tag color="default">SUSPENDED ($0 FINOPS)</Tag>;
       default:
@@ -167,13 +199,15 @@ export const TenantShow: React.FC = () => {
       },
       {
         onSuccess: (res: any) => {
-          message.success(`ECS Agent rolling deployment initiated for ${tenantId}!`);
+          message.success(
+            `ECS Agent rolling deployment initiated for ${tenantId}!`,
+          );
           refetch();
         },
         onError: (err: any) => {
           message.error(err?.message || "Failed to restart agent");
         },
-      }
+      },
     );
   };
 
@@ -204,7 +238,7 @@ export const TenantShow: React.FC = () => {
         onError: (err: any) => {
           message.error(err?.message || "Failed to update incident");
         },
-      }
+      },
     );
   };
 
@@ -233,7 +267,7 @@ export const TenantShow: React.FC = () => {
         onError: (err: any) => {
           message.error(err?.message || "Failed to create account");
         },
-      }
+      },
     );
   };
 
@@ -258,13 +292,17 @@ export const TenantShow: React.FC = () => {
         onError: (err: any) => {
           message.error(err?.message || "Failed to reset password");
         },
-      }
+      },
     );
   };
 
   // Account Management: Toggle Status
-  const handleToggleAccountStatus = (username: string, currentAccountStatus: string) => {
-    const nextStatus = currentAccountStatus === "ACTIVE" ? "DISABLED" : "ACTIVE";
+  const handleToggleAccountStatus = (
+    username: string,
+    currentAccountStatus: string,
+  ) => {
+    const nextStatus =
+      currentAccountStatus === "ACTIVE" ? "DISABLED" : "ACTIVE";
     updateTenant(
       {
         resource: "tenants",
@@ -277,13 +315,15 @@ export const TenantShow: React.FC = () => {
       },
       {
         onSuccess: () => {
-          message.success(`Account '${username}' status changed to ${nextStatus}`);
+          message.success(
+            `Account '${username}' status changed to ${nextStatus}`,
+          );
           refetch();
         },
         onError: (err: any) => {
           message.error(err?.message || "Failed to update account status");
         },
-      }
+      },
     );
   };
 
@@ -361,7 +401,9 @@ export const TenantShow: React.FC = () => {
           quota_gb: values.quota_gb,
         },
       });
-      message.success(`Tenant '${tenantId}' cloned to staging sandbox '${targetId}'!`);
+      message.success(
+        `Tenant '${tenantId}' cloned to staging sandbox '${targetId}'!`,
+      );
       setCloneModalVisible(false);
       cloneForm.resetFields();
       refetch();
@@ -375,7 +417,9 @@ export const TenantShow: React.FC = () => {
   return (
     <div style={{ paddingBottom: 40 }}>
       {/* 1. Header Bar with Tenant Breadcrumb & Quick Actions */}
-      <Card style={{ marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+      <Card
+        style={{ marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+      >
         <Row justify="space-between" align="middle" gutter={[16, 16]}>
           <Col>
             <Space align="center" size={12}>
@@ -401,7 +445,10 @@ export const TenantShow: React.FC = () => {
                   >
                     https://{domain} <LinkOutlined style={{ fontSize: 11 }} />
                   </a>
-                  <Text type="secondary" style={{ marginLeft: 12, fontSize: 12 }}>
+                  <Text
+                    type="secondary"
+                    style={{ marginLeft: 12, fontSize: 12 }}
+                  >
                     Admin: {tenant.admin_email}
                   </Text>
                 </div>
@@ -420,7 +467,9 @@ export const TenantShow: React.FC = () => {
 
               <Button
                 icon={<WarningOutlined />}
-                danger={currentStatus === "INCIDENT" || currentStatus === "DEGRADED"}
+                danger={
+                  currentStatus === "INCIDENT" || currentStatus === "DEGRADED"
+                }
                 onClick={() => {
                   incidentForm.setFieldsValue({
                     status: currentStatus,
@@ -475,21 +524,35 @@ export const TenantShow: React.FC = () => {
       </Card>
 
       {/* 2. Active Incident Alert Banner if in incident or degraded state */}
-      {(currentStatus === "INCIDENT" || currentStatus === "DEGRADED" || currentStatus === "MAINTENANCE") && (
+      {(currentStatus === "INCIDENT" ||
+        currentStatus === "DEGRADED" ||
+        currentStatus === "MAINTENANCE") && (
         <Alert
           type={currentStatus === "INCIDENT" ? "error" : "warning"}
           showIcon
           style={{ marginBottom: 20 }}
           message={
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <div>
-                <strong>ACTIVE INCIDENT: {incident?.title || `Tenant status is ${currentStatus}`}</strong>
+                <strong>
+                  ACTIVE INCIDENT:{" "}
+                  {incident?.title || `Tenant status is ${currentStatus}`}
+                </strong>
                 {incident?.severity && (
-                  <span style={{ marginLeft: 8 }}>{renderSeverityTag(incident.severity)}</span>
+                  <span style={{ marginLeft: 8 }}>
+                    {renderSeverityTag(incident.severity)}
+                  </span>
                 )}
               </div>
               <Text type="secondary" style={{ fontSize: 12 }}>
-                Reported by: {incident?.reported_by || "Operator"} at {incident?.reported_at || tenant.last_updated}
+                Reported by: {incident?.reported_by || "Operator"} at{" "}
+                {incident?.reported_at || tenant.last_updated}
               </Text>
             </div>
           }
@@ -541,26 +604,45 @@ export const TenantShow: React.FC = () => {
                       }
                       size="small"
                       bordered={false}
-                      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)", height: "100%" }}
+                      style={{
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                        height: "100%",
+                      }}
                     >
                       <Descriptions column={1} size="small" bordered>
                         <Descriptions.Item label="ECS Fargate Cluster">
-                          <code>{awsTopology.cluster_name || "prod-nextcloud-cluster"}</code>
+                          <code>
+                            {awsTopology.cluster_name ||
+                              "prod-nextcloud-cluster"}
+                          </code>
                         </Descriptions.Item>
                         <Descriptions.Item label="Dedicated ECS Service">
-                          <code>{awsTopology.service_name || `service-${tenantId}`}</code>
+                          <code>
+                            {awsTopology.service_name || `service-${tenantId}`}
+                          </code>
                         </Descriptions.Item>
                         <Descriptions.Item label="Task Definition Family">
-                          <code>{awsTopology.task_family || `prod-nextcloud-${tenantId}`}</code>
+                          <code>
+                            {awsTopology.task_family ||
+                              `prod-nextcloud-${tenantId}`}
+                          </code>
                         </Descriptions.Item>
                         <Descriptions.Item label="ALB Target Group">
-                          <code>{awsTopology.alb_target_group_name || `tg-${tenantId}`}</code>
+                          <code>
+                            {awsTopology.alb_target_group_name ||
+                              `tg-${tenantId}`}
+                          </code>
                         </Descriptions.Item>
                         <Descriptions.Item label="Host-Header Routing Rule">
-                          <Tag color="cyan">{awsTopology.alb_routing_rule || `HostHeader: ${domain}`}</Tag>
+                          <Tag color="cyan">
+                            {awsTopology.alb_routing_rule ||
+                              `HostHeader: ${domain}`}
+                          </Tag>
                         </Descriptions.Item>
                         <Descriptions.Item label="Health Check Path">
-                          <Tag color="green">{awsTopology.health_check_path || "/status.php"}</Tag>
+                          <Tag color="green">
+                            {awsTopology.health_check_path || "/status.php"}
+                          </Tag>
                         </Descriptions.Item>
                       </Descriptions>
                     </Card>
@@ -577,29 +659,46 @@ export const TenantShow: React.FC = () => {
                       }
                       size="small"
                       bordered={false}
-                      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)", height: "100%" }}
+                      style={{
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                        height: "100%",
+                      }}
                     >
                       <Descriptions column={1} size="small" bordered>
                         <Descriptions.Item label="PostgreSQL Physical DB">
-                          <code>{awsTopology.database_name || `nc_${tenantId.replace(/-/g, "_")}`}</code>
+                          <code>
+                            {awsTopology.database_name ||
+                              `nc_${tenantId.replace(/-/g, "_")}`}
+                          </code>
                         </Descriptions.Item>
                         <Descriptions.Item label="RDS Engine">
-                          <Tag color="geekblue">{awsTopology.database_engine || "PostgreSQL 16.3"}</Tag>
+                          <Tag color="geekblue">
+                            {awsTopology.database_engine || "PostgreSQL 16.3"}
+                          </Tag>
                         </Descriptions.Item>
                         <Descriptions.Item label="EFS Access Point">
                           <code>{awsTopology.efs_access_point_id}</code>
                         </Descriptions.Item>
                         <Descriptions.Item label="EFS Posix Mount Path">
-                          <code>{awsTopology.efs_mount_path || `/tenants/${tenantId}/config`} (UID 33)</code>
+                          <code>
+                            {awsTopology.efs_mount_path ||
+                              `/tenants/${tenantId}/config`}{" "}
+                            (UID 33)
+                          </code>
                         </Descriptions.Item>
                         <Descriptions.Item label="S3 Vault Prefix">
                           <code>{awsTopology.s3_vault_prefix}</code>
                         </Descriptions.Item>
                         <Descriptions.Item label="Storage Quota">
                           <div>
-                            <Progress percent={18} size="small" status="active" />
+                            <Progress
+                              percent={18}
+                              size="small"
+                              status="active"
+                            />
                             <Text type="secondary" style={{ fontSize: 11 }}>
-                              18 GB used of {tenant.quota_gb || 100} GB provisioned
+                              18 GB used of {tenant.quota_gb || 100} GB
+                              provisioned
                             </Text>
                           </div>
                         </Descriptions.Item>
@@ -630,45 +729,87 @@ export const TenantShow: React.FC = () => {
                   }
                   size="small"
                   bordered={false}
-                  style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+                  style={{
+                    marginBottom: 16,
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                  }}
                 >
                   <Row gutter={[16, 16]}>
                     <Col xs={24} md={6}>
                       <Card size="small" style={{ background: "#f8fafc" }}>
-                        <Text type="secondary" style={{ fontSize: 11 }}>AGENT STATUS</Text>
-                        <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          AGENT STATUS
+                        </Text>
+                        <div
+                          style={{
+                            fontSize: 18,
+                            fontWeight: 700,
+                            marginTop: 4,
+                          }}
+                        >
                           {agent.status === "RUNNING" ? (
                             <Badge status="success" text="RUNNING" />
                           ) : (
-                            <Badge status="error" text={agent.status || "STOPPED"} />
+                            <Badge
+                              status="error"
+                              text={agent.status || "STOPPED"}
+                            />
                           )}
                         </div>
                       </Card>
                     </Col>
                     <Col xs={24} md={6}>
                       <Card size="small" style={{ background: "#f8fafc" }}>
-                        <Text type="secondary" style={{ fontSize: 11 }}>CONTAINER HEALTH</Text>
-                        <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          CONTAINER HEALTH
+                        </Text>
+                        <div
+                          style={{
+                            fontSize: 18,
+                            fontWeight: 700,
+                            marginTop: 4,
+                          }}
+                        >
                           {agent.health_status === "HEALTHY" ? (
                             <Tag color="success">HEALTHY (2/2 Passed)</Tag>
                           ) : (
-                            <Tag color="warning">{agent.health_status || "UNKNOWN"}</Tag>
+                            <Tag color="warning">
+                              {agent.health_status || "UNKNOWN"}
+                            </Tag>
                           )}
                         </div>
                       </Card>
                     </Col>
                     <Col xs={24} md={6}>
                       <Card size="small" style={{ background: "#f8fafc" }}>
-                        <Text type="secondary" style={{ fontSize: 11 }}>FARGATE COMPUTING</Text>
-                        <div style={{ fontSize: 16, fontWeight: 700, marginTop: 4 }}>
-                          {agent.cpu || 512} vCPU-units / {agent.memory || 1024} MB RAM
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          FARGATE COMPUTING
+                        </Text>
+                        <div
+                          style={{
+                            fontSize: 16,
+                            fontWeight: 700,
+                            marginTop: 4,
+                          }}
+                        >
+                          {agent.cpu || 512} vCPU-units / {agent.memory || 1024}{" "}
+                          MB RAM
                         </div>
                       </Card>
                     </Col>
                     <Col xs={24} md={6}>
                       <Card size="small" style={{ background: "#f8fafc" }}>
-                        <Text type="secondary" style={{ fontSize: 11 }}>PRIVATE IP / ENI</Text>
-                        <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4, fontFamily: "monospace" }}>
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          PRIVATE IP / ENI
+                        </Text>
+                        <div
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 600,
+                            marginTop: 4,
+                            fontFamily: "monospace",
+                          }}
+                        >
                           {agent.private_ip || "10.0.12.42"}
                         </div>
                       </Card>
@@ -679,20 +820,41 @@ export const TenantShow: React.FC = () => {
 
                   <Descriptions column={{ xs: 1, md: 2 }} size="small" bordered>
                     <Descriptions.Item label="Task ARN">
-                      <Paragraph copyable style={{ margin: 0, fontFamily: "monospace", fontSize: 11 }}>
-                        {agent.task_arn || "arn:aws:ecs:ap-southeast-1:.../task"}
+                      <Paragraph
+                        copyable
+                        style={{
+                          margin: 0,
+                          fontFamily: "monospace",
+                          fontSize: 11,
+                        }}
+                      >
+                        {agent.task_arn ||
+                          "arn:aws:ecs:ap-southeast-1:.../task"}
                       </Paragraph>
                     </Descriptions.Item>
                     <Descriptions.Item label="Task Definition ARN">
-                      <Paragraph copyable style={{ margin: 0, fontFamily: "monospace", fontSize: 11 }}>
-                        {agent.task_definition_arn || "arn:aws:ecs:ap-southeast-1:.../task-definition"}
+                      <Paragraph
+                        copyable
+                        style={{
+                          margin: 0,
+                          fontFamily: "monospace",
+                          fontSize: 11,
+                        }}
+                      >
+                        {agent.task_definition_arn ||
+                          "arn:aws:ecs:ap-southeast-1:.../task-definition"}
                       </Paragraph>
                     </Descriptions.Item>
                     <Descriptions.Item label="Desired vs Running Count">
-                      <Tag color="blue">{agent.desired_count || 1} desired / {agent.running_count || 1} running</Tag>
+                      <Tag color="blue">
+                        {agent.desired_count || 1} desired /{" "}
+                        {agent.running_count || 1} running
+                      </Tag>
                     </Descriptions.Item>
                     <Descriptions.Item label="Agent Uptime">
-                      <Text>{agent.uptime_hours || 168.4} hours continuous</Text>
+                      <Text>
+                        {agent.uptime_hours || 168.4} hours continuous
+                      </Text>
                     </Descriptions.Item>
                   </Descriptions>
                 </Card>
@@ -714,8 +876,17 @@ export const TenantShow: React.FC = () => {
                     >
                       <Descriptions column={1} size="small">
                         <Descriptions.Item label="Image URI">
-                          <Paragraph copyable style={{ fontSize: 11, fontFamily: "monospace", margin: 0 }}>
-                            {awsTopology.cluster_name ? "649519997247.dkr.ecr.ap-southeast-1.amazonaws.com/nextcloud-enterprise-ai:latest" : "nextcloud-enterprise-ai:latest"}
+                          <Paragraph
+                            copyable
+                            style={{
+                              fontSize: 11,
+                              fontFamily: "monospace",
+                              margin: 0,
+                            }}
+                          >
+                            {awsTopology.cluster_name
+                              ? "649519997247.dkr.ecr.ap-southeast-1.amazonaws.com/nextcloud-enterprise-ai:latest"
+                              : "nextcloud-enterprise-ai:latest"}
                           </Paragraph>
                         </Descriptions.Item>
                         <Descriptions.Item label="Runtime Stack">
@@ -725,7 +896,9 @@ export const TenantShow: React.FC = () => {
                           <Tag color="blue">Port 80 (HTTP)</Tag>
                         </Descriptions.Item>
                         <Descriptions.Item label="Container Health">
-                          <Tag color="success">HEALTHY (HTTP /status.php 200 OK)</Tag>
+                          <Tag color="success">
+                            HEALTHY (HTTP /status.php 200 OK)
+                          </Tag>
                         </Descriptions.Item>
                         <Descriptions.Item label="Resource Usage">
                           <Text>CPU: 14.2% | Memory: 38.6% (395 MB)</Text>
@@ -740,7 +913,9 @@ export const TenantShow: React.FC = () => {
                       title={
                         <Space>
                           <RobotOutlined style={{ color: "#8b5cf6" }} />
-                          <span>Container 2: LiteLLM Bedrock AI Bridge (Sidecar)</span>
+                          <span>
+                            Container 2: LiteLLM Bedrock AI Bridge (Sidecar)
+                          </span>
                         </Space>
                       }
                       size="small"
@@ -749,19 +924,28 @@ export const TenantShow: React.FC = () => {
                     >
                       <Descriptions column={1} size="small">
                         <Descriptions.Item label="Bridge Proxy">
-                          <Tag color="purple">http://127.0.0.1:4000 (OpenAI Compat)</Tag>
+                          <Tag color="purple">
+                            http://127.0.0.1:4000 (OpenAI Compat)
+                          </Tag>
                         </Descriptions.Item>
                         <Descriptions.Item label="Bedrock Model">
-                          <Tag color="geekblue">anthropic.claude-3-5-sonnet-20241022-v2:0</Tag>
+                          <Tag color="geekblue">
+                            anthropic.claude-3-5-sonnet-20241022-v2:0
+                          </Tag>
                         </Descriptions.Item>
                         <Descriptions.Item label="Bridge Latency">
                           <Text>192 ms average response time</Text>
                         </Descriptions.Item>
                         <Descriptions.Item label="Security Isolation">
-                          <Tag color="green">IAM Task Role (No Static API Keys)</Tag>
+                          <Tag color="green">
+                            IAM Task Role (No Static API Keys)
+                          </Tag>
                         </Descriptions.Item>
                         <Descriptions.Item label="Nextcloud AI Assistant">
-                          <Badge status="processing" text="Active & Prompt Streaming Enabled" />
+                          <Badge
+                            status="processing"
+                            text="Active & Prompt Streaming Enabled"
+                          />
                         </Descriptions.Item>
                       </Descriptions>
                     </Card>
@@ -781,7 +965,13 @@ export const TenantShow: React.FC = () => {
             children: (
               <Card
                 title={
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
                     <Space>
                       <UserOutlined style={{ color: "#3b82f6" }} />
                       <span>User Accounts Directory ({accounts.length})</span>
@@ -813,7 +1003,12 @@ export const TenantShow: React.FC = () => {
                         <div>
                           <Text strong>{u}</Text>
                           {record.role === "TenantAdmin" && (
-                            <Tag color="gold" style={{ marginLeft: 6, fontSize: 10 }}>ADMIN</Tag>
+                            <Tag
+                              color="gold"
+                              style={{ marginLeft: 6, fontSize: 10 }}
+                            >
+                              ADMIN
+                            </Tag>
                           )}
                         </div>
                       ),
@@ -839,7 +1034,8 @@ export const TenantShow: React.FC = () => {
                       key: "quota",
                       render: (_: any, record: any) => (
                         <span>
-                          {record.storage_used_gb || 0} GB / {record.quota_gb || 50} GB
+                          {record.storage_used_gb || 0} GB /{" "}
+                          {record.quota_gb || 50} GB
                         </span>
                       ),
                     },
@@ -847,27 +1043,33 @@ export const TenantShow: React.FC = () => {
                       title: "Status",
                       dataIndex: "status",
                       key: "status",
-                      render: (st: string) => (
+                      render: (st: string) =>
                         st === "ACTIVE" ? (
                           <Tag color="success">ACTIVE</Tag>
                         ) : (
                           <Tag color="default">DISABLED</Tag>
-                        )
-                      ),
+                        ),
                     },
                     {
                       title: "MFA",
                       dataIndex: "mfa_enabled",
                       key: "mfa_enabled",
-                      render: (mfa: boolean) => (
-                        mfa ? <Tag color="green">ENABLED</Tag> : <Tag color="default">NONE</Tag>
-                      ),
+                      render: (mfa: boolean) =>
+                        mfa ? (
+                          <Tag color="green">ENABLED</Tag>
+                        ) : (
+                          <Tag color="default">NONE</Tag>
+                        ),
                     },
                     {
                       title: "Last Login",
                       dataIndex: "last_login",
                       key: "last_login",
-                      render: (ll: string) => <Text type="secondary" style={{ fontSize: 12 }}>{ll}</Text>,
+                      render: (ll: string) => (
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          {ll}
+                        </Text>
+                      ),
                     },
                     {
                       title: "Actions",
@@ -884,7 +1086,12 @@ export const TenantShow: React.FC = () => {
                           </Button>
                           <Button
                             size="small"
-                            onClick={() => handleToggleAccountStatus(record.username, record.status)}
+                            onClick={() =>
+                              handleToggleAccountStatus(
+                                record.username,
+                                record.status,
+                              )
+                            }
                           >
                             {record.status === "ACTIVE" ? "Disable" : "Enable"}
                           </Button>
@@ -908,7 +1115,13 @@ export const TenantShow: React.FC = () => {
               <div>
                 <Card
                   title={
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
                       <Space>
                         <AlertOutlined style={{ color: "#ef4444" }} />
                         <span>Incident Circuit Breaker & Accident Log</span>
@@ -936,7 +1149,10 @@ export const TenantShow: React.FC = () => {
                     </div>
                   }
                   bordered={false}
-                  style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+                  style={{
+                    marginBottom: 16,
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                  }}
                 >
                   <Descriptions column={{ xs: 1, md: 3 }} size="small" bordered>
                     <Descriptions.Item label="Current Circuit State">
@@ -946,7 +1162,11 @@ export const TenantShow: React.FC = () => {
                       <code>{incident?.incident_id || "None"}</code>
                     </Descriptions.Item>
                     <Descriptions.Item label="Active Severity">
-                      {incident?.severity ? renderSeverityTag(incident.severity) : <Tag color="green">NORMAL</Tag>}
+                      {incident?.severity ? (
+                        renderSeverityTag(incident.severity)
+                      ) : (
+                        <Tag color="green">NORMAL</Tag>
+                      )}
                     </Descriptions.Item>
                   </Descriptions>
                 </Card>
@@ -962,7 +1182,9 @@ export const TenantShow: React.FC = () => {
                     rowKey="incident_id"
                     pagination={false}
                     size="middle"
-                    locale={{ emptyText: "Zero recorded incidents for this tenant." }}
+                    locale={{
+                      emptyText: "Zero recorded incidents for this tenant.",
+                    }}
                     columns={[
                       {
                         title: "Incident ID",
@@ -996,7 +1218,9 @@ export const TenantShow: React.FC = () => {
                         dataIndex: "status",
                         key: "status",
                         render: (st: string) => (
-                          <Tag color={st === "RESOLVED" ? "green" : "volcano"}>{st}</Tag>
+                          <Tag color={st === "RESOLVED" ? "green" : "volcano"}>
+                            {st}
+                          </Tag>
                         ),
                       },
                       {
@@ -1008,13 +1232,17 @@ export const TenantShow: React.FC = () => {
                         title: "Reported At",
                         dataIndex: "reported_at",
                         key: "reported_at",
-                        render: (ts: string) => <Text style={{ fontSize: 12 }}>{ts}</Text>,
+                        render: (ts: string) => (
+                          <Text style={{ fontSize: 12 }}>{ts}</Text>
+                        ),
                       },
                       {
                         title: "Resolved At",
                         dataIndex: "resolved_at",
                         key: "resolved_at",
-                        render: (ts: string) => <Text style={{ fontSize: 12 }}>{ts || "-"}</Text>,
+                        render: (ts: string) => (
+                          <Text style={{ fontSize: 12 }}>{ts || "-"}</Text>
+                        ),
                       },
                     ]}
                   />
@@ -1041,13 +1269,17 @@ export const TenantShow: React.FC = () => {
                   rowKey="event_id"
                   pagination={{ pageSize: 10 }}
                   size="small"
-                  locale={{ emptyText: "No audit events recorded yet for this tenant." }}
+                  locale={{
+                    emptyText: "No audit events recorded yet for this tenant.",
+                  }}
                   columns={[
                     {
                       title: "Timestamp",
                       dataIndex: "timestamp",
                       key: "timestamp",
-                      render: (t: string) => <Text style={{ fontSize: 11 }}>{t}</Text>,
+                      render: (t: string) => (
+                        <Text style={{ fontSize: 11 }}>{t}</Text>
+                      ),
                     },
                     {
                       title: "Actor",
@@ -1080,7 +1312,14 @@ export const TenantShow: React.FC = () => {
                       dataIndex: "details",
                       key: "details",
                       render: (d: any) => (
-                        <Paragraph ellipsis={{ rows: 2 }} style={{ margin: 0, fontSize: 11, fontFamily: "monospace" }}>
+                        <Paragraph
+                          ellipsis={{ rows: 2 }}
+                          style={{
+                            margin: 0,
+                            fontSize: 11,
+                            fontFamily: "monospace",
+                          }}
+                        >
                           {typeof d === "string" ? d : JSON.stringify(d)}
                         </Paragraph>
                       ),
@@ -1102,11 +1341,21 @@ export const TenantShow: React.FC = () => {
               <div>
                 <Card
                   title={
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
                       <Space>
                         <CodeOutlined style={{ color: "#ec7211" }} />
-                        <span>Interactive Nextcloud `occ` CLI Diagnostic Runner</span>
-                        <Tag color="geekblue">Container: service-{tenantId}</Tag>
+                        <span>
+                          Interactive Nextcloud `occ` CLI Diagnostic Runner
+                        </span>
+                        <Tag color="geekblue">
+                          Container: service-{tenantId}
+                        </Tag>
                       </Space>
                       <Button
                         size="small"
@@ -1118,31 +1367,72 @@ export const TenantShow: React.FC = () => {
                     </div>
                   }
                   bordered={false}
-                  style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+                  style={{
+                    marginBottom: 16,
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                  }}
                 >
-                  <Space direction="vertical" size={12} style={{ width: "100%" }}>
+                  <Space
+                    direction="vertical"
+                    size={12}
+                    style={{ width: "100%" }}
+                  >
                     <div>
-                      <Text strong style={{ fontSize: 13, marginRight: 8 }}>Quick Diagnostic Commands:</Text>
+                      <Text strong style={{ fontSize: 13, marginRight: 8 }}>
+                        Quick Diagnostic Commands:
+                      </Text>
                       <Space wrap>
-                        <Button size="small" onClick={() => handleExecuteOcc("status")} loading={occLoading}>
+                        <Button
+                          size="small"
+                          onClick={() => handleExecuteOcc("status")}
+                          loading={occLoading}
+                        >
                           status
                         </Button>
-                        <Button size="small" onClick={() => handleExecuteOcc("files:scan --all")} loading={occLoading}>
+                        <Button
+                          size="small"
+                          onClick={() => handleExecuteOcc("files:scan --all")}
+                          loading={occLoading}
+                        >
                           files:scan --all
                         </Button>
-                        <Button size="small" onClick={() => handleExecuteOcc("db:add-missing-indices")} loading={occLoading}>
+                        <Button
+                          size="small"
+                          onClick={() =>
+                            handleExecuteOcc("db:add-missing-indices")
+                          }
+                          loading={occLoading}
+                        >
                           db:add-missing-indices
                         </Button>
-                        <Button size="small" onClick={() => handleExecuteOcc("maintenance:mode --status")} loading={occLoading}>
+                        <Button
+                          size="small"
+                          onClick={() =>
+                            handleExecuteOcc("maintenance:mode --status")
+                          }
+                          loading={occLoading}
+                        >
                           maintenance:mode --status
                         </Button>
-                        <Button size="small" onClick={() => handleExecuteOcc("app:list")} loading={occLoading}>
+                        <Button
+                          size="small"
+                          onClick={() => handleExecuteOcc("app:list")}
+                          loading={occLoading}
+                        >
                           app:list
                         </Button>
-                        <Button size="small" onClick={() => handleExecuteOcc("check")} loading={occLoading}>
+                        <Button
+                          size="small"
+                          onClick={() => handleExecuteOcc("check")}
+                          loading={occLoading}
+                        >
                           check
                         </Button>
-                        <Button size="small" onClick={() => handleExecuteOcc("user:list")} loading={occLoading}>
+                        <Button
+                          size="small"
+                          onClick={() => handleExecuteOcc("user:list")}
+                          loading={occLoading}
+                        >
                           user:list
                         </Button>
                       </Space>
@@ -1177,7 +1467,10 @@ export const TenantShow: React.FC = () => {
                         icon={<PlayCircleOutlined />}
                         loading={occLoading}
                         onClick={() => handleExecuteOcc()}
-                        style={{ background: "#ec7211", borderColor: "#ec7211" }}
+                        style={{
+                          background: "#ec7211",
+                          borderColor: "#ec7211",
+                        }}
                       >
                         Execute
                       </Button>
@@ -1192,7 +1485,13 @@ export const TenantShow: React.FC = () => {
                       <span style={{ color: "#10b981" }}>●</span>
                       <span style={{ color: "#f59e0b" }}>●</span>
                       <span style={{ color: "#ef4444" }}>●</span>
-                      <span style={{ fontFamily: "monospace", fontSize: 12, marginLeft: 8 }}>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          fontSize: 12,
+                          marginLeft: 8,
+                        }}
+                      >
                         www-data@fargate-task: /var/www/html
                       </span>
                     </Space>
@@ -1204,14 +1503,19 @@ export const TenantShow: React.FC = () => {
                     boxShadow: "0 4px 6px -1px rgba(0,0,0,0.2)",
                   }}
                   bodyStyle={{ padding: 16 }}
-                  headStyle={{ background: "#1e293b", borderBottom: "1px solid #334155", color: "#94a3b8" }}
+                  headStyle={{
+                    background: "#1e293b",
+                    borderBottom: "1px solid #334155",
+                    color: "#94a3b8",
+                  }}
                 >
                   <div
                     style={{
                       minHeight: 280,
                       maxHeight: 500,
                       overflowY: "auto",
-                      fontFamily: "'Fira Code', 'JetBrains Mono', Monaco, monospace",
+                      fontFamily:
+                        "'Fira Code', 'JetBrains Mono', Monaco, monospace",
                       fontSize: 12,
                       lineHeight: "1.6",
                       color: "#e2e8f0",
@@ -1219,27 +1523,50 @@ export const TenantShow: React.FC = () => {
                   >
                     {terminalOutput.length === 0 ? (
                       <div style={{ color: "#64748b", fontStyle: "italic" }}>
-                        Terminal output buffer empty. Execute a command above to inspect Nextcloud internals.
+                        Terminal output buffer empty. Execute a command above to
+                        inspect Nextcloud internals.
                       </div>
                     ) : (
                       terminalOutput.map((item, idx) => (
                         <div key={idx} style={{ marginBottom: 16 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
                             <div>
-                              <span style={{ color: "#38bdf8" }}>nextcloud@{tenantId}</span>
+                              <span style={{ color: "#38bdf8" }}>
+                                nextcloud@{tenantId}
+                              </span>
                               <span style={{ color: "#94a3b8" }}>:</span>
-                              <span style={{ color: "#a855f7" }}>/var/www/html</span>
+                              <span style={{ color: "#a855f7" }}>
+                                /var/www/html
+                              </span>
                               <span style={{ color: "#94a3b8" }}>$ </span>
-                              <strong style={{ color: "#4ade80" }}>{item.cmd}</strong>
+                              <strong style={{ color: "#4ade80" }}>
+                                {item.cmd}
+                              </strong>
                             </div>
                             <Space size={6}>
-                              <Tag color={item.exit_code === 0 ? "success" : "error"} style={{ fontSize: 10, margin: 0 }}>
+                              <Tag
+                                color={
+                                  item.exit_code === 0 ? "success" : "error"
+                                }
+                                style={{ fontSize: 10, margin: 0 }}
+                              >
                                 exit {item.exit_code}
                               </Tag>
-                              <Tag color="default" style={{ fontSize: 10, margin: 0 }}>
+                              <Tag
+                                color="default"
+                                style={{ fontSize: 10, margin: 0 }}
+                              >
                                 {item.duration_ms}ms
                               </Tag>
-                              <span style={{ fontSize: 10, color: "#64748b" }}>{item.timestamp.slice(11, 19)}</span>
+                              <span style={{ fontSize: 10, color: "#64748b" }}>
+                                {item.timestamp.slice(11, 19)}
+                              </span>
                             </Space>
                           </div>
                           <pre
@@ -1252,7 +1579,10 @@ export const TenantShow: React.FC = () => {
                               fontSize: 11,
                               whiteSpace: "pre-wrap",
                               wordBreak: "break-all",
-                              borderLeft: item.exit_code === 0 ? "3px solid #10b981" : "3px solid #ef4444",
+                              borderLeft:
+                                item.exit_code === 0
+                                  ? "3px solid #10b981"
+                                  : "3px solid #ef4444",
                             }}
                           >
                             {item.output}
@@ -1282,7 +1612,12 @@ export const TenantShow: React.FC = () => {
                         <Space wrap>
                           <FileTextOutlined style={{ color: "#0284c7" }} />
                           <span>Container Log Stream</span>
-                          <Tag color="cyan">Log Group: /ecs/{awsTopology.cluster_name ? "prod-nextcloud" : "nextcloud"}</Tag>
+                          <Tag color="cyan">
+                            Log Group: /ecs/
+                            {awsTopology.cluster_name
+                              ? "prod-nextcloud"
+                              : "nextcloud"}
+                          </Tag>
                         </Space>
                       </Col>
                       <Col>
@@ -1294,8 +1629,14 @@ export const TenantShow: React.FC = () => {
                             style={{ width: 170 }}
                             options={[
                               { value: "all", label: "All Containers" },
-                              { value: "nextcloud-app", label: "Nextcloud 30 App" },
-                              { value: "litellm-sidecar", label: "LiteLLM Bedrock Bridge" },
+                              {
+                                value: "nextcloud-app",
+                                label: "Nextcloud 30 App",
+                              },
+                              {
+                                value: "litellm-sidecar",
+                                label: "LiteLLM Bedrock Bridge",
+                              },
                             ]}
                           />
                           <Select
@@ -1313,7 +1654,9 @@ export const TenantShow: React.FC = () => {
                           <Input
                             size="small"
                             placeholder="Filter pattern..."
-                            prefix={<SearchOutlined style={{ color: "#94a3b8" }} />}
+                            prefix={
+                              <SearchOutlined style={{ color: "#94a3b8" }} />
+                            }
                             value={logsFilter}
                             onChange={(e) => setLogsFilter(e.target.value)}
                             onPressEnter={handleFetchLogs}
@@ -1348,7 +1691,8 @@ export const TenantShow: React.FC = () => {
                       color: "#cbd5e1",
                       borderRadius: 6,
                       padding: 12,
-                      fontFamily: "'Fira Code', 'JetBrains Mono', Monaco, monospace",
+                      fontFamily:
+                        "'Fira Code', 'JetBrains Mono', Monaco, monospace",
                       fontSize: 12,
                       maxHeight: 520,
                       overflowY: "auto",
@@ -1356,20 +1700,39 @@ export const TenantShow: React.FC = () => {
                     }}
                   >
                     {logsLoading && containerLogs.length === 0 ? (
-                      <div style={{ textAlign: "center", padding: 40, color: "#94a3b8" }}>
-                        <SyncOutlined spin style={{ fontSize: 20, marginBottom: 8 }} />
+                      <div
+                        style={{
+                          textAlign: "center",
+                          padding: 40,
+                          color: "#94a3b8",
+                        }}
+                      >
+                        <SyncOutlined
+                          spin
+                          style={{ fontSize: 20, marginBottom: 8 }}
+                        />
                         <br />
-                        Streaming logs from CloudWatch for tenant '{tenantId}'...
+                        Streaming logs from CloudWatch for tenant '{tenantId}
+                        '...
                       </div>
                     ) : containerLogs.filter(
-                        (l) => logsLevel === "ALL" || l.level === logsLevel
+                        (l) => logsLevel === "ALL" || l.level === logsLevel,
                       ).length === 0 ? (
-                      <div style={{ color: "#64748b", fontStyle: "italic", textAlign: "center", padding: 20 }}>
+                      <div
+                        style={{
+                          color: "#64748b",
+                          fontStyle: "italic",
+                          textAlign: "center",
+                          padding: 20,
+                        }}
+                      >
                         No container logs match current filter criteria.
                       </div>
                     ) : (
                       containerLogs
-                        .filter((l) => logsLevel === "ALL" || l.level === logsLevel)
+                        .filter(
+                          (l) => logsLevel === "ALL" || l.level === logsLevel,
+                        )
                         .map((l, idx) => (
                           <div
                             key={idx}
@@ -1381,22 +1744,56 @@ export const TenantShow: React.FC = () => {
                               alignItems: "flex-start",
                             }}
                           >
-                            <span style={{ color: "#64748b", fontSize: 11, minWidth: 140 }}>
+                            <span
+                              style={{
+                                color: "#64748b",
+                                fontSize: 11,
+                                minWidth: 140,
+                              }}
+                            >
                               {l.timestamp}
                             </span>
                             <Tag
-                              color={l.container === "litellm-sidecar" ? "purple" : "orange"}
-                              style={{ fontSize: 10, padding: "0 4px", margin: 0, minWidth: 90, textAlign: "center" }}
+                              color={
+                                l.container === "litellm-sidecar"
+                                  ? "purple"
+                                  : "orange"
+                              }
+                              style={{
+                                fontSize: 10,
+                                padding: "0 4px",
+                                margin: 0,
+                                minWidth: 90,
+                                textAlign: "center",
+                              }}
                             >
                               {l.container}
                             </Tag>
                             <Tag
-                              color={l.level === "ERROR" ? "red" : l.level === "WARN" ? "gold" : "blue"}
-                              style={{ fontSize: 10, padding: "0 4px", margin: 0, minWidth: 46, textAlign: "center" }}
+                              color={
+                                l.level === "ERROR"
+                                  ? "red"
+                                  : l.level === "WARN"
+                                    ? "gold"
+                                    : "blue"
+                              }
+                              style={{
+                                fontSize: 10,
+                                padding: "0 4px",
+                                margin: 0,
+                                minWidth: 46,
+                                textAlign: "center",
+                              }}
                             >
                               {l.level}
                             </Tag>
-                            <span style={{ flex: 1, whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+                            <span
+                              style={{
+                                flex: 1,
+                                whiteSpace: "pre-wrap",
+                                wordBreak: "break-all",
+                              }}
+                            >
                               {l.message}
                             </span>
                           </div>
@@ -1424,36 +1821,68 @@ export const TenantShow: React.FC = () => {
         confirmLoading={isUpdating}
         width={600}
       >
-        <Form form={incidentForm} layout="vertical" onFinish={handleIncidentSubmit}>
+        <Form
+          form={incidentForm}
+          layout="vertical"
+          onFinish={handleIncidentSubmit}
+        >
           <Form.Item
             name="status"
             label="Tenant Circuit State"
             rules={[{ required: true }]}
           >
             <Select>
-              <Select.Option value="ACTIVE">ACTIVE (Normal Operation)</Select.Option>
-              <Select.Option value="DEGRADED">DEGRADED (Elevated Latency / Issues)</Select.Option>
-              <Select.Option value="INCIDENT">INCIDENT (Severe Outage / Accident)</Select.Option>
-              <Select.Option value="MAINTENANCE">MAINTENANCE (Emergency Maintenance Mode)</Select.Option>
-              <Select.Option value="SUSPENDED">SUSPENDED (Compute Scaled to 0)</Select.Option>
+              <Select.Option value="ACTIVE">
+                ACTIVE (Normal Operation)
+              </Select.Option>
+              <Select.Option value="DEGRADED">
+                DEGRADED (Elevated Latency / Issues)
+              </Select.Option>
+              <Select.Option value="INCIDENT">
+                INCIDENT (Severe Outage / Accident)
+              </Select.Option>
+              <Select.Option value="MAINTENANCE">
+                MAINTENANCE (Emergency Maintenance Mode)
+              </Select.Option>
+              <Select.Option value="SUSPENDED">
+                SUSPENDED (Compute Scaled to 0)
+              </Select.Option>
             </Select>
           </Form.Item>
 
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="severity" label="Severity Level" initialValue="SEV-2">
+              <Form.Item
+                name="severity"
+                label="Severity Level"
+                initialValue="SEV-2"
+              >
                 <Select>
-                  <Select.Option value="SEV-1">SEV-1 Critical Outage</Select.Option>
-                  <Select.Option value="SEV-2">SEV-2 Major Degradation</Select.Option>
-                  <Select.Option value="SEV-3">SEV-3 Minor Impairment</Select.Option>
-                  <Select.Option value="Notice">Operational Notice</Select.Option>
+                  <Select.Option value="SEV-1">
+                    SEV-1 Critical Outage
+                  </Select.Option>
+                  <Select.Option value="SEV-2">
+                    SEV-2 Major Degradation
+                  </Select.Option>
+                  <Select.Option value="SEV-3">
+                    SEV-3 Minor Impairment
+                  </Select.Option>
+                  <Select.Option value="Notice">
+                    Operational Notice
+                  </Select.Option>
                 </Select>
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="incident_state" label="Resolution State" initialValue="INVESTIGATING">
+              <Form.Item
+                name="incident_state"
+                label="Resolution State"
+                initialValue="INVESTIGATING"
+              >
                 <Select>
-                  <Select.Option value="INVESTIGATING">INVESTIGATING</Select.Option>
+                  <Select.Option value="INVESTIGATING">
+                    INVESTIGATING
+                  </Select.Option>
                   <Select.Option value="IDENTIFIED">IDENTIFIED</Select.Option>
                   <Select.Option value="MITIGATING">MITIGATING</Select.Option>
                   <Select.Option value="RESOLVED">RESOLVED</Select.Option>
@@ -1465,21 +1894,35 @@ export const TenantShow: React.FC = () => {
           <Form.Item
             name="title"
             label="Incident Title / Summary"
-            rules={[{ required: true, message: "Please provide incident title" }]}
+            rules={[
+              { required: true, message: "Please provide incident title" },
+            ]}
           >
             <Input placeholder="e.g. High memory utilization in Nextcloud worker container" />
           </Form.Item>
 
           <Form.Item name="description" label="Incident Details">
-            <Input.TextArea rows={2} placeholder="Explain observed symptoms, error codes, and customer impact" />
+            <Input.TextArea
+              rows={2}
+              placeholder="Explain observed symptoms, error codes, and customer impact"
+            />
           </Form.Item>
 
           <Form.Item name="root_cause" label="Root Cause Analysis">
-            <Input.TextArea rows={2} placeholder="e.g. DB connection leak, EFS IOPS burst capacity exhausted, large sync storm" />
+            <Input.TextArea
+              rows={2}
+              placeholder="e.g. DB connection leak, EFS IOPS burst capacity exhausted, large sync storm"
+            />
           </Form.Item>
 
-          <Form.Item name="action_taken" label="Remediation / Corrective Action">
-            <Input.TextArea rows={2} placeholder="e.g. Triggered container task rolling restart, scaled resources, isolated tenant traffic" />
+          <Form.Item
+            name="action_taken"
+            label="Remediation / Corrective Action"
+          >
+            <Input.TextArea
+              rows={2}
+              placeholder="e.g. Triggered container task rolling restart, scaled resources, isolated tenant traffic"
+            />
           </Form.Item>
         </Form>
       </Modal>
@@ -1497,7 +1940,11 @@ export const TenantShow: React.FC = () => {
         onOk={() => accountForm.submit()}
         confirmLoading={isUpdating}
       >
-        <Form form={accountForm} layout="vertical" onFinish={handleCreateAccount}>
+        <Form
+          form={accountForm}
+          layout="vertical"
+          onFinish={handleCreateAccount}
+        >
           <Form.Item
             name="username"
             label="Username"
@@ -1517,20 +1964,34 @@ export const TenantShow: React.FC = () => {
           <Form.Item
             name="email"
             label="Email Address"
-            rules={[{ required: true, type: "email", message: "Valid email is required" }]}
+            rules={[
+              {
+                required: true,
+                type: "email",
+                message: "Valid email is required",
+              },
+            ]}
           >
             <Input placeholder="e.g. john@tenant.com" />
           </Form.Item>
 
           <Form.Item name="role" label="Account Role" initialValue="User">
             <Select>
-              <Select.Option value="TenantAdmin">Tenant Administrator</Select.Option>
+              <Select.Option value="TenantAdmin">
+                Tenant Administrator
+              </Select.Option>
               <Select.Option value="User">Standard User</Select.Option>
-              <Select.Option value="ServiceAccount">Service Account / Machine</Select.Option>
+              <Select.Option value="ServiceAccount">
+                Service Account / Machine
+              </Select.Option>
             </Select>
           </Form.Item>
 
-          <Form.Item name="quota_gb" label="Storage Quota (GB)" initialValue={25}>
+          <Form.Item
+            name="quota_gb"
+            label="Storage Quota (GB)"
+            initialValue={25}
+          >
             <Select>
               <Select.Option value={10}>10 GB</Select.Option>
               <Select.Option value={25}>25 GB</Select.Option>
@@ -1548,7 +2009,11 @@ export const TenantShow: React.FC = () => {
         onOk={() => setResetPasswordModalVisible(false)}
         onCancel={() => setResetPasswordModalVisible(false)}
         footer={[
-          <Button key="ok" type="primary" onClick={() => setResetPasswordModalVisible(false)}>
+          <Button
+            key="ok"
+            type="primary"
+            onClick={() => setResetPasswordModalVisible(false)}
+          >
             Done
           </Button>,
         ]}
@@ -1565,7 +2030,15 @@ export const TenantShow: React.FC = () => {
             <strong>{tempPasswordInfo?.username}</strong>
           </Descriptions.Item>
           <Descriptions.Item label="Temporary Password">
-            <Paragraph copyable style={{ margin: 0, fontWeight: 700, color: "#ec7211", fontSize: 16 }}>
+            <Paragraph
+              copyable
+              style={{
+                margin: 0,
+                fontWeight: 700,
+                color: "#ec7211",
+                fontSize: 16,
+              }}
+            >
               {tempPasswordInfo?.password}
             </Paragraph>
           </Descriptions.Item>
@@ -1595,11 +2068,7 @@ export const TenantShow: React.FC = () => {
           description={`Cloning '${tenantId}' provisions an isolated staging sandbox with dedicated PostgreSQL database 'nc_<target>', dedicated S3 prefix, dedicated EFS mount path, and container service.`}
           style={{ marginBottom: 16 }}
         />
-        <Form
-          form={cloneForm}
-          layout="vertical"
-          onFinish={handleCloneTenant}
-        >
+        <Form form={cloneForm} layout="vertical" onFinish={handleCloneTenant}>
           <Form.Item label="Source Tenant Template">
             <Tag color="blue" style={{ fontSize: 13, padding: "2px 8px" }}>
               {tenantId} ({domain})
@@ -1611,7 +2080,10 @@ export const TenantShow: React.FC = () => {
             label="Sandbox Tenant Identifier (Slug)"
             rules={[
               { required: true, message: "Sandbox tenant ID is required" },
-              { pattern: /^[a-z0-9-]+$/, message: "Lowercase letters, numbers, and hyphens only" },
+              {
+                pattern: /^[a-z0-9-]+$/,
+                message: "Lowercase letters, numbers, and hyphens only",
+              },
             ]}
           >
             <Input placeholder="e.g. acme-staging, marvel-sandbox" />
@@ -1624,23 +2096,19 @@ export const TenantShow: React.FC = () => {
             <Input placeholder="e.g. acme-staging.png261.dev" />
           </Form.Item>
 
-          <Form.Item
-            name="admin_email"
-            label="Sandbox Admin Contact Email"
-          >
+          <Form.Item name="admin_email" label="Sandbox Admin Contact Email">
             <Input type="email" placeholder="e.g. admin@acme-staging.com" />
           </Form.Item>
 
-          <Form.Item
-            name="quota_gb"
-            label="Storage Quota (GB)"
-          >
+          <Form.Item name="quota_gb" label="Storage Quota (GB)">
             <Input type="number" placeholder="50" />
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 0, textAlign: "right" }}>
             <Space>
-              <Button onClick={() => setCloneModalVisible(false)}>Cancel</Button>
+              <Button onClick={() => setCloneModalVisible(false)}>
+                Cancel
+              </Button>
               <Button
                 type="primary"
                 htmlType="submit"
