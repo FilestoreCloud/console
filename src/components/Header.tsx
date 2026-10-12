@@ -106,7 +106,7 @@ export const CustomHeader: React.FC = () => {
       <Space size="middle" align="center">
         <span style={{ fontSize: 24 }}>☁️</span>
         <Text strong style={{ color: "#ffffff", fontSize: 16 }}>
-          Nextcloud SaaS Control Plane
+          Filestore Cloud Console
         </Text>
         <Tag
           color="default"

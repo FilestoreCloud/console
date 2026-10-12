@@ -1,8 +1,8 @@
 {
-  "name": "nextcloud-saas-control-plane",
+  "name": "@filestorecloud/console",
   "version": "2.0.0",
   "private": true,
-  "description": "Nextcloud Multi-Tenant SaaS — Enterprise Super Admin Portal powered by Refine & Ant Design",
+  "description": "Filestore Cloud Multi-Tenant SaaS — Enterprise Super Admin Console powered by Refine & Ant Design",
   "type": "module",
   "scripts": {
     "dev": "vite",
