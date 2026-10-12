@@ -46,7 +46,7 @@ jobs:
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN || 'arn:aws:iam::649519997247:role/nextcloud-github-actions-deploy-role' }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN || 'arn:aws:iam::649519997247:role/coderpush-github-actions-role' }}
           aws-region: ${{ vars.AWS_REGION || 'ap-southeast-1' }}
           audience: sts.amazonaws.com
 
