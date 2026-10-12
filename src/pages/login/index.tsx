@@ -67,8 +67,11 @@ async function computeTotpInBrowser(secretBase32: string): Promise<string> {
   }
 }
 
+const API_BASE = (import.meta.env.VITE_API_URL as string) || "/api";
+
 export const LoginPage: React.FC = () => {
   const { mutate: login, isLoading } = useLogin();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [form] = Form.useForm();
   const [mfaForm] = Form.useForm();
 
@@ -103,27 +106,46 @@ export const LoginPage: React.FC = () => {
 
   const handleCredentialsSubmit = async (values: any) => {
     setErrorMessage(null);
-    login(
-      { email: values.email, password: values.password },
-      {
-        onSuccess: (data: any) => {
-          if (data?.mfaData) {
-            setPendingMfa(data.mfaData);
-            setStep("mfa");
-            mfaForm.resetFields();
-          }
-        },
-        onError: (err: any) => {
-          if (err?.name === "MFA_REQUIRED") {
-            // Already handled via mfaData return
-            return;
-          }
-          setErrorMessage(
-            err?.message || "Invalid administrative credentials.",
-          );
-        },
-      },
-    );
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(API_BASE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "LOGIN",
+          username: values.email,
+          password: values.password,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMessage(data.error || "Invalid administrative credentials.");
+        return;
+      }
+      if (data.status === "MFA_REQUIRED") {
+        setPendingMfa({
+          challenge_token: data.challenge_token,
+          user: data.user,
+          role: data.role,
+          demo_totp_secret: data.demo_totp_secret,
+        });
+        setStep("mfa");
+        mfaForm.resetFields();
+      } else if (data.token) {
+        sessionStorage.setItem("saas_admin_token", data.token);
+        sessionStorage.setItem("saas_admin_email", data.user || values.email);
+        sessionStorage.setItem("saas_admin_role", data.role || "SuperAdmin");
+        window.location.href = "/tenants";
+      } else {
+        setErrorMessage(data.error || data.message || "Login failed.");
+      }
+    } catch (err: any) {
+      setErrorMessage(
+        err.message || "Failed to communicate with control plane.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleMfaSubmit = async (values: any) => {
@@ -239,7 +261,7 @@ export const LoginPage: React.FC = () => {
                 htmlType="submit"
                 size="large"
                 block
-                loading={isLoading}
+                loading={isLoading || isSubmitting}
                 style={{
                   backgroundColor: "#ec7211",
                   borderColor: "#ec7211",
