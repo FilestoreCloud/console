@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useCustom } from "@refinedev/core";
+import { useCustom, useNavigation } from "@refinedev/core";
 import {
   Card,
   Row,
@@ -18,14 +18,17 @@ import {
   CloudUploadOutlined,
   ApartmentOutlined,
   LinkOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 
 export const TelemetryDashboard: React.FC = () => {
+  const { show } = useNavigation();
   const [intervalSec, setIntervalSec] = useState<number>(15);
   const [countdown, setCountdown] = useState<number>(15);
   const [lastUpdate, setLastUpdate] = useState<string>("--:--:--");
+  const [selectedTenant, setSelectedTenant] = useState<string>("fleet");
 
   // Fetch widgets
   const {
@@ -58,10 +61,28 @@ export const TelemetryDashboard: React.FC = () => {
     config: { payload: { action: "WIDGET", widget: "alb_traffic" } },
   });
 
+  const {
+    data: wTenant,
+    refetch: refetchTenant,
+    isFetching: loadingTenant,
+  } = useCustom({
+    url: "/api",
+    method: "post",
+    config: {
+      payload: { action: "WIDGET", widget: `tenant_${selectedTenant}` },
+    },
+    queryOptions: {
+      enabled: selectedTenant !== "fleet",
+    },
+  });
+
   const refreshAll = () => {
     refetchSaas();
     refetchEcs();
     refetchAlb();
+    if (selectedTenant !== "fleet") {
+      refetchTenant();
+    }
     setLastUpdate(new Date().toTimeString().split(" ")[0]);
     setCountdown(intervalSec);
   };
@@ -83,6 +104,7 @@ export const TelemetryDashboard: React.FC = () => {
   const saasImg = (wSaas?.data as any)?.image_base64;
   const ecsImg = (wEcs?.data as any)?.image_base64;
   const albImg = (wAlb?.data as any)?.image_base64;
+  const tenantImg = (wTenant?.data as any)?.image_base64;
 
   return (
     <div>
@@ -114,12 +136,22 @@ export const TelemetryDashboard: React.FC = () => {
           <Col>
             <Space>
               <Select
+                value={selectedTenant}
+                onChange={(val) => setSelectedTenant(val)}
+                style={{ width: 180 }}
+                options={[
+                  { value: "fleet", label: "🌐 All Tenants (Fleet)" },
+                  { value: "acme", label: "🏢 Acme Corp (Tenant)" },
+                  { value: "marvel", label: "🦸 Marvel Ent (Tenant)" },
+                ]}
+              />
+              <Select
                 value={intervalSec}
                 onChange={(val) => {
                   setIntervalSec(val);
                   setCountdown(val);
                 }}
-                style={{ width: 150 }}
+                style={{ width: 140 }}
                 options={[
                   { value: 15, label: "Every 15s (Live)" },
                   { value: 30, label: "Every 30s" },
@@ -143,6 +175,64 @@ export const TelemetryDashboard: React.FC = () => {
           </Col>
         </Row>
       </Card>
+
+      {/* Tenant-Specific Dedicated Telemetry View if selected */}
+      {selectedTenant !== "fleet" && (
+        <Card
+          title={
+            <Space>
+              <LineChartOutlined style={{ color: "#ec7211" }} />
+              <span>
+                Dedicated Metrics for Tenant:{" "}
+                <strong>{selectedTenant.toUpperCase()}</strong>
+              </span>
+              <Tag color="orange">service-{selectedTenant}</Tag>
+            </Space>
+          }
+          extra={
+            <Button
+              type="primary"
+              ghost
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() => show("tenants", `${selectedTenant}?tab=metrics`)}
+            >
+              Open Full Tenant Metrics &amp; Details
+            </Button>
+          }
+          bordered={false}
+          style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+        >
+          <div
+            style={{
+              minHeight: 280,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#f8fafc",
+              borderRadius: 6,
+              overflow: "hidden",
+            }}
+          >
+            {loadingTenant ? (
+              <Spin />
+            ) : tenantImg ? (
+              <img
+                src={`data:image/png;base64 logic,${tenantImg}`.replace(
+                  "data:image/png;base64 logic,",
+                  "data:image/png;base64,",
+                )}
+                alt={`Tenant ${selectedTenant} Telemetry`}
+                style={{ width: "100%", height: "auto", maxHeight: 380 }}
+              />
+            ) : (
+              <Text type="secondary">
+                Loading live metrics widget for tenant {selectedTenant}...
+              </Text>
+            )}
+          </div>
+        </Card>
+      )}
 
       {/* 2. CloudWatch Native Widgets */}
       <Row gutter={[16, 16]}>

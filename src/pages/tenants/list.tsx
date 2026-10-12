@@ -47,6 +47,7 @@ import {
   AlertOutlined,
   ClockCircleOutlined,
   BranchesOutlined,
+  LineChartOutlined,
 } from "@ant-design/icons";
 import { CreateTenantModal } from "./create-modal";
 import { dataProvider } from "../../providers/dataProvider";
@@ -399,6 +400,14 @@ export const TenantList: React.FC = () => {
               onClick={() => show("tenants", record.tenant_id)}
             >
               Manage
+            </Button>
+
+            <Button
+              size="small"
+              icon={<LineChartOutlined style={{ color: "#ec7211" }} />}
+              onClick={() => show("tenants", `${record.tenant_id}?tab=metrics`)}
+            >
+              Metrics
             </Button>
 
             <Button
