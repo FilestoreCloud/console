@@ -6,8 +6,6 @@ import {
   ReloadOutlined,
   ZoomInOutlined,
   ZoomOutOutlined,
-  PictureOutlined,
-  FundViewOutlined,
   InfoCircleOutlined,
 } from "@ant-design/icons";
 
@@ -27,7 +25,6 @@ interface InteractiveMetricsChartProps {
   tenantId: string;
   clusterName?: string;
   history?: TelemetryPoint[];
-  widgetImageBase64?: string | null;
   autoscalingTargetCpu?: number;
   intervalSec?: number;
   countdown?: number;
@@ -40,7 +37,6 @@ export const InteractiveMetricsChart: React.FC<
   tenantId,
   clusterName = "prod-nextcloud-cluster",
   history = [],
-  widgetImageBase64,
   autoscalingTargetCpu = 70.0,
   intervalSec = 15,
   countdown = 15,
@@ -48,9 +44,6 @@ export const InteractiveMetricsChart: React.FC<
 }) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.EChartsType | null>(null);
-  const [viewMode, setViewMode] = useState<"interactive" | "widget">(
-    "interactive",
-  );
   const [zoomPreset, setZoomPreset] = useState<"all" | "1h" | "30m">("all");
 
   // Ensure chronological ordering (oldest -> newest)
@@ -58,7 +51,7 @@ export const InteractiveMetricsChart: React.FC<
 
   // Initialize ECharts instance
   useEffect(() => {
-    if (viewMode !== "interactive" || !chartRef.current) return;
+    if (!chartRef.current) return;
 
     if (!chartInstance.current) {
       chartInstance.current = echarts.init(chartRef.current, undefined, {
@@ -339,29 +332,14 @@ export const InteractiveMetricsChart: React.FC<
       }
       extra={
         <Space wrap>
-          {viewMode === "interactive" && (
-            <Radio.Group
-              size="small"
-              value={zoomPreset}
-              onChange={(e) => handleZoomPresetChange(e.target.value)}
-            >
-              <Radio.Button value="30m">Last 30m</Radio.Button>
-              <Radio.Button value="1h">Last 1h</Radio.Button>
-              <Radio.Button value="all">Full Range</Radio.Button>
-            </Radio.Group>
-          )}
-
           <Radio.Group
             size="small"
-            value={viewMode}
-            onChange={(e) => setViewMode(e.target.value)}
+            value={zoomPreset}
+            onChange={(e) => handleZoomPresetChange(e.target.value)}
           >
-            <Radio.Button value="interactive">
-              <FundViewOutlined /> Interactive Chart
-            </Radio.Button>
-            <Radio.Button value="widget">
-              <PictureOutlined /> CloudWatch Widget
-            </Radio.Button>
+            <Radio.Button value="30m">Last 30m</Radio.Button>
+            <Radio.Button value="1h">Last 1h</Radio.Button>
+            <Radio.Button value="all">Full Range</Radio.Button>
           </Radio.Group>
 
           {onRefresh && (
@@ -374,83 +352,55 @@ export const InteractiveMetricsChart: React.FC<
       bordered={false}
       style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
     >
-      {viewMode === "interactive" ? (
-        <div>
-          <div
-            ref={chartRef}
-            style={{
-              width: "100%",
-              height: 380,
-            }}
-          />
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: 4,
-              padding: "0 12px",
-            }}
-          >
-            <Text type="secondary" style={{ fontSize: 11 }}>
-              💡 <strong>Interaction guide:</strong> Hover for tooltip values •
-              Mouse wheel to <strong>Zoom In/Out</strong> • Drag bottom slider
-              to pan time window • Click legend to show/hide metrics.
-            </Text>
-            <Space size={8}>
-              <Button
-                size="small"
-                type="text"
-                icon={<ZoomInOutlined />}
-                onClick={() => {
-                  chartInstance.current?.dispatchAction({
-                    type: "dataZoom",
-                    dataZoomIndex: 0,
-                    start: 30,
-                    end: 70,
-                  });
-                }}
-              >
-                Center Zoom
-              </Button>
-              <Button
-                size="small"
-                type="text"
-                icon={<ZoomOutOutlined />}
-                onClick={() => handleZoomPresetChange("all")}
-              >
-                Reset Zoom
-              </Button>
-            </Space>
-          </div>
-        </div>
-      ) : widgetImageBase64 ? (
-        <div style={{ textAlign: "center", padding: "12px 0" }}>
-          <img
-            src={`data:image/png;base64,${widgetImageBase64}`}
-            alt={`CloudWatch Metrics for Tenant ${tenantId}`}
-            style={{
-              maxWidth: "100%",
-              height: "auto",
-              borderRadius: 6,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-            }}
-          />
-          <div style={{ marginTop: 8 }}>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              Native Amazon CloudWatch Golden Widget generated for ECS Service{" "}
-              <code>service-{tenantId}</code> in cluster{" "}
-              <code>{clusterName}</code>
-            </Text>
-          </div>
-        </div>
-      ) : (
-        <div style={{ textAlign: "center", padding: 32 }}>
-          <Text type="secondary">
-            CloudWatch static widget image is currently unavailable.
+      <div>
+        <div
+          ref={chartRef}
+          style={{
+            width: "100%",
+            height: 380,
+          }}
+        />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: 4,
+            padding: "0 12px",
+          }}
+        >
+          <Text type="secondary" style={{ fontSize: 11 }}>
+            💡 <strong>Interaction guide:</strong> Hover for tooltip values •
+            Mouse wheel to <strong>Zoom In/Out</strong> • Drag bottom slider to
+            pan time window • Click legend to show/hide metrics.
           </Text>
+          <Space size={8}>
+            <Button
+              size="small"
+              type="text"
+              icon={<ZoomInOutlined />}
+              onClick={() => {
+                chartInstance.current?.dispatchAction({
+                  type: "dataZoom",
+                  dataZoomIndex: 0,
+                  start: 30,
+                  end: 70,
+                });
+              }}
+            >
+              Center Zoom
+            </Button>
+            <Button
+              size="small"
+              type="text"
+              icon={<ZoomOutOutlined />}
+              onClick={() => handleZoomPresetChange("all")}
+            >
+              Reset Zoom
+            </Button>
+          </Space>
         </div>
-      )}
+      </div>
     </Card>
   );
 };

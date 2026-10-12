@@ -864,7 +864,6 @@ export const TenantShow: React.FC = () => {
                         metrics.cluster_name || "prod-nextcloud-cluster"
                       }
                       history={metrics.history || []}
-                      widgetImageBase64={metrics.widget_image_base64}
                       autoscalingTargetCpu={
                         metrics.autoscaling_target_cpu || 70.0
                       }
