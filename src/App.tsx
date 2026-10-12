@@ -1,14 +1,13 @@
-import React from "react";
+import React, { useState, Suspense } from "react";
 import { Refine, Authenticated } from "@refinedev/core";
 import {
   ThemedLayoutV2,
   notificationProvider,
   ThemedSiderV2,
 } from "@refinedev/antd";
-import { ConfigProvider, App as AntdApp } from "antd";
+import { ConfigProvider, App as AntdApp, theme, Spin } from "antd";
 import routerBindings, {
   CatchAllNavigate,
-  NavigateToResource,
   UnsavedChangesNotifier,
 } from "@refinedev/react-router-v6";
 import {
@@ -30,18 +29,60 @@ import { dataProvider } from "./providers/dataProvider";
 import { accessControlProvider } from "./providers/accessControlProvider";
 
 import { CustomHeader } from "./components/Header";
-import { LoginPage } from "./pages/login";
-import { TenantList } from "./pages/tenants/list";
-import { TenantShow } from "./pages/tenants/show";
-import { AuditLogList } from "./pages/audit-logs/list";
-import { TelemetryDashboard } from "./pages/telemetry";
-import { WebhooksSettings } from "./pages/settings/webhooks";
+
+// Lazy-loaded routes for code splitting and instant initial page load
+const LoginPage = React.lazy(() =>
+  import("./pages/login").then((m) => ({ default: m.LoginPage })),
+);
+const TenantList = React.lazy(() =>
+  import("./pages/tenants/list").then((m) => ({ default: m.TenantList })),
+);
+const TenantShow = React.lazy(() =>
+  import("./pages/tenants/show").then((m) => ({ default: m.TenantShow })),
+);
+const AuditLogList = React.lazy(() =>
+  import("./pages/audit-logs/list").then((m) => ({ default: m.AuditLogList })),
+);
+const TelemetryDashboard = React.lazy(() =>
+  import("./pages/telemetry").then((m) => ({ default: m.TelemetryDashboard })),
+);
+const WebhooksSettings = React.lazy(() =>
+  import("./pages/settings/webhooks").then((m) => ({
+    default: m.WebhooksSettings,
+  })),
+);
+
+const LoadingFallback: React.FC = () => (
+  <div
+    style={{
+      minHeight: 360,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <Spin size="large" />
+  </div>
+);
 
 const App: React.FC = () => {
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    return localStorage.getItem("filestore_theme") === "dark";
+  });
+
+  const handleToggleTheme = () => {
+    setIsDark((prev) => {
+      const next = !prev;
+      localStorage.setItem("filestore_theme", next ? "dark" : "light");
+      return next;
+    });
+  };
+
   return (
     <BrowserRouter>
       <ConfigProvider
         theme={{
+          algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
           token: {
             colorPrimary: "#ec7211",
             colorInfo: "#0284c7",
@@ -98,63 +139,70 @@ const App: React.FC = () => {
               warnWhenUnsavedChanges: true,
             }}
           >
-            <Routes>
-              {/* Authenticated Layout */}
-              <Route
-                element={
-                  <Authenticated
-                    key="authenticated-routes"
-                    fallback={<CatchAllNavigate to="/login" />}
-                  >
-                    <ThemedLayoutV2
-                      Header={() => <CustomHeader />}
-                      Sider={(props) => (
-                        <ThemedSiderV2
-                          {...props}
-                          Title={({ collapsed }) => (
-                            <div
-                              style={{
-                                padding: "12px",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 8,
-                              }}
-                            >
-                              <span style={{ fontSize: 20 }}>☁️</span>
-                              {!collapsed && (
-                                <strong
-                                  style={{ color: "#ffffff", fontSize: 14 }}
-                                >
-                                  Nextcloud SaaS
-                                </strong>
-                              )}
-                            </div>
-                          )}
-                        />
-                      )}
-                    >
-                      <Outlet />
-                    </ThemedLayoutV2>
-                  </Authenticated>
-                }
-              >
-                <Route index element={<Navigate to="/tenants" replace />} />
-                <Route path="/tenants" element={<TenantList />} />
-                <Route path="/tenants/:id" element={<TenantShow />} />
-                <Route path="/audit-logs" element={<AuditLogList />} />
-                <Route path="/telemetry" element={<TelemetryDashboard />} />
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                {/* Authenticated Layout */}
                 <Route
-                  path="/settings/webhooks"
-                  element={<WebhooksSettings />}
-                />
-              </Route>
+                  element={
+                    <Authenticated
+                      key="authenticated-routes"
+                      fallback={<CatchAllNavigate to="/login" />}
+                    >
+                      <ThemedLayoutV2
+                        Header={() => (
+                          <CustomHeader
+                            isDark={isDark}
+                            onToggleTheme={handleToggleTheme}
+                          />
+                        )}
+                        Sider={(props) => (
+                          <ThemedSiderV2
+                            {...props}
+                            Title={({ collapsed }) => (
+                              <div
+                                style={{
+                                  padding: "12px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 8,
+                                }}
+                              >
+                                <span style={{ fontSize: 20 }}>☁️</span>
+                                {!collapsed && (
+                                  <strong
+                                    style={{ color: "#ffffff", fontSize: 14 }}
+                                  >
+                                    Filestore Cloud
+                                  </strong>
+                                )}
+                              </div>
+                            )}
+                          />
+                        )}
+                      >
+                        <Outlet />
+                      </ThemedLayoutV2>
+                    </Authenticated>
+                  }
+                >
+                  <Route index element={<Navigate to="/tenants" replace />} />
+                  <Route path="/tenants" element={<TenantList />} />
+                  <Route path="/tenants/:id" element={<TenantShow />} />
+                  <Route path="/audit-logs" element={<AuditLogList />} />
+                  <Route path="/telemetry" element={<TelemetryDashboard />} />
+                  <Route
+                    path="/settings/webhooks"
+                    element={<WebhooksSettings />}
+                  />
+                </Route>
 
-              {/* Login Route */}
-              <Route path="/login" element={<LoginPage />} />
+                {/* Login Route */}
+                <Route path="/login" element={<LoginPage />} />
 
-              {/* Fallback */}
-              <Route path="*" element={<Navigate to="/tenants" replace />} />
-            </Routes>
+                {/* Fallback */}
+                <Route path="*" element={<Navigate to="/tenants" replace />} />
+              </Routes>
+            </Suspense>
             <UnsavedChangesNotifier />
           </Refine>
         </AntdApp>

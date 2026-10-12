@@ -20,11 +20,21 @@ import {
   ToolFilled,
   EyeFilled,
   LockFilled,
+  BulbOutlined,
+  BulbFilled,
 } from "@ant-design/icons";
 
 const { Text } = Typography;
 
-export const CustomHeader: React.FC = () => {
+export interface HeaderProps {
+  isDark?: boolean;
+  onToggleTheme?: () => void;
+}
+
+export const CustomHeader: React.FC<HeaderProps> = ({
+  isDark,
+  onToggleTheme,
+}) => {
   const { data: user } = useGetIdentity<any>();
   const { mutate: logout } = useLogout();
 
@@ -139,6 +149,27 @@ export const CustomHeader: React.FC = () => {
         >
           CloudWatch Dashboard ↗
         </Button>
+
+        {onToggleTheme && (
+          <Button
+            size="small"
+            icon={
+              isDark ? (
+                <BulbFilled style={{ color: "#faad14" }} />
+              ) : (
+                <BulbOutlined style={{ color: "#ffffff" }} />
+              )
+            }
+            onClick={onToggleTheme}
+            style={{
+              backgroundColor: isDark ? "#1e293b" : "#334155",
+              borderColor: "#475569",
+              color: "#ffffff",
+            }}
+          >
+            {isDark ? "Dark" : "Light"}
+          </Button>
+        )}
 
         {getRoleBadge()}
 

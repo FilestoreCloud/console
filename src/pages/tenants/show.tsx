@@ -859,23 +859,25 @@ export const TenantShow: React.FC = () => {
                   </Descriptions>
                 </Card>
 
-                {/* Dual-Container Architecture Cards */}
+                {/* Dedicated Application Container Card */}
                 <Row gutter={[16, 16]}>
-                  {/* Container 1: Nextcloud App */}
-                  <Col xs={24} md={12}>
+                  <Col xs={24}>
                     <Card
                       title={
                         <Space>
                           <CloudServerOutlined style={{ color: "#ec7211" }} />
-                          <span>Container 1: Nextcloud 30 Enterprise App</span>
+                          <span>
+                            Dedicated Application Container (Nextcloud
+                            Enterprise)
+                          </span>
                         </Space>
                       }
                       size="small"
                       bordered={false}
                       style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
                     >
-                      <Descriptions column={1} size="small">
-                        <Descriptions.Item label="Image URI">
+                      <Descriptions column={2} size="small">
+                        <Descriptions.Item label="Image URI" span={2}>
                           <Paragraph
                             copyable
                             style={{
@@ -902,50 +904,6 @@ export const TenantShow: React.FC = () => {
                         </Descriptions.Item>
                         <Descriptions.Item label="Resource Usage">
                           <Text>CPU: 14.2% | Memory: 38.6% (395 MB)</Text>
-                        </Descriptions.Item>
-                      </Descriptions>
-                    </Card>
-                  </Col>
-
-                  {/* Container 2: LiteLLM Bedrock Bridge Sidecar */}
-                  <Col xs={24} md={12}>
-                    <Card
-                      title={
-                        <Space>
-                          <RobotOutlined style={{ color: "#8b5cf6" }} />
-                          <span>
-                            Container 2: LiteLLM Bedrock AI Bridge (Sidecar)
-                          </span>
-                        </Space>
-                      }
-                      size="small"
-                      bordered={false}
-                      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-                    >
-                      <Descriptions column={1} size="small">
-                        <Descriptions.Item label="Bridge Proxy">
-                          <Tag color="purple">
-                            http://127.0.0.1:4000 (OpenAI Compat)
-                          </Tag>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Bedrock Model">
-                          <Tag color="geekblue">
-                            anthropic.claude-3-5-sonnet-20241022-v2:0
-                          </Tag>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Bridge Latency">
-                          <Text>192 ms average response time</Text>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Security Isolation">
-                          <Tag color="green">
-                            IAM Task Role (No Static API Keys)
-                          </Tag>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Nextcloud AI Assistant">
-                          <Badge
-                            status="processing"
-                            text="Active & Prompt Streaming Enabled"
-                          />
                         </Descriptions.Item>
                       </Descriptions>
                     </Card>
@@ -1628,14 +1586,10 @@ export const TenantShow: React.FC = () => {
                             onChange={(val) => setLogsContainer(val)}
                             style={{ width: 170 }}
                             options={[
-                              { value: "all", label: "All Containers" },
+                              { value: "all", label: "All Logs" },
                               {
                                 value: "nextcloud-app",
                                 label: "Nextcloud 30 App",
-                              },
-                              {
-                                value: "litellm-sidecar",
-                                label: "LiteLLM Bedrock Bridge",
                               },
                             ]}
                           />
