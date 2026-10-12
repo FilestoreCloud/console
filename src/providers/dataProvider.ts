@@ -1,6 +1,6 @@
 import { DataProvider } from "@refinedev/core";
 
-const API_BASE = "/api";
+const API_BASE = (import.meta.env.VITE_API_URL as string) || "/api";
 
 function getHeaders(): HeadersInit {
   const token = sessionStorage.getItem("saas_admin_token");

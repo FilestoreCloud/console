@@ -16,30 +16,6 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
-    chunkSizeWarningLimit: 1200,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes("node_modules")) {
-            if (
-              id.includes("/react/") ||
-              id.includes("/react-dom/") ||
-              id.includes("/react-router/") ||
-              id.includes("/react-router-dom/")
-            ) {
-              return "vendor-react";
-            }
-            if (
-              id.includes("antd") ||
-              id.includes("@ant-design") ||
-              id.includes("@refinedev")
-            ) {
-              return "vendor-ui";
-            }
-            return "vendor-libs";
-          }
-        },
-      },
-    },
+    chunkSizeWarningLimit: 2000,
   },
 });
