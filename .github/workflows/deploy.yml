@@ -1,0 +1,136 @@
+name: Deploy Super Admin Portal
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target Environment"
+        required: true
+        default: "prod"
+        type: choice
+        options:
+          - prod
+          - dev
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-superadmin-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy to S3 + CloudFront
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Production Bundle
+        run: npm run build
+
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN || 'arn:aws:iam::649519997247:role/nextcloud-github-actions-deploy-role' }}
+          aws-region: ${{ vars.AWS_REGION || 'ap-southeast-1' }}
+          audience: sts.amazonaws.com
+
+      - name: Resolve Infrastructure Parameters
+        id: infra
+        run: |
+          ENV="${{ inputs.environment || 'prod' }}"
+          REGION="${{ vars.AWS_REGION || 'ap-southeast-1' }}"
+          echo "Resolving parameters for environment: ${ENV} in ${REGION}..."
+
+          # 1. Resolve S3 Bucket Name
+          S3_BUCKET=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/admin-web-bucket" --query "Parameter.Value" --output text --region "${REGION}" 2>/dev/null || echo "")
+          if [ -z "${S3_BUCKET}" ]; then
+            ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text 2>/dev/null || echo "649519997247")
+            S3_BUCKET="${ENV}-nextcloud-admin-web-${ACCOUNT_ID}"
+          fi
+
+          # 2. Resolve CloudFront Distribution ID
+          DIST_ID=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/cloudfront-distribution-id" --query "Parameter.Value" --output text --region "${REGION}" 2>/dev/null || echo "")
+          if [ -z "${DIST_ID}" ]; then
+            DIST_ID=$(aws cloudformation describe-stacks --stack-name "${ENV}-nextcloud-06-control-plane" --query "Stacks[0].Outputs[?OutputKey=='AdminWebDistributionId'].OutputValue" --output text --region "${REGION}" 2>/dev/null || echo "")
+          fi
+
+          # 3. Resolve CloudFront Domain / URL
+          CF_URL=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/admin-web-url" --query "Parameter.Value" --output text --region "${REGION}" 2>/dev/null || echo "")
+          if [ -z "${CF_URL}" ] && [ -n "${DIST_ID}" ]; then
+            CF_DOMAIN=$(aws cloudfront get-distribution --id "${DIST_ID}" --query "Distribution.DomainName" --output text 2>/dev/null || echo "")
+            [ -n "${CF_DOMAIN}" ] && CF_URL="https://${CF_DOMAIN}"
+          fi
+
+          echo "s3_bucket=${S3_BUCKET}" >> "$GITHUB_OUTPUT"
+          echo "distribution_id=${DIST_ID}" >> "$GITHUB_OUTPUT"
+          echo "cloudfront_url=${CF_URL}" >> "$GITHUB_OUTPUT"
+
+          echo "✓ S3 Bucket: ${S3_BUCKET}"
+          echo "✓ CloudFront Distribution ID: ${DIST_ID}"
+          echo "✓ CloudFront URL: ${CF_URL}"
+
+      - name: Deploy Static Bundle to Amazon S3
+        run: |
+          S3_BUCKET="${{ steps.infra.outputs.s3_bucket }}"
+          REGION="${{ vars.AWS_REGION || 'ap-southeast-1' }}"
+          echo "Deploying Super Admin bundle to s3://${S3_BUCKET}..."
+
+          # Upload hashed JS/CSS assets with 1-year immutable caching
+          aws s3 sync dist/ "s3://${S3_BUCKET}/" \
+            --delete \
+            --exclude "index.html" \
+            --cache-control "max-age=31536000,public,immutable" \
+            --region "${REGION}"
+
+          # Upload index.html with no-cache so browsers always fetch newest entrypoint
+          aws s3 cp dist/index.html "s3://${S3_BUCKET}/index.html" \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --content-type "text/html; charset=utf-8" \
+            --region "${REGION}"
+
+          echo "✅ S3 sync completed successfully."
+
+      - name: Invalidate Amazon CloudFront Cache
+        run: |
+          DIST_ID="${{ steps.infra.outputs.distribution_id }}"
+          if [ -n "${DIST_ID}" ]; then
+            echo "Invalidating CloudFront distribution: ${DIST_ID}..."
+            INV_ID=$(aws cloudfront create-invalidation \
+              --distribution-id "${DIST_ID}" \
+              --paths "/*" \
+              --query "Invalidation.Id" \
+              --output text)
+            echo "✅ CloudFront invalidation triggered: ${INV_ID}"
+          else
+            echo "ℹ️ No CloudFront Distribution ID found; skipping cache invalidation."
+          fi
+
+      - name: Post-Deployment Smoke Verification
+        run: |
+          CF_URL="${{ steps.infra.outputs.cloudfront_url }}"
+          if [ -n "${CF_URL}" ]; then
+            echo "Testing public web endpoint: ${CF_URL}..."
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${CF_URL}/")
+            echo "Endpoint HTTP Status: ${STATUS}"
+            if [ "$STATUS" -eq 200 ]; then
+              echo "🎉 Super Admin Portal is live and healthy: HTTP 200 OK"
+            else
+              echo "⚠️ Endpoint returned HTTP status: ${STATUS}"
+            fi
+          fi

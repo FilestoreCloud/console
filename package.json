@@ -1,0 +1,29 @@
+{
+  "name": "nextcloud-saas-control-plane",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Nextcloud Multi-Tenant SaaS — Enterprise Super Admin Portal powered by Refine & Ant Design",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^6.3.4",
+    "@refinedev/antd": "^5.47.0",
+    "@refinedev/core": "^4.58.0",
+    "@refinedev/react-router-v6": "^4.6.2",
+    "antd": "^5.24.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.3",
+    "vite": "^6.2.0"
+  }
+}
