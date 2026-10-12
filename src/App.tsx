@@ -188,6 +188,7 @@ const App: React.FC = () => {
                   <Route index element={<Navigate to="/tenants" replace />} />
                   <Route path="/tenants" element={<TenantList />} />
                   <Route path="/tenants/:id" element={<TenantShow />} />
+                  <Route path="/tenants/show/:id" element={<TenantShow />} />
                   <Route path="/audit-logs" element={<AuditLogList />} />
                   <Route path="/telemetry" element={<TelemetryDashboard />} />
                   <Route

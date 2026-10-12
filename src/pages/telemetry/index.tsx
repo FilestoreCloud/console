@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useCustom, useNavigation } from "@refinedev/core";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   Row,
@@ -36,6 +37,7 @@ const { Text } = Typography;
 
 export const TelemetryDashboard: React.FC = () => {
   const { show } = useNavigation();
+  const navigate = useNavigate();
   const [intervalSec, setIntervalSec] = useState<number>(15);
   const [countdown, setCountdown] = useState<number>(15);
   const [lastUpdate, setLastUpdate] = useState<string>("--:--:--");
@@ -271,7 +273,7 @@ export const TelemetryDashboard: React.FC = () => {
                   size="small"
                   icon={<EyeOutlined />}
                   onClick={() =>
-                    show("tenants", `${selectedTenant}?tab=metrics`)
+                    navigate(`/tenants/${selectedTenant}?tab=metrics`)
                   }
                 >
                   Open Full Tenant View

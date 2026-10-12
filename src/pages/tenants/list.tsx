@@ -51,6 +51,7 @@ import {
 } from "@ant-design/icons";
 import { CreateTenantModal } from "./create-modal";
 import { dataProvider } from "../../providers/dataProvider";
+import { useNavigate } from "react-router-dom";
 
 const { Text } = Typography;
 
@@ -66,6 +67,7 @@ export const TenantList: React.FC = () => {
   const [forkForm] = Form.useForm();
 
   const { show } = useNavigation();
+  const navigate = useNavigate();
 
   // Refine hooks
   const { data, isLoading, refetch } = useList({
@@ -405,7 +407,9 @@ export const TenantList: React.FC = () => {
             <Button
               size="small"
               icon={<LineChartOutlined style={{ color: "#ec7211" }} />}
-              onClick={() => show("tenants", `${record.tenant_id}?tab=metrics`)}
+              onClick={() =>
+                navigate(`/tenants/${record.tenant_id}?tab=metrics`)
+              }
             >
               Metrics
             </Button>

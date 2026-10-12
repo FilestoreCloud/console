@@ -53,14 +53,20 @@ import {
   SearchOutlined,
   LineChartOutlined,
 } from "@ant-design/icons";
+import { useParams } from "react-router-dom";
 import { dataProvider } from "../../providers/dataProvider";
 import { InteractiveMetricsChart } from "../../components/InteractiveMetricsChart";
 
 const { Title, Text, Paragraph } = Typography;
 
 export const TenantShow: React.FC = () => {
+  const { id: rawRouteId } = useParams<{ id: string }>();
+  const decodedRouteParam = decodeURIComponent(rawRouteId || "");
+  const cleanTenantId = decodedRouteParam.split("?")[0].trim();
+
   const { queryResult } = useShow({
     resource: "tenants",
+    id: cleanTenantId || undefined,
   });
   const { data, isLoading, refetch } = queryResult;
   const tenantData = data?.data as any;
@@ -601,9 +607,17 @@ export const TenantShow: React.FC = () => {
 
       {/* 3. Main Operational Tabs */}
       <Tabs
-        defaultActiveKey={
-          new URLSearchParams(window.location.search).get("tab") || "metrics"
-        }
+        defaultActiveKey={(() => {
+          const searchTab = new URLSearchParams(window.location.search).get(
+            "tab",
+          );
+          if (searchTab) return searchTab;
+          if (decodedRouteParam.includes("tab=")) {
+            const m = decodedRouteParam.match(/tab=([^&]+)/);
+            if (m) return m[1];
+          }
+          return "metrics";
+        })()}
         type="card"
         items={[
           {

@@ -57,10 +57,15 @@ export const dataProvider: DataProvider = {
 
   getOne: async ({ resource, id }) => {
     if (resource === "tenants") {
+      const decodedId = decodeURIComponent(String(id || ""));
+      const cleanId = decodedId.split("?")[0].trim();
       const res = await fetch(API_BASE, {
         method: "POST",
         headers: getHeaders(),
-        body: JSON.stringify({ action: "GET_TENANT_DETAIL", tenant_id: id }),
+        body: JSON.stringify({
+          action: "GET_TENANT_DETAIL",
+          tenant_id: cleanId,
+        }),
       });
       if (res.status === 401) throw { status: 401, message: "Unauthorized" };
       const data = await res.json();
