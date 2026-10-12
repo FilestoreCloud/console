@@ -282,7 +282,7 @@ export const InteractiveMetricsChart: React.FC<
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [sortedHistory, viewMode, zoomPreset, autoscalingTargetCpu, tenantId]);
+  }, [sortedHistory, zoomPreset, autoscalingTargetCpu, tenantId]);
 
   // Clean up on component unmount
   useEffect(() => {

@@ -191,7 +191,7 @@ export const TenantList: React.FC = () => {
       const targetId = values.target_tenant_id.toLowerCase().trim();
       await dataProvider.custom({
         url: "/api",
-        method: "POST",
+        method: "post",
         payload: {
           action: "CLONE_TENANT",
           source_tenant_id: forkSourceTenant?.tenant_id,
