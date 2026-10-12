@@ -66,15 +66,16 @@ jobs:
 
           # 2. Resolve CloudFront Distribution ID
           DIST_ID=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/cloudfront-distribution-id" --query "Parameter.Value" --output text --region "${REGION}" 2>/dev/null || echo "")
-          if [ -z "${DIST_ID}" ]; then
+          if [ -z "${DIST_ID}" ] || [ "${DIST_ID}" = "None" ]; then
             DIST_ID=$(aws cloudformation describe-stacks --stack-name "${ENV}-nextcloud-06-control-plane" --query "Stacks[0].Outputs[?OutputKey=='AdminWebDistributionId'].OutputValue" --output text --region "${REGION}" 2>/dev/null || echo "")
           fi
+          [ "${DIST_ID}" = "None" ] && DIST_ID=""
 
           # 3. Resolve CloudFront Domain / URL
           CF_URL=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/admin-web-url" --query "Parameter.Value" --output text --region "${REGION}" 2>/dev/null || echo "")
-          if [ -z "${CF_URL}" ] && [ -n "${DIST_ID}" ]; then
+          if [ -z "${CF_URL}" ] && [ -n "${DIST_ID}" ] && [ "${DIST_ID}" != "None" ]; then
             CF_DOMAIN=$(aws cloudfront get-distribution --id "${DIST_ID}" --query "Distribution.DomainName" --output text 2>/dev/null || echo "")
-            [ -n "${CF_DOMAIN}" ] && CF_URL="https://${CF_DOMAIN}"
+            [ -n "${CF_DOMAIN}" ] && [ "${CF_DOMAIN}" != "None" ] && CF_URL="https://${CF_DOMAIN}"
           fi
 
           echo "s3_bucket=${S3_BUCKET}" >> "$GITHUB_OUTPUT"
@@ -109,7 +110,7 @@ jobs:
       - name: Invalidate Amazon CloudFront Cache
         run: |
           DIST_ID="${{ steps.infra.outputs.distribution_id }}"
-          if [ -n "${DIST_ID}" ]; then
+          if [ -n "${DIST_ID}" ] && [ "${DIST_ID}" != "None" ]; then
             echo "Invalidating CloudFront distribution: ${DIST_ID}..."
             INV_ID=$(aws cloudfront create-invalidation \
               --distribution-id "${DIST_ID}" \
