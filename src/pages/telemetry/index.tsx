@@ -10,6 +10,8 @@ import {
   Button,
   Tag,
   Spin,
+  Radio,
+  Tooltip,
 } from "antd";
 import {
   LineChartOutlined,
@@ -19,9 +21,18 @@ import {
   ApartmentOutlined,
   LinkOutlined,
   EyeOutlined,
+  FundViewOutlined,
+  PictureOutlined,
+  InfoCircleOutlined,
 } from "@ant-design/icons";
+import {
+  InteractiveFleetEcsChart,
+  InteractiveFleetAlbChart,
+  InteractiveFleetLifecycleChart,
+} from "../../components/InteractiveFleetCharts";
+import { InteractiveMetricsChart } from "../../components/InteractiveMetricsChart";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 export const TelemetryDashboard: React.FC = () => {
   const { show } = useNavigation();
@@ -29,8 +40,30 @@ export const TelemetryDashboard: React.FC = () => {
   const [countdown, setCountdown] = useState<number>(15);
   const [lastUpdate, setLastUpdate] = useState<string>("--:--:--");
   const [selectedTenant, setSelectedTenant] = useState<string>("fleet");
+  const [viewMode, setViewMode] = useState<"interactive" | "images">(
+    "interactive",
+  );
 
-  // Fetch widgets
+  // 1. Fetch raw streaming metrics for fleet interactive charts
+  const { data: rawMetricsResp, refetch: refetchRawMetrics } = useCustom({
+    url: "/api",
+    method: "post",
+    config: { payload: { action: "METRICS" } },
+  });
+
+  // 2. Fetch tenant-specific full metrics if selected
+  const { data: tenantMetricsResp, refetch: refetchTenantMetrics } = useCustom({
+    url: "/api",
+    method: "post",
+    config: {
+      payload: { action: "GET_TENANT_METRICS", tenant_id: selectedTenant },
+    },
+    queryOptions: {
+      enabled: selectedTenant !== "fleet",
+    },
+  });
+
+  // 3. Fetch static CloudWatch widget images for fallback/comparison mode
   const {
     data: wSaas,
     refetch: refetchSaas,
@@ -61,11 +94,7 @@ export const TelemetryDashboard: React.FC = () => {
     config: { payload: { action: "WIDGET", widget: "alb_traffic" } },
   });
 
-  const {
-    data: wTenant,
-    refetch: refetchTenant,
-    isFetching: loadingTenant,
-  } = useCustom({
+  const { data: wTenant, refetch: refetchTenantWidget } = useCustom({
     url: "/api",
     method: "post",
     config: {
@@ -77,11 +106,13 @@ export const TelemetryDashboard: React.FC = () => {
   });
 
   const refreshAll = () => {
+    refetchRawMetrics();
     refetchSaas();
     refetchEcs();
     refetchAlb();
     if (selectedTenant !== "fleet") {
-      refetchTenant();
+      refetchTenantMetrics();
+      refetchTenantWidget();
     }
     setLastUpdate(new Date().toTimeString().split(" ")[0]);
     setCountdown(intervalSec);
@@ -101,14 +132,17 @@ export const TelemetryDashboard: React.FC = () => {
     return () => clearInterval(timer);
   }, [intervalSec]);
 
+  const fleetMetrics = (rawMetricsResp?.data as any)?.metrics;
+  const tenantMetrics = (tenantMetricsResp?.data as any) || {};
+
   const saasImg = (wSaas?.data as any)?.image_base64;
   const ecsImg = (wEcs?.data as any)?.image_base64;
   const albImg = (wAlb?.data as any)?.image_base64;
-  const tenantImg = (wTenant?.data as any)?.image_base64;
+  const tenantWidgetImg = (wTenant?.data as any)?.image_base64;
 
   return (
     <div>
-      {/* 1. Control Bar */}
+      {/* 1. Interactive Control Bar */}
       <Card
         bordered={false}
         style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
@@ -128,13 +162,37 @@ export const TelemetryDashboard: React.FC = () => {
                   <Text type="secondary" style={{ fontSize: 12 }}>
                     Last updated: {lastUpdate}
                   </Text>
+                  <Tooltip title="Interactive mode enables mouse wheel zoom in/out, pan slider handles, crosshair tooltips, and legend series toggles.">
+                    <Tag
+                      icon={<InfoCircleOutlined />}
+                      color="cyan"
+                      style={{ cursor: "pointer" }}
+                    >
+                      Wheel Zoom & Pan Enabled
+                    </Tag>
+                  </Tooltip>
                 </Space>
               </div>
             </Space>
           </Col>
 
           <Col>
-            <Space>
+            <Space wrap>
+              {/* View Mode Toggle: Interactive vs Images */}
+              <Radio.Group
+                size="middle"
+                value={viewMode}
+                onChange={(e) => setViewMode(e.target.value)}
+              >
+                <Radio.Button value="interactive">
+                  <FundViewOutlined /> Interactive Charts
+                </Radio.Button>
+                <Radio.Button value="images">
+                  <PictureOutlined /> CloudWatch Images
+                </Radio.Button>
+              </Radio.Group>
+
+              {/* Tenant Filter */}
               <Select
                 value={selectedTenant}
                 onChange={(val) => setSelectedTenant(val)}
@@ -145,6 +203,8 @@ export const TelemetryDashboard: React.FC = () => {
                   { value: "marvel", label: "🦸 Marvel Ent (Tenant)" },
                 ]}
               />
+
+              {/* Streaming Interval */}
               <Select
                 value={intervalSec}
                 onChange={(val) => {
@@ -176,100 +236,122 @@ export const TelemetryDashboard: React.FC = () => {
         </Row>
       </Card>
 
-      {/* Tenant-Specific Dedicated Telemetry View if selected */}
+      {/* 2. Tenant-Specific Dedicated Telemetry View if selected */}
       {selectedTenant !== "fleet" && (
-        <Card
-          title={
-            <Space>
-              <LineChartOutlined style={{ color: "#ec7211" }} />
-              <span>
-                Dedicated Metrics for Tenant:{" "}
-                <strong>{selectedTenant.toUpperCase()}</strong>
-              </span>
-              <Tag color="orange">service-{selectedTenant}</Tag>
-            </Space>
-          }
-          extra={
-            <Button
-              type="primary"
-              ghost
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => show("tenants", `${selectedTenant}?tab=metrics`)}
+        <div style={{ marginBottom: 16 }}>
+          {viewMode === "interactive" ? (
+            <InteractiveMetricsChart
+              tenantId={selectedTenant}
+              clusterName="prod-nextcloud-cluster"
+              history={tenantMetrics.history || []}
+              widgetImageBase64={tenantWidgetImg}
+              autoscalingTargetCpu={
+                tenantMetrics.autoscaling_target_cpu || 70.0
+              }
+              intervalSec={intervalSec}
+              countdown={countdown}
+              onRefresh={refreshAll}
+            />
+          ) : (
+            <Card
+              title={
+                <Space>
+                  <LineChartOutlined style={{ color: "#ec7211" }} />
+                  <span>
+                    CloudWatch Image for Tenant:{" "}
+                    <strong>{selectedTenant.toUpperCase()}</strong>
+                  </span>
+                  <Tag color="orange">service-{selectedTenant}</Tag>
+                </Space>
+              }
+              extra={
+                <Button
+                  type="primary"
+                  ghost
+                  size="small"
+                  icon={<EyeOutlined />}
+                  onClick={() =>
+                    show("tenants", `${selectedTenant}?tab=metrics`)
+                  }
+                >
+                  Open Full Tenant View
+                </Button>
+              }
+              bordered={false}
+              style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
             >
-              Open Full Tenant Metrics &amp; Details
-            </Button>
-          }
-          bordered={false}
-          style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-        >
-          <div
-            style={{
-              minHeight: 280,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#f8fafc",
-              borderRadius: 6,
-              overflow: "hidden",
-            }}
-          >
-            {loadingTenant ? (
-              <Spin />
-            ) : tenantImg ? (
-              <img
-                src={`data:image/png;base64 logic,${tenantImg}`.replace(
-                  "data:image/png;base64 logic,",
-                  "data:image/png;base64,",
+              <div
+                style={{
+                  minHeight: 280,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#f8fafc",
+                  borderRadius: 6,
+                  overflow: "hidden",
+                }}
+              >
+                {tenantWidgetImg ? (
+                  <img
+                    src={`data:image/png;base64,${tenantWidgetImg}`}
+                    alt={`Tenant ${selectedTenant} Telemetry`}
+                    style={{ width: "100%", height: "auto", maxHeight: 380 }}
+                  />
+                ) : (
+                  <Text type="secondary">
+                    Loading live metrics widget for tenant {selectedTenant}...
+                  </Text>
                 )}
-                alt={`Tenant ${selectedTenant} Telemetry`}
-                style={{ width: "100%", height: "auto", maxHeight: 380 }}
-              />
-            ) : (
-              <Text type="secondary">
-                Loading live metrics widget for tenant {selectedTenant}...
-              </Text>
-            )}
-          </div>
-        </Card>
+              </div>
+            </Card>
+          )}
+        </div>
       )}
 
-      {/* 2. CloudWatch Native Widgets */}
+      {/* 3. Fleet-Wide Telemetry Charts */}
       <Row gutter={[16, 16]}>
+        {/* Card 1: Tenant Lifecycle Status */}
         <Col xs={24} lg={8}>
           <Card
             title={
               <Space>
                 <ApartmentOutlined style={{ color: "#3b82f6" }} />
                 <span>Tenant Lifecycle Status</span>
+                {viewMode === "interactive" && (
+                  <Tag color="blue">Interactive</Tag>
+                )}
               </Space>
             }
             bordered={false}
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
           >
-            <div
-              style={{
-                minHeight: 240,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#f8fafc",
-                borderRadius: 6,
-                overflow: "hidden",
-              }}
-            >
-              {loadingSaas ? (
-                <Spin />
-              ) : saasImg ? (
-                <img
-                  src={`data:image/png;base64,${saasImg}`}
-                  alt="SaaS Fleet Status"
-                  style={{ width: "100%", height: "auto" }}
-                />
-              ) : (
-                <Text type="secondary">Widget loading or inactive</Text>
-              )}
-            </div>
+            {viewMode === "interactive" ? (
+              <InteractiveFleetLifecycleChart height={260} />
+            ) : (
+              <div
+                style={{
+                  minHeight: 240,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#f8fafc",
+                  borderRadius: 6,
+                  overflow: "hidden",
+                }}
+              >
+                {loadingSaas ? (
+                  <Spin />
+                ) : saasImg ? (
+                  <img
+                    src={`data:image/png;base64,${saasImg}`}
+                    alt="SaaS Fleet Status"
+                    style={{ width: "100%", height: "auto" }}
+                  />
+                ) : (
+                  <Text type="secondary">Widget loading or inactive</Text>
+                )}
+              </div>
+            )}
             <Text
               type="secondary"
               style={{ fontSize: 11, display: "block", marginTop: 8 }}
@@ -279,40 +361,48 @@ export const TelemetryDashboard: React.FC = () => {
           </Card>
         </Col>
 
+        {/* Card 2: ECS Fargate CPU & Memory */}
         <Col xs={24} lg={8}>
           <Card
             title={
               <Space>
                 <DashboardOutlined style={{ color: "#16a34a" }} />
                 <span>ECS Fargate CPU &amp; Memory</span>
+                {viewMode === "interactive" && (
+                  <Tag color="green">Wheel Zoom</Tag>
+                )}
               </Space>
             }
             bordered={false}
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
           >
-            <div
-              style={{
-                minHeight: 240,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#f8fafc",
-                borderRadius: 6,
-                overflow: "hidden",
-              }}
-            >
-              {loadingEcs ? (
-                <Spin />
-              ) : ecsImg ? (
-                <img
-                  src={`data:image/png;base64,${ecsImg}`}
-                  alt="ECS Fargate Metrics"
-                  style={{ width: "100%", height: "auto" }}
-                />
-              ) : (
-                <Text type="secondary">Widget loading or inactive</Text>
-              )}
-            </div>
+            {viewMode === "interactive" ? (
+              <InteractiveFleetEcsChart data={fleetMetrics} height={260} />
+            ) : (
+              <div
+                style={{
+                  minHeight: 240,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#f8fafc",
+                  borderRadius: 6,
+                  overflow: "hidden",
+                }}
+              >
+                {loadingEcs ? (
+                  <Spin />
+                ) : ecsImg ? (
+                  <img
+                    src={`data:image/png;base64,${ecsImg}`}
+                    alt="ECS Fargate Metrics"
+                    style={{ width: "100%", height: "auto" }}
+                  />
+                ) : (
+                  <Text type="secondary">Widget loading or inactive</Text>
+                )}
+              </div>
+            )}
             <Text
               type="secondary"
               style={{ fontSize: 11, display: "block", marginTop: 8 }}
@@ -322,40 +412,48 @@ export const TelemetryDashboard: React.FC = () => {
           </Card>
         </Col>
 
+        {/* Card 3: ALB Ingress Requests & Latency */}
         <Col xs={24} lg={8}>
           <Card
             title={
               <Space>
                 <CloudUploadOutlined style={{ color: "#0284c7" }} />
                 <span>ALB Ingress Requests &amp; Latency</span>
+                {viewMode === "interactive" && (
+                  <Tag color="cyan">Dual-Axis</Tag>
+                )}
               </Space>
             }
             bordered={false}
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
           >
-            <div
-              style={{
-                minHeight: 240,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#f8fafc",
-                borderRadius: 6,
-                overflow: "hidden",
-              }}
-            >
-              {loadingAlb ? (
-                <Spin />
-              ) : albImg ? (
-                <img
-                  src={`data:image/png;base64,${albImg}`}
-                  alt="ALB Ingress Metrics"
-                  style={{ width: "100%", height: "auto" }}
-                />
-              ) : (
-                <Text type="secondary">Widget loading or inactive</Text>
-              )}
-            </div>
+            {viewMode === "interactive" ? (
+              <InteractiveFleetAlbChart data={fleetMetrics} height={260} />
+            ) : (
+              <div
+                style={{
+                  minHeight: 240,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#f8fafc",
+                  borderRadius: 6,
+                  overflow: "hidden",
+                }}
+              >
+                {loadingAlb ? (
+                  <Spin />
+                ) : albImg ? (
+                  <img
+                    src={`data:image/png;base64,${albImg}`}
+                    alt="ALB Ingress Metrics"
+                    style={{ width: "100%", height: "auto" }}
+                  />
+                ) : (
+                  <Text type="secondary">Widget loading or inactive</Text>
+                )}
+              </div>
+            )}
             <Text
               type="secondary"
               style={{ fontSize: 11, display: "block", marginTop: 8 }}
