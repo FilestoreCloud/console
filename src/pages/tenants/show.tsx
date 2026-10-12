@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useShow, useUpdate, useCan, useNavigation } from "@refinedev/core";
 import {
   Card,
@@ -362,7 +362,7 @@ export const TenantShow: React.FC = () => {
     try {
       const res = await dataProvider.custom({
         url: "/api",
-        method: "POST",
+        method: "post",
         payload: {
           action: "EXECUTE_OCC_COMMAND",
           tenant_id: tenantId,
@@ -394,7 +394,7 @@ export const TenantShow: React.FC = () => {
     try {
       const res = await dataProvider.custom({
         url: "/api",
-        method: "POST",
+        method: "post",
         payload: {
           action: "GET_CONTAINER_LOGS",
           tenant_id: tenantId,
@@ -418,7 +418,7 @@ export const TenantShow: React.FC = () => {
       const targetId = values.target_tenant_id.toLowerCase().trim();
       await dataProvider.custom({
         url: "/api",
-        method: "POST",
+        method: "post",
         payload: {
           action: "CLONE_TENANT",
           source_tenant_id: tenantId,
