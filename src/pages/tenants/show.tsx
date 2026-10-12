@@ -54,6 +54,7 @@ import {
   LineChartOutlined,
 } from "@ant-design/icons";
 import { dataProvider } from "../../providers/dataProvider";
+import { InteractiveMetricsChart } from "../../components/InteractiveMetricsChart";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -843,110 +844,23 @@ export const TenantShow: React.FC = () => {
                 {/* 2. Middle Row: CloudWatch Real-Time Graph + Auto-Scaling Details */}
                 <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
                   <Col xs={24} lg={15}>
-                    <Card
-                      title={
-                        <Space>
-                          <LineChartOutlined style={{ color: "#ec7211" }} />
-                          <span>Amazon CloudWatch Live Telemetry Stream</span>
-                          <Tag
-                            color={
-                              metricsIntervalSec > 0 ? "processing" : "default"
-                            }
-                          >
-                            {metricsIntervalSec > 0
-                              ? `STREAMING (${metricsCountdown}s)`
-                              : "PAUSED"}
-                          </Tag>
-                        </Space>
+                    <InteractiveMetricsChart
+                      tenantId={tenantId}
+                      clusterName={
+                        metrics.cluster_name || "prod-nextcloud-cluster"
                       }
-                      extra={
-                        <Space>
-                          <Select
-                            size="small"
-                            value={metricsIntervalSec}
-                            onChange={(val) => {
-                              setMetricsIntervalSec(val);
-                              setMetricsCountdown(val);
-                            }}
-                            style={{ width: 125 }}
-                            options={[
-                              { value: 15, label: "Every 15s" },
-                              { value: 30, label: "Every 30s" },
-                              { value: 60, label: "Every 60s" },
-                              { value: 0, label: "⏸ Pause" },
-                            ]}
-                          />
-                          <Button
-                            size="small"
-                            icon={<ReloadOutlined />}
-                            onClick={() => {
-                              refetch();
-                              setMetricsCountdown(metricsIntervalSec);
-                            }}
-                          >
-                            Sync Now
-                          </Button>
-                        </Space>
+                      history={metrics.history || []}
+                      widgetImageBase64={metrics.widget_image_base64}
+                      autoscalingTargetCpu={
+                        metrics.autoscaling_target_cpu || 70.0
                       }
-                      bordered={false}
-                      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-                    >
-                      {metrics?.widget_image_base64 ? (
-                        <div style={{ textAlign: "center", padding: "8px 0" }}>
-                          <img
-                            src={`data:image/png;base64,${metrics.widget_image_base64}`}
-                            alt={`CloudWatch Metrics for Tenant ${tenantId}`}
-                            style={{
-                              maxWidth: "100%",
-                              height: "auto",
-                              borderRadius: 6,
-                              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                            }}
-                          />
-                          <div style={{ marginTop: 8 }}>
-                            <Text type="secondary" style={{ fontSize: 12 }}>
-                              Live Amazon CloudWatch graph generated for ECS
-                              Service <code>service-{tenantId}</code> in cluster{" "}
-                              <code>
-                                {metrics.cluster_name ||
-                                  "prod-nextcloud-cluster"}
-                              </code>
-                            </Text>
-                          </div>
-                        </div>
-                      ) : isLoading ? (
-                        <div style={{ textAlign: "center", padding: 40 }}>
-                          <SyncOutlined
-                            spin
-                            style={{
-                              fontSize: 24,
-                              color: "#ec7211",
-                              marginBottom: 8,
-                            }}
-                          />
-                          <br />
-                          <Text type="secondary">
-                            Streaming CloudWatch metrics...
-                          </Text>
-                        </div>
-                      ) : (
-                        <div style={{ textAlign: "center", padding: 32 }}>
-                          <Alert
-                            type="info"
-                            showIcon
-                            message="No CloudWatch Telemetry Data Yet"
-                            description={`Amazon CloudWatch has not collected metrics for service-${tenantId} yet, or the tenant service is suspended. Data will appear automatically once traffic is received.`}
-                          />
-                          <Button
-                            style={{ marginTop: 12 }}
-                            icon={<ReloadOutlined />}
-                            onClick={() => refetch()}
-                          >
-                            Retry Loading Telemetry
-                          </Button>
-                        </div>
-                      )}
-                    </Card>
+                      intervalSec={metricsIntervalSec}
+                      countdown={metricsCountdown}
+                      onRefresh={() => {
+                        refetch();
+                        setMetricsCountdown(metricsIntervalSec);
+                      }}
+                    />
                   </Col>
 
                   <Col xs={24} lg={9}>
