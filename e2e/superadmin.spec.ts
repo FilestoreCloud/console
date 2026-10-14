@@ -30,6 +30,7 @@ function generateTotp(
 
 const ADMIN_EMAIL = process.env.SUPERADMIN_USERNAME!;
 const ADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD!;
+const TARGET_TENANT = process.env.TENANT_ID!;
 
 test.describe("SuperAdmin Console Web E2E", () => {
   test("Should render SuperAdmin login page and form controls", async ({ page }) => {
@@ -152,9 +153,9 @@ test.describe("SuperAdmin Console Web E2E", () => {
     const searchInput = page.getByPlaceholder(/Search by Tenant ID/i).or(page.locator('input[placeholder*="Search"]')).first();
     await expect(searchInput).toBeVisible({ timeout: 10000 });
 
-    // Filter by dev-tenant
-    await searchInput.fill("dev-tenant");
-    await expect(page.locator('text="dev-tenant"').first()).toBeVisible({ timeout: 10000 });
+    // Filter by TARGET_TENANT
+    await searchInput.fill(TARGET_TENANT);
+    await expect(page.locator(`text="${TARGET_TENANT}"`).first()).toBeVisible({ timeout: 10000 });
 
     // Clear search
     await searchInput.fill("");

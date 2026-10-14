@@ -195,6 +195,7 @@ jobs:
           SUPERADMIN_USERNAME: ${{ secrets.SUPERADMIN_USERNAME }}
           SUPERADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           SUPERADMIN_TOTP_SECRET: ${{ secrets.SUPERADMIN_TOTP_SECRET }}
+          TENANT_ID: ${{ vars.TENANT_ID }}
         run: |
           npx playwright test
 
