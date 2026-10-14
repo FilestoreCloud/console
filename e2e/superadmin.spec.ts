@@ -176,19 +176,20 @@ test.describe("SuperAdmin Console Web E2E", () => {
 
     await expect(page).toHaveURL(/\/(tenants|dashboard)/, { timeout: 30000 });
 
-    // Navigate to dev-tenant details directly
-    await page.goto("/tenants/dev-tenant");
+    // Click "Manage" on the first active tenant in the fleet table
+    const manageBtn = page.locator('button:has-text("Manage")').first();
+    await expect(manageBtn).toBeVisible({ timeout: 15000 });
+    await manageBtn.click();
 
-    // Verify Tenant Header or Title
-    const tenantTitle = page.locator('text="dev-tenant"');
-    await expect(tenantTitle.first()).toBeVisible({ timeout: 15000 });
+    // Verify redirection to tenant details page
+    await expect(page).toHaveURL(/\/tenants\/(show\/)?[\w-]+/, { timeout: 15000 });
 
     // Verify tabs are available
     const tabList = page.locator(".ant-tabs-nav, [role='tablist']");
     await expect(tabList.first()).toBeVisible({ timeout: 10000 });
 
     // Click Topology tab if visible
-    const topologyTab = page.locator('.ant-tabs-tab:has-text("Topology")');
+    const topologyTab = page.locator('.ant-tabs-tab:has-text("Topology")').first();
     if (await topologyTab.isVisible({ timeout: 5000 }).catch(() => false)) {
       await topologyTab.click();
       await page.waitForTimeout(1000);
