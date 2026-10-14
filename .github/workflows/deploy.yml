@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+  repository_dispatch:
+    types: [deploy_console]
   workflow_dispatch:
     inputs:
       environment:
@@ -76,10 +78,7 @@ jobs:
       - name: Resolve Infrastructure Targets
         id: infra
         run: |
-          ENV="${{ inputs.environment }}"
-          if [ -z "${ENV}" ]; then
-            ENV="prod"
-          fi
+          ENV="${{ github.event.client_payload.environment || inputs.environment || 'dev' }}"
           BUCKET="${{ vars.ADMIN_WEB_BUCKET }}"
           DIST="${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
 
