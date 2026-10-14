@@ -170,9 +170,13 @@ jobs:
 
           # 3. Test SuperAdmin Authentication API
           echo "Testing SuperAdmin Authentication & MFA Challenge..."
+          ADMIN_PASS="${{ secrets.ADMIN_PASSWORD }}"
+          if [ -z "${ADMIN_PASS}" ]; then
+            ADMIN_PASS="StorixAdmin2026!Secure"
+          fi
           LOGIN_RESP=$(curl -s -X POST "${CF_URL}/api" \
             -H "Content-Type: application/json" \
-            -d "{\"action\": \"LOGIN\", \"username\": \"nhphuong.code@gmail.com\", \"password\": \"${{ secrets.ADMIN_PASSWORD }}\"}")
+            -d "{\"action\": \"LOGIN\", \"username\": \"nhphuong.code@gmail.com\", \"password\": \"${ADMIN_PASS}\"}")
           echo "✓ Login API Response: $(echo "$LOGIN_RESP" | cut -c1-150)..."
 
           echo "============================================================"
@@ -193,7 +197,8 @@ jobs:
         env:
           CONSOLE_URL: ${{ needs.deploy.outputs.cloudfront_url }}
           SUPERADMIN_USERNAME: "nhphuong.code@gmail.com"
-          SUPERADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          SUPERADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD || 'StorixAdmin2026!Secure' }}
+          SUPERADMIN_TOTP_SECRET: ${{ secrets.SUPERADMIN_TOTP_SECRET || 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP' }}
         run: |
           npx playwright test
 
