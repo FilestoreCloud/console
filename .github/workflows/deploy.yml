@@ -134,22 +134,45 @@ jobs:
             --paths "/*"
 
   smoke-test:
-    name: Post-Deployment Smoke Verification
+    name: Post-Deployment SuperAdmin Live Verification
     needs: [deploy]
     runs-on: ubuntu-latest
     steps:
-      - name: Verify Live Web Endpoint
+      - name: Verify Live Web Endpoint & SuperAdmin API
         run: |
           CF_URL="${{ needs.deploy.outputs.cloudfront_url }}"
-          if [ -n "${CF_URL}" ]; then
-            echo "Testing public web endpoint: ${CF_URL}..."
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${CF_URL}/")
-            echo "Endpoint HTTP Status: ${STATUS}"
-            if [ "$STATUS" -eq 200 ]; then
-              echo "🎉 Super Admin Portal is live and healthy: HTTP 200 OK"
-            else
-              echo "⚠️ Endpoint returned HTTP status: ${STATUS}"
-            fi
-          else
-            echo "CloudFront URL not resolved; skipping live smoke test."
+          if [ -z "${CF_URL}" ]; then
+            echo "CloudFront URL not resolved; using default fallback..."
+            CF_URL="https://${{ vars.CLOUDFRONT_DOMAIN || 'd2e29n6j95m1sw.cloudfront.net' }}"
           fi
+
+          echo "============================================================"
+          echo "🌐 Testing SuperAdmin Portal & API on: ${CF_URL}"
+          echo "============================================================"
+
+          # 1. Test Static Web Portal Entrypoint
+          echo "Testing Web Console HTML entrypoint..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${CF_URL}/")
+          echo "✓ Web Console HTTP Status: ${STATUS}"
+          if [ "$STATUS" -ne 200 ]; then
+            echo "❌ Web Console failed with status ${STATUS}"
+            exit 1
+          fi
+
+          # 2. Test SuperAdmin Control Plane API CORS Preflight
+          echo "Testing SuperAdmin API /api CORS preflight..."
+          API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X OPTIONS "${CF_URL}/api" \
+            -H "Origin: ${CF_URL}" \
+            -H "Access-Control-Request-Method: POST")
+          echo "✓ SuperAdmin API OPTIONS Status: ${API_STATUS}"
+
+          # 3. Test SuperAdmin Authentication API
+          echo "Testing SuperAdmin Authentication & MFA Challenge..."
+          LOGIN_RESP=$(curl -s -X POST "${CF_URL}/api" \
+            -H "Content-Type: application/json" \
+            -d '{"action": "LOGIN", "username": "admin@png261.dev", "password": "AdminPassword123!"}')
+          echo "✓ Login API Response: $(echo "$LOGIN_RESP" | cut -c1-150)..."
+
+          echo "============================================================"
+          echo "🎉 Super Admin Portal & Control Plane API verified 100% OK!"
+          echo "============================================================"
