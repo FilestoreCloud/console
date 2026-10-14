@@ -47,4 +47,4 @@ pnpm-lock.yaml
 
 # Scripts & Lambdas
 scripts/capture_dashboard.js
-infra/modules/06-control-plane/app.js
+infra/modules/06-superadmin/app.js
