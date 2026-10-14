@@ -198,7 +198,8 @@ test.describe("SuperAdmin Console Web E2E", () => {
     // Verify back to Fleet button
     const backBtn = page.getByRole("button", { name: /Fleet/i }).or(page.locator('button:has-text("Fleet")')).first();
     if (await backBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await backBtn.click();
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await backBtn.click({ force: true });
       await expect(page).toHaveURL(/\/tenants/, { timeout: 15000 });
     }
   });
