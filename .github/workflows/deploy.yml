@@ -169,7 +169,7 @@ jobs:
           echo "Testing SuperAdmin Authentication & MFA Challenge..."
           LOGIN_RESP=$(curl -s -X POST "${CF_URL}/api" \
             -H "Content-Type: application/json" \
-            -d '{"action": "LOGIN", "username": "admin@png261.dev", "password": "AdminPassword123!"}')
+            -d "{\"action\": \"LOGIN\", \"username\": \"nhphuong.code@gmail.com\", \"password\": \"${{ secrets.ADMIN_PASSWORD }}\"}")
           echo "✓ Login API Response: $(echo "$LOGIN_RESP" | cut -c1-150)..."
 
           echo "============================================================"
