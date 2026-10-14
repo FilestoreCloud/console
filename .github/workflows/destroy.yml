@@ -66,25 +66,18 @@ jobs:
         run: |
           mkdir -p /tmp/empty_payload
 
-      - name: Wipe S3 Bucket Objects (Sync Empty Directory)
-        uses: jakejarvis/s3-sync-action@master
-        with:
-          args: --delete
-        env:
-          AWS_S3_BUCKET: ${{ steps.infra.outputs.s3_bucket }}
-          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
-          SOURCE_DIR: "/tmp/empty_payload"
+      - name: Wipe S3 Bucket Objects
+        run: |
+          echo "Emptying S3 bucket s3://${{ steps.infra.outputs.s3_bucket }}..."
+          aws s3 rm "s3://${{ steps.infra.outputs.s3_bucket }}" --recursive
 
       - name: Invalidate Amazon CloudFront Cache
-        uses: chetan/invalidate-cloudfront-action@v2
         if: ${{ steps.infra.outputs.distribution_id != '' }}
-        env:
-          DISTRIBUTION: ${{ steps.infra.outputs.distribution_id }}
-          PATHS: "/*"
-          AWS_REGION: ${{ vars.AWS_REGION }}
+        run: |
+          echo "Invalidating CloudFront cache for ${{ steps.infra.outputs.distribution_id }}..."
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ steps.infra.outputs.distribution_id }}" \
+            --paths "/*"
 
       - name: Summary Report
         run: |

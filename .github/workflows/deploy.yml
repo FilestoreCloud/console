@@ -23,8 +23,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
-    name: Build & Deploy to S3 + CloudFront
+  build-and-test:
+    name: Build & Test React SPA
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -39,8 +39,31 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Run Vitest Unit Tests
+        run: npm test
+
       - name: Build Production Bundle
         run: npm run build
+
+      - name: Upload Production Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: console-dist
+          path: dist/
+          retention-days: 1
+
+  deploy:
+    name: Deploy to S3 + CloudFront
+    needs: [build-and-test]
+    runs-on: ubuntu-latest
+    outputs:
+      cloudfront_url: ${{ steps.infra.outputs.cloudfront_url }}
+    steps:
+      - name: Download Production Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: console-dist
+          path: dist
 
       - name: Configure AWS Credentials via OIDC
         id: aws-creds
@@ -110,9 +133,14 @@ jobs:
             --distribution-id "${{ steps.infra.outputs.distribution_id }}" \
             --paths "/*"
 
-      - name: Post-Deployment Smoke Verification
+  smoke-test:
+    name: Post-Deployment Smoke Verification
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify Live Web Endpoint
         run: |
-          CF_URL="${{ steps.infra.outputs.cloudfront_url }}"
+          CF_URL="${{ needs.deploy.outputs.cloudfront_url }}"
           if [ -n "${CF_URL}" ]; then
             echo "Testing public web endpoint: ${CF_URL}..."
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${CF_URL}/")
@@ -122,4 +150,6 @@ jobs:
             else
               echo "⚠️ Endpoint returned HTTP status: ${STATUS}"
             fi
+          else
+            echo "CloudFront URL not resolved; skipping live smoke test."
           fi
