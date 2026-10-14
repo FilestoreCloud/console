@@ -74,45 +74,41 @@ jobs:
             DIST=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/cloudfront-distribution-id" --query "Parameter.Value" --output text 2>/dev/null || echo "")
           fi
 
-          CF_URL="${{ vars.ADMIN_WEB_URL }}"
+          # Auto-discover CloudFront URL from AWS SSM Parameter Store or CloudFront API
+          if [ -z "${CF_URL}" ]; then
+            CF_URL=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/admin-web-url" --query "Parameter.Value" --output text 2>/dev/null || echo "")
+          fi
+          if [ -z "${CF_URL}" ] && [ -n "${DIST}" ]; then
+            DOMAIN=$(aws cloudfront get-distribution --id "${DIST}" --query "Distribution.DomainName" --output text 2>/dev/null || echo "")
+            if [ -n "${DOMAIN}" ]; then
+              CF_URL="https://${DOMAIN}"
+            fi
+          fi
+
           echo "s3_bucket=${BUCKET}" >> "$GITHUB_OUTPUT"
           echo "distribution_id=${DIST}" >> "$GITHUB_OUTPUT"
           echo "cloudfront_url=${CF_URL}" >> "$GITHUB_OUTPUT"
           echo "✓ Target S3 Bucket: ${BUCKET}"
           echo "✓ CloudFront Distribution ID: ${DIST:-'(none)'}"
+          echo "✓ CloudFront URL: ${CF_URL:-'(none)'}"
 
       - name: Deploy Static Assets to Amazon S3
-        uses: jakejarvis/s3-sync-action@master
-        with:
-          args: --delete --exclude "index.html" --cache-control "max-age=31536000,public,immutable"
-        env:
-          AWS_S3_BUCKET: ${{ steps.infra.outputs.s3_bucket }}
-          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
-          SOURCE_DIR: "dist"
+        run: |
+          aws s3 sync dist s3://${{ steps.infra.outputs.s3_bucket }} \
+            --delete --exclude "index.html" \
+            --cache-control "max-age=31536000,public,immutable"
 
       - name: Deploy Index HTML Entrypoint to Amazon S3
-        uses: jakejarvis/s3-sync-action@master
-        with:
-          args: --cache-control "no-cache, no-store, must-revalidate"
-        env:
-          AWS_S3_BUCKET: ${{ steps.infra.outputs.s3_bucket }}
-          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
-          SOURCE_DIR: "dist"
-          DEST_DIR: ""
+        run: |
+          aws s3 cp dist/index.html s3://${{ steps.infra.outputs.s3_bucket }}/index.html \
+            --cache-control "no-cache, no-store, must-revalidate"
 
       - name: Invalidate Amazon CloudFront Cache
-        uses: chetan/invalidate-cloudfront-action@v2
         if: ${{ steps.infra.outputs.distribution_id != '' }}
-        env:
-          DISTRIBUTION: ${{ steps.infra.outputs.distribution_id }}
-          PATHS: "/*"
-          AWS_REGION: ${{ vars.AWS_REGION }}
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ steps.infra.outputs.distribution_id }}" \
+            --paths "/*"
 
       - name: Post-Deployment Smoke Verification
         run: |
