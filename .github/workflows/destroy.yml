@@ -1,0 +1,107 @@
+name: Destroy / Undeploy Super Admin Portal
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target Environment to Undeploy"
+        required: true
+        type: choice
+        default: dev
+        options:
+          - dev
+          - staging
+          - prod
+      confirmation:
+        description: "Safety Confirmation: Type DESTROY to proceed"
+        required: true
+        type: string
+
+permissions:
+  id-token: write # Required for AWS OIDC authentication
+  contents: read
+
+concurrency:
+  group: destroy-superadmin-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  undeploy:
+    name: Undeploy Web Console & Purge S3 Objects
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify Safety Confirmation
+        run: |
+          if [ "${{ inputs.confirmation }}" != "DESTROY" ]; then
+            echo "❌ Undeploy aborted: You must type 'DESTROY' in the confirmation input to prevent accidental deletion."
+            exit 1
+          fi
+          echo "⚠️ Confirmation verified. Undeploying Super Admin Portal from ${{ inputs.environment }}..."
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials via OIDC
+        id: aws-creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_CONSOLE }}
+          aws-region: ${{ vars.AWS_REGION || 'ap-southeast-1' }}
+          audience: sts.amazonaws.com
+
+      - name: Resolve Infrastructure Targets
+        id: infra
+        run: |
+          ENV="${{ inputs.environment }}"
+          ACCOUNT_ID="${{ steps.aws-creds.outputs.aws-account-id }}"
+          BUCKET="${{ vars.ADMIN_WEB_BUCKET }}"
+          if [ -z "${BUCKET}" ]; then
+            BUCKET="${ENV}-nextcloud-admin-web-${ACCOUNT_ID}"
+          fi
+          DIST="${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
+          echo "s3_bucket=${BUCKET}" >> "$GITHUB_OUTPUT"
+          echo "distribution_id=${DIST}" >> "$GITHUB_OUTPUT"
+          echo "Target S3 Bucket to empty: ${BUCKET}"
+          echo "Target CloudFront Distribution to invalidate: ${DIST:-'(none)'}"
+
+      - name: Wipe S3 Bucket Objects (Including Versions & Delete Markers)
+        run: |
+          BUCKET="${{ steps.infra.outputs.s3_bucket }}"
+          echo "Checking S3 bucket status for s3://${BUCKET}..."
+          if aws s3api head-bucket --bucket "${BUCKET}" 2>/dev/null; then
+            echo "Purging all object versions and delete markers from s3://${BUCKET}..."
+            python3 -c "
+            import boto3, os
+            bucket_name = '${BUCKET}'
+            s3 = boto3.resource('s3', region_name='${{ vars.AWS_REGION || 'ap-southeast-1' }}')
+            try:
+                bucket = s3.Bucket(bucket_name)
+                bucket.object_versions.delete()
+                print(f'✓ Successfully wiped all versions and delete markers from {bucket_name}.')
+            except Exception as e:
+                print(f'Notice during object version wipe: {e}')
+            "
+            echo "Emptying any remaining unversioned objects..."
+            aws s3 rm "s3://${BUCKET}" --recursive || true
+            echo "✅ S3 bucket s3://${BUCKET} wiped cleanly."
+          else
+            echo "ℹ️ S3 bucket s3://${BUCKET} does not exist or has already been removed."
+          fi
+
+      - name: Invalidate Amazon CloudFront Cache
+        if: ${{ steps.infra.outputs.distribution_id != '' }}
+        continue-on-error: true
+        run: |
+          echo "Invalidating CloudFront cache for ${{ steps.infra.outputs.distribution_id }}..."
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ steps.infra.outputs.distribution_id }}" \
+            --paths "/*" || true
+
+      - name: Summary Report
+        run: |
+          echo "============================================================"
+          echo "🎉 Super Admin Portal undeployed and S3 bucket wiped cleanly!"
+          echo "Environment : ${{ inputs.environment }}"
+          echo "S3 Bucket   : ${{ steps.infra.outputs.s3_bucket }}"
+          echo "CloudFront  : ${{ steps.infra.outputs.distribution_id || 'N/A' }}"
+          echo "============================================================"

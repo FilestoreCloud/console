@@ -1,0 +1,82 @@
+repos:
+  # ============================================================================
+  # GENERAL CODE QUALITY & FORMATTING
+  # ============================================================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=102400"]
+      - id: check-json
+        exclude: '(package-lock\.json$|yarn\.lock$|dist/|node_modules/)'
+      - id: check-yaml
+        args: ["--unsafe", "--allow-multiple-documents"]
+      - id: detect-private-key
+        exclude: "(node_modules/|dist/)"
+      - id: end-of-file-fixer
+        exclude: '(package-lock\.json$|dist/|node_modules/|\.min\.js$)'
+      - id: no-commit-to-branch
+        args: ["--branch", "main", "--branch", "master"]
+        stages: [pre-commit]
+      - id: trailing-whitespace
+        exclude: '(package-lock\.json$|dist/|node_modules/)'
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.3
+    hooks:
+      - id: codespell
+        verbose: true
+        args: ["--ignore-words-list=ehr,ser"]
+        exclude: '(package-lock\.json$|dist/)'
+
+  # ============================================================================
+  # JAVASCRIPT & TYPESCRIPT LINTING / FORMATTING
+  # ============================================================================
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v10.8.1
+    hooks:
+      - id: eslint
+        args:
+          [
+            --fix,
+            --no-eslintrc,
+            --config,
+            .devsecops/eslintrc.json,
+            --ignore-path,
+            .devsecops/eslintignore,
+          ]
+        files: '\.(js|jsx|ts|tsx)$'
+        exclude: "(node_modules/|dist/|coverage/)"
+        additional_dependencies:
+          - eslint@8.57.1
+          - eslint-plugin-security@3.0.1
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        args: [--no-cache]
+        files: '\.(js|jsx|ts|tsx|json|css|md|yaml|yml)$'
+        exclude: '(node_modules/|dist/|coverage/|package-lock\.json$)'
+
+  # ============================================================================
+  # AWS LABS DEVSECOPS SECURITY SCANNING
+  # ============================================================================
+  - repo: https://github.com/awslabs/ferret-scan
+    rev: v2.3.2
+    hooks:
+      - id: ferret-scan
+        name: Ferret Scan Security Check
+        args:
+          [
+            "--pre-commit-mode",
+            "--confidence",
+            "medium,high",
+            "--checks",
+            "SECRETS",
+            "--config",
+            ".devsecops/ferret-scan.yaml",
+          ]
+        files: '\.(js|jsx|json|md|ts|tsx|txt|yaml|yml)$'
+        exclude: '(^\.git/|\.ash/|\.devsecops/|node_modules/|dist/|package-lock\.json$)'
+        pass_filenames: true

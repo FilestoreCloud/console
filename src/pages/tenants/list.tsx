@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   useList,
   useCreate,
@@ -47,9 +47,13 @@ import {
   AlertOutlined,
   ClockCircleOutlined,
   BranchesOutlined,
+  LineChartOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
 import { CreateTenantModal } from "./create-modal";
+import { renderStatusTag } from "./helpers";
 import { dataProvider } from "../../providers/dataProvider";
+import { useNavigate } from "react-router-dom";
 
 const { Text } = Typography;
 
@@ -65,6 +69,7 @@ export const TenantList: React.FC = () => {
   const [forkForm] = Form.useForm();
 
   const { show } = useNavigation();
+  const navigate = useNavigate();
 
   // Refine hooks
   const { data, isLoading, refetch } = useList({
@@ -80,11 +85,30 @@ export const TenantList: React.FC = () => {
 
   const tenants = (data?.data || []) as any[];
 
+  // In-Flight Lifecycle Operations Detection & Real-Time Auto-Polling
+  const inFlightTenants = tenants.filter((t) =>
+    ["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING"].includes(t.status),
+  );
+  const hasInFlightTenants = inFlightTenants.length > 0;
+
+  useEffect(() => {
+    if (!hasInFlightTenants) return;
+    const interval = setInterval(() => {
+      refetch();
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [hasInFlightTenants, refetch]);
+
   // KPI Calculations
   const totalTenants = tenants.length;
   const activeTenants = tenants.filter((t) => t.status === "ACTIVE").length;
-  const suspendedTenants = tenants.filter((t) => t.status === "SUSPENDED").length;
-  const totalQuota = tenants.reduce((acc, t) => acc + (parseInt(t.quota_gb) || 0), 0);
+  const suspendedTenants = tenants.filter(
+    (t) => t.status === "SUSPENDED",
+  ).length;
+  const totalQuota = tenants.reduce(
+    (acc, t) => acc + (parseInt(t.quota_gb) || 0),
+    0,
+  );
 
   // Filter logic
   const filteredTenants = tenants.filter((t) => {
@@ -95,8 +119,7 @@ export const TenantList: React.FC = () => {
       t.domain?.toLowerCase().includes(s) ||
       t.admin_email?.toLowerCase().includes(s);
 
-    const matchesStatus =
-      statusFilter === "ALL" || t.status === statusFilter;
+    const matchesStatus = statusFilter === "ALL" || t.status === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
@@ -111,13 +134,15 @@ export const TenantList: React.FC = () => {
       },
       {
         onSuccess: () => {
-          message.success(`Tenant ${tenantId} ${action === "SUSPEND" ? "suspended" : "resumed"} successfully!`);
+          message.success(
+            `Tenant ${tenantId} ${action === "SUSPEND" ? "suspended" : "resumed"} successfully!`,
+          );
           refetch();
         },
         onError: (err: any) => {
           message.error(err?.message || "Action failed");
         },
-      }
+      },
     );
   };
 
@@ -135,7 +160,7 @@ export const TenantList: React.FC = () => {
         onError: (err: any) => {
           message.error(err?.message || "Deletion failed");
         },
-      }
+      },
     );
   };
 
@@ -152,14 +177,16 @@ export const TenantList: React.FC = () => {
       },
       {
         onSuccess: () => {
-          message.success(`Tenant ${values.tenant_id} successfully provisioned!`);
+          message.success(
+            `Tenant ${values.tenant_id} successfully provisioned!`,
+          );
           setModalVisible(false);
           refetch();
         },
         onError: (err: any) => {
           message.error(err?.message || "Provisioning failed");
         },
-      }
+      },
     );
   };
 
@@ -179,8 +206,8 @@ export const TenantList: React.FC = () => {
     try {
       const targetId = values.target_tenant_id.toLowerCase().trim();
       await dataProvider.custom({
-        url: "/api",
-        method: "POST",
+        url: dataProvider.getApiUrl(),
+        method: "post",
         payload: {
           action: "CLONE_TENANT",
           source_tenant_id: forkSourceTenant?.tenant_id,
@@ -190,7 +217,9 @@ export const TenantList: React.FC = () => {
           quota_gb: values.quota_gb,
         },
       });
-      message.success(`Tenant '${forkSourceTenant?.tenant_id}' cloned to sandbox '${targetId}'!`);
+      message.success(
+        `Tenant '${forkSourceTenant?.tenant_id}' cloned to sandbox '${targetId}'!`,
+      );
       setForkModalVisible(false);
       forkForm.resetFields();
       refetch();
@@ -217,8 +246,18 @@ export const TenantList: React.FC = () => {
               {tid}
             </Button>
             {record.is_sandbox && (
-              <Tooltip title={record.cloned_from ? `Forked from '${record.cloned_from}'` : "Isolated Staging Sandbox"}>
-                <Tag color="purple" icon={<BranchesOutlined />} style={{ marginLeft: 6, fontSize: 10 }}>
+              <Tooltip
+                title={
+                  record.cloned_from
+                    ? `Forked from '${record.cloned_from}'`
+                    : "Isolated Staging Sandbox"
+                }
+              >
+                <Tag
+                  color="purple"
+                  icon={<BranchesOutlined />}
+                  style={{ marginLeft: 6, fontSize: 10 }}
+                >
                   SANDBOX
                 </Tag>
               </Tooltip>
@@ -247,7 +286,11 @@ export const TenantList: React.FC = () => {
               {fullDomain} <LinkOutlined style={{ fontSize: 11 }} />
             </a>
             <div style={{ marginTop: 2 }}>
-              <Tag color="gold" icon={<SafetyCertificateOutlined />} style={{ fontSize: 10 }}>
+              <Tag
+                color="gold"
+                icon={<SafetyCertificateOutlined />}
+                style={{ fontSize: 10 }}
+              >
                 AWS Secrets Manager
               </Tag>
             </div>
@@ -259,7 +302,9 @@ export const TenantList: React.FC = () => {
       title: "Admin Contact",
       dataIndex: "admin_email",
       key: "admin_email",
-      render: (email: string) => <Text style={{ fontSize: 13 }}>{email || "admin@acme.com"}</Text>,
+      render: (email: string) => (
+        <Text style={{ fontSize: 13 }}>{email || "admin@acme.com"}</Text>
+      ),
     },
     {
       title: "Quota",
@@ -268,61 +313,35 @@ export const TenantList: React.FC = () => {
       render: (quota: any) => <Tag color="blue">{quota || 100} GB</Tag>,
     },
     {
-      title: "Status",
+      title: "Status & Progress",
       dataIndex: "status",
       key: "status",
-      render: (st: string) => {
-        switch (st) {
-          case "ACTIVE":
-            return (
-              <Tag color="success" icon={<CheckCircleOutlined />}>
-                ACTIVE
-              </Tag>
-            );
-          case "DEGRADED":
-            return (
-              <Tag color="warning" icon={<AlertOutlined />}>
-                DEGRADED
-              </Tag>
-            );
-          case "INCIDENT":
-            return (
-              <Tag color="error" icon={<WarningOutlined />}>
-                INCIDENT
-              </Tag>
-            );
-          case "MAINTENANCE":
-            return (
-              <Tag color="processing" icon={<ClockCircleOutlined />}>
-                MAINTENANCE
-              </Tag>
-            );
-          case "SUSPENDED":
-          default:
-            return (
-              <Tag color="default" icon={<PauseCircleOutlined />}>
-                SUSPENDED
-              </Tag>
-            );
-        }
-      },
+      render: (st: string, record: any) => renderStatusTag(st, record),
     },
     {
       title: "Isolated Infrastructure",
       key: "infra",
       render: (_: any, record: any) => {
         const svc = record.service_name || `service-${record.tenant_id}`;
-        const db = record.database_name || `nc_${record.tenant_id.replace(/-/g, "_")}`;
-        const ap = record.efs_access_point_id || `/tenants/${record.tenant_id}/config`;
+        const db =
+          record.database_name || `nc_${record.tenant_id.replace(/-/g, "_")}`;
+        const ap =
+          record.efs_access_point_id || `/tenants/${record.tenant_id}/config`;
         return (
           <Space direction="vertical" size={2}>
-            <Tag color={record.status === "ACTIVE" ? "green" : "default"} icon={<ClusterOutlined />}>
+            <Tag
+              color={record.status === "ACTIVE" ? "green" : "default"}
+              icon={<ClusterOutlined />}
+            >
               {svc} ({record.status === "ACTIVE" ? "1 task" : "0 tasks / $0"})
             </Tag>
             <Tag color="cyan" icon={<DatabaseOutlined />}>
               {db}
             </Tag>
-            <Tag color="default" style={{ fontSize: 10, fontFamily: "monospace" }}>
+            <Tag
+              color="default"
+              style={{ fontSize: 10, fontFamily: "monospace" }}
+            >
               {ap}
             </Tag>
           </Space>
@@ -334,27 +353,14 @@ export const TenantList: React.FC = () => {
       key: "actions",
       align: "right" as const,
       render: (_: any, record: any) => {
-        const isAuditor = canCreate?.can === false && canDelete?.can === false;
-        if (isAuditor) {
-          return (
-            <Space>
-              <Button
-                size="small"
-                type="primary"
-                ghost
-                icon={<EyeOutlined />}
-                onClick={() => show("tenants", record.tenant_id)}
-              >
-                Inspect
-              </Button>
-              <Tag color="default" icon={<LockOutlined />}>
-                Read Only
-              </Tag>
-            </Space>
-          );
-        }
-
         const isActive = record.status === "ACTIVE";
+        const isInFlight = [
+          "PROVISIONING",
+          "DELETING",
+          "DEPROVISIONING",
+          "SUSPENDING",
+          "RESUMING",
+        ].includes(record.status);
         return (
           <Space>
             <Button
@@ -369,9 +375,20 @@ export const TenantList: React.FC = () => {
 
             <Button
               size="small"
+              icon={<LineChartOutlined style={{ color: "#ec7211" }} />}
+              onClick={() =>
+                navigate(`/tenants/${record.tenant_id}?tab=metrics`)
+              }
+            >
+              Metrics
+            </Button>
+
+            <Button
+              size="small"
               icon={<BranchesOutlined />}
               style={{ color: "#8b5cf6", borderColor: "#8b5cf6" }}
               onClick={() => handleOpenForkModal(record)}
+              disabled={isInFlight}
             >
               Fork
             </Button>
@@ -379,8 +396,11 @@ export const TenantList: React.FC = () => {
             <Button
               size="small"
               icon={isActive ? <PauseOutlined /> : <CaretRightOutlined />}
-              onClick={() => handleToggleStatus(record.tenant_id, record.status)}
-              loading={isUpdating}
+              onClick={() =>
+                handleToggleStatus(record.tenant_id, record.status)
+              }
+              loading={isUpdating && isInFlight}
+              disabled={isInFlight}
             >
               {isActive ? "Suspend" : "Resume"}
             </Button>
@@ -393,11 +413,20 @@ export const TenantList: React.FC = () => {
                 okText="Delete"
                 cancelText="Cancel"
                 okButtonProps={{ danger: true }}
+                disabled={isInFlight}
               >
-                <Button size="small" danger icon={<DeleteOutlined />} loading={isDeleting} />
+                <Button
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                  loading={isDeleting && isInFlight}
+                  disabled={isInFlight}
+                />
               </Popconfirm>
             ) : (
-              <Tooltip title={canDelete?.reason || "Restricted to SuperAdmin role"}>
+              <Tooltip
+                title={canDelete?.reason || "Restricted to SuperAdmin role"}
+              >
                 <Button size="small" disabled icon={<LockOutlined />} />
               </Tooltip>
             )}
@@ -412,7 +441,10 @@ export const TenantList: React.FC = () => {
       {/* 1. KPI Metric Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <Card
+            variant="borderless"
+            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+          >
             <Statistic
               title="TOTAL REGISTERED TENANTS"
               value={totalTenants}
@@ -421,7 +453,10 @@ export const TenantList: React.FC = () => {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <Card
+            variant="borderless"
+            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+          >
             <Statistic
               title="ACTIVE DEPLOYMENTS"
               value={activeTenants}
@@ -431,7 +466,10 @@ export const TenantList: React.FC = () => {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <Card
+            variant="borderless"
+            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+          >
             <Statistic
               title="SUSPENDED DEPLOYMENTS"
               value={suspendedTenants}
@@ -441,7 +479,10 @@ export const TenantList: React.FC = () => {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <Card
+            variant="borderless"
+            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+          >
             <Statistic
               title="ALLOCATED STORAGE"
               value={totalQuota}
@@ -454,7 +495,10 @@ export const TenantList: React.FC = () => {
       </Row>
 
       {/* 2. Action & Filter Bar */}
-      <Card bordered={false} style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+      <Card
+        variant="borderless"
+        style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+      >
         <Row justify="space-between" align="middle" gutter={[16, 16]}>
           <Col xs={24} md={12}>
             <Space style={{ width: "100%" }}>
@@ -469,11 +513,16 @@ export const TenantList: React.FC = () => {
               <Select
                 value={statusFilter}
                 onChange={setStatusFilter}
-                style={{ width: 150 }}
+                style={{ width: 170 }}
                 options={[
                   { value: "ALL", label: "All Statuses" },
                   { value: "ACTIVE", label: "Active Only" },
+                  { value: "PROVISIONING", label: "Provisioning Only" },
+                  { value: "DELETING", label: "Deleting Only" },
+                  { value: "SUSPENDING", label: "Suspending Only" },
+                  { value: "RESUMING", label: "Resuming Only" },
                   { value: "SUSPENDED", label: "Suspended Only" },
+                  { value: "FAILED", label: "Failed Only" },
                 ]}
               />
             </Space>
@@ -481,10 +530,14 @@ export const TenantList: React.FC = () => {
 
           <Col xs={24} md={12} style={{ textAlign: "right" }}>
             <Space>
-              <Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading}>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => refetch()}
+                loading={isLoading}
+              >
                 Refresh
               </Button>
-              {canCreate?.can ? (
+              {canCreate?.can && (
                 <Button
                   type="primary"
                   icon={<PlusOutlined />}
@@ -493,10 +546,6 @@ export const TenantList: React.FC = () => {
                 >
                   Provision Dedicated Tenant
                 </Button>
-              ) : (
-                <Tag color="warning" icon={<LockOutlined />} style={{ padding: "4px 8px" }}>
-                  Auditor Mode: Read-Only
-                </Tag>
               )}
             </Space>
           </Col>
@@ -504,7 +553,39 @@ export const TenantList: React.FC = () => {
       </Card>
 
       {/* 3. Tenants Table */}
-      <Card bordered={false} style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+      <Card
+        variant="borderless"
+        style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+      >
+        {hasInFlightTenants && (
+          <Alert
+            message={
+              <Space>
+                <SyncOutlined spin style={{ color: "#1890ff" }} />
+                <Text strong>AWS Step Functions Fleet Orchestration Active</Text>
+                <span>
+                  — {inFlightTenants.length} operation(s) in progress (
+                  {[
+                    inFlightTenants.filter((t) => t.status === "PROVISIONING").length > 0 &&
+                      `${inFlightTenants.filter((t) => t.status === "PROVISIONING").length} creating`,
+                    inFlightTenants.filter((t) => ["DELETING", "DEPROVISIONING"].includes(t.status)).length > 0 &&
+                      `${inFlightTenants.filter((t) => ["DELETING", "DEPROVISIONING"].includes(t.status)).length} deleting`,
+                    inFlightTenants.filter((t) => t.status === "SUSPENDING").length > 0 &&
+                      `${inFlightTenants.filter((t) => t.status === "SUSPENDING").length} suspending`,
+                    inFlightTenants.filter((t) => t.status === "RESUMING").length > 0 &&
+                      `${inFlightTenants.filter((t) => t.status === "RESUMING").length} resuming`,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}
+                  ). Real-time progress is auto-polling every 2.5s.
+                </span>
+              </Space>
+            }
+            type="info"
+            showIcon={false}
+            style={{ marginBottom: 16 }}
+          />
+        )}
         <Table
           columns={columns}
           dataSource={filteredTenants}
@@ -533,7 +614,7 @@ export const TenantList: React.FC = () => {
         open={forkModalVisible}
         onCancel={() => setForkModalVisible(false)}
         footer={null}
-        destroyOnClose
+        destroyOnHidden
       >
         <Alert
           type="info"
@@ -542,11 +623,7 @@ export const TenantList: React.FC = () => {
           description={`Cloning '${forkSourceTenant?.tenant_id}' provisions an isolated staging environment with dedicated database 'nc_<target>', dedicated S3 prefix, dedicated EFS mount path, and container service.`}
           style={{ marginBottom: 16 }}
         />
-        <Form
-          form={forkForm}
-          layout="vertical"
-          onFinish={handleForkSubmit}
-        >
+        <Form form={forkForm} layout="vertical" onFinish={handleForkSubmit}>
           <Form.Item label="Source Tenant Template">
             <Tag color="blue" style={{ fontSize: 13, padding: "2px 8px" }}>
               {forkSourceTenant?.tenant_id} ({forkSourceTenant?.domain})
@@ -558,7 +635,10 @@ export const TenantList: React.FC = () => {
             label="Sandbox Tenant Identifier (Slug)"
             rules={[
               { required: true, message: "Sandbox tenant ID is required" },
-              { pattern: /^[a-z0-9-]+$/, message: "Lowercase letters, numbers, and hyphens only" },
+              {
+                pattern: /^[a-z0-9-]+$/,
+                message: "Lowercase letters, numbers, and hyphens only",
+              },
             ]}
           >
             <Input placeholder="e.g. acme-staging, marvel-sandbox" />
@@ -571,17 +651,11 @@ export const TenantList: React.FC = () => {
             <Input placeholder="e.g. acme-staging.png261.dev" />
           </Form.Item>
 
-          <Form.Item
-            name="admin_email"
-            label="Sandbox Admin Contact Email"
-          >
+          <Form.Item name="admin_email" label="Sandbox Admin Contact Email">
             <Input type="email" placeholder="e.g. admin@acme-staging.com" />
           </Form.Item>
 
-          <Form.Item
-            name="quota_gb"
-            label="Storage Quota (GB)"
-          >
+          <Form.Item name="quota_gb" label="Storage Quota (GB)">
             <Input type="number" placeholder="50" />
           </Form.Item>
 

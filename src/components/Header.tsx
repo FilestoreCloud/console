@@ -1,6 +1,15 @@
 import React from "react";
 import { useGetIdentity, useLogout } from "@refinedev/core";
-import { Layout, Space, Tag, Dropdown, Button, Typography, Avatar, MenuProps } from "antd";
+import {
+  Layout,
+  Space,
+  Tag,
+  Dropdown,
+  Button,
+  Typography,
+  Avatar,
+  MenuProps,
+} from "antd";
 import {
   SafetyCertificateFilled,
   LogoutOutlined,
@@ -8,37 +17,31 @@ import {
   CheckCircleFilled,
   LineChartOutlined,
   UserOutlined,
-  ToolFilled,
-  EyeFilled,
   LockFilled,
+  BulbOutlined,
+  BulbFilled,
 } from "@ant-design/icons";
 
 const { Text } = Typography;
 
-export const CustomHeader: React.FC = () => {
+export interface HeaderProps {
+  isDark?: boolean;
+  onToggleTheme?: () => void;
+}
+
+export const CustomHeader: React.FC<HeaderProps> = ({
+  isDark,
+  onToggleTheme,
+}) => {
   const { data: user } = useGetIdentity<any>();
   const { mutate: logout } = useLogout();
 
   const role = user?.role || "SuperAdmin";
 
   const getRoleBadge = () => {
-    if (role === "SuperAdmin") {
-      return (
-        <Tag color="error" icon={<SafetyCertificateFilled />}>
-          SuperAdmin (Full Control)
-        </Tag>
-      );
-    }
-    if (role === "TenantOperator") {
-      return (
-        <Tag color="processing" icon={<ToolFilled />}>
-          TenantOperator (Ops Only)
-        </Tag>
-      );
-    }
     return (
-      <Tag color="warning" icon={<EyeFilled />}>
-        SecurityAuditor (Read-Only)
+      <Tag color="error" icon={<SafetyCertificateFilled />}>
+        SuperAdmin (Full Control)
       </Tag>
     );
   };
@@ -48,7 +51,7 @@ export const CustomHeader: React.FC = () => {
       key: "user-info",
       label: (
         <div style={{ padding: "4px 8px" }}>
-          <Text strong>{user?.email || "admin@png261.dev"}</Text>
+          <Text strong>{user?.email || "SuperAdmin"}</Text>
           <br />
           <Text type="secondary" style={{ fontSize: 12 }}>
             Role: {role}
@@ -62,7 +65,7 @@ export const CustomHeader: React.FC = () => {
         <Space style={{ padding: "2px 8px" }}>
           <CheckCircleFilled style={{ color: "#52c41a" }} />
           <Text orientation="left" style={{ fontSize: 12, color: "#52c41a" }}>
-            MFA: RFC 6238 TOTP Verified
+            MFA: Verified
           </Text>
         </Space>
       ),
@@ -97,12 +100,25 @@ export const CustomHeader: React.FC = () => {
       <Space size="middle" align="center">
         <span style={{ fontSize: 24 }}>☁️</span>
         <Text strong style={{ color: "#ffffff", fontSize: 16 }}>
-          Nextcloud SaaS Control Plane
+          Filestore Cloud Console
         </Text>
-        <Tag color="default" style={{ backgroundColor: "#1e293b", color: "#cbd5e1", borderColor: "#334155" }}>
+        <Tag
+          color="default"
+          style={{
+            backgroundColor: "#1e293b",
+            color: "#cbd5e1",
+            borderColor: "#334155",
+          }}
+        >
           <GlobalOutlined style={{ marginRight: 4 }} /> Region: ap-southeast-1
         </Tag>
-        <Tag color="success" style={{ backgroundColor: "rgba(82, 196, 26, 0.15)", borderColor: "#52c41a" }}>
+        <Tag
+          color="success"
+          style={{
+            backgroundColor: "rgba(82, 196, 26, 0.15)",
+            borderColor: "#52c41a",
+          }}
+        >
           <CheckCircleFilled style={{ marginRight: 4 }} /> Online
         </Tag>
       </Space>
@@ -118,11 +134,48 @@ export const CustomHeader: React.FC = () => {
           CloudWatch Dashboard ↗
         </Button>
 
+        {onToggleTheme && (
+          <Button
+            size="small"
+            icon={
+              isDark ? (
+                <BulbFilled style={{ color: "#faad14" }} />
+              ) : (
+                <BulbOutlined style={{ color: "#ffffff" }} />
+              )
+            }
+            onClick={onToggleTheme}
+            style={{
+              backgroundColor: isDark ? "#1e293b" : "#334155",
+              borderColor: "#475569",
+              color: "#ffffff",
+            }}
+          >
+            {isDark ? "Dark" : "Light"}
+          </Button>
+        )}
+
         {getRoleBadge()}
 
-        <Dropdown menu={{ items: menuItems }} placement="bottomRight" trigger={["click"]}>
-          <Button type="text" style={{ color: "#ffffff", display: "flex", alignItems: "center", gap: 8 }}>
-            <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: "#ec7211" }} />
+        <Dropdown
+          menu={{ items: menuItems }}
+          placement="bottomRight"
+          trigger={["click"]}
+        >
+          <Button
+            type="text"
+            style={{
+              color: "#ffffff",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <Avatar
+              size="small"
+              icon={<UserOutlined />}
+              style={{ backgroundColor: "#ec7211" }}
+            />
             <span>{user?.name || "ADMIN"}</span>
           </Button>
         </Dropdown>

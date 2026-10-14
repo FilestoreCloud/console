@@ -40,10 +40,14 @@ export const AuditLogList: React.FC = () => {
         else if (act?.includes("DELETE")) color = "red";
         else if (act?.includes("SUSPEND")) color = "orange";
         else if (act?.includes("RESUME")) color = "blue";
-        else if (act?.includes("LOGIN") || act?.includes("MFA")) color = "purple";
+        else if (act?.includes("LOGIN") || act?.includes("MFA"))
+          color = "purple";
 
         return (
-          <Tag color={color} style={{ fontFamily: "monospace", fontWeight: 600 }}>
+          <Tag
+            color={color}
+            style={{ fontFamily: "monospace", fontWeight: 600 }}
+          >
             {act}
           </Tag>
         );
@@ -59,19 +63,16 @@ export const AuditLogList: React.FC = () => {
       title: "Actor (User)",
       dataIndex: "actor",
       key: "actor",
-      render: (actor: string) => <Text style={{ fontSize: 13 }}>{actor || "anonymous"}</Text>,
+      render: (actor: string) => (
+        <Text style={{ fontSize: 13 }}>{actor || "anonymous"}</Text>
+      ),
     },
     {
       title: "Role",
       dataIndex: "role",
       key: "role",
       render: (role: string) => {
-        const color =
-          role === "SuperAdmin"
-            ? "red"
-            : role === "TenantOperator"
-            ? "blue"
-            : "gold";
+        const color = role === "SuperAdmin" ? "red" : "default";
         return <Tag color={color}>{role || "Unauthenticated"}</Tag>;
       },
     },
@@ -106,7 +107,10 @@ export const AuditLogList: React.FC = () => {
       dataIndex: "ip_address",
       key: "ip_address",
       render: (ip: string) => (
-        <Text type="secondary" style={{ fontFamily: "monospace", fontSize: 12 }}>
+        <Text
+          type="secondary"
+          style={{ fontFamily: "monospace", fontSize: 12 }}
+        >
           {ip || "127.0.0.1"}
         </Text>
       ),
@@ -115,7 +119,10 @@ export const AuditLogList: React.FC = () => {
 
   return (
     <div>
-      <Card bordered={false} style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+      <Card
+        variant="borderless"
+        style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+      >
         <Row justify="space-between" align="middle">
           <Col>
             <Space align="center">
@@ -124,21 +131,32 @@ export const AuditLogList: React.FC = () => {
                 <Text strong style={{ fontSize: 16, display: "block" }}>
                   Immutable Cloud Audit Trail
                 </Text>
-                <Tag color="success" icon={<DatabaseOutlined />} style={{ marginTop: 4 }}>
+                <Tag
+                  color="success"
+                  icon={<DatabaseOutlined />}
+                  style={{ marginTop: 4 }}
+                >
                   Amazon DynamoDB &amp; CloudWatch Logs (365-Day Retention TTL)
                 </Tag>
               </div>
             </Space>
           </Col>
           <Col>
-            <Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading}>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={() => refetch()}
+              loading={isLoading}
+            >
               Refresh Logs
             </Button>
           </Col>
         </Row>
       </Card>
 
-      <Card bordered={false} style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+      <Card
+        variant="borderless"
+        style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+      >
         <Table
           columns={columns}
           dataSource={logs}

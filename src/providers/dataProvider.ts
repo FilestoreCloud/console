@@ -1,9 +1,9 @@
 import { DataProvider } from "@refinedev/core";
 
-const API_BASE = "/api";
+const API_BASE = (import.meta.env.VITE_API_URL as string) || "/api";
 
 function getHeaders(): HeadersInit {
-  const token = sessionStorage.getItem("saas_admin_token");
+  const token = localStorage.getItem("saas_admin_token");
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -24,13 +24,14 @@ export const dataProvider: DataProvider = {
       });
       if (res.status === 401) throw { status: 401, message: "Unauthorized" };
       const data = await res.json();
-      const tenants = (data.tenants || []).map((t: any) => ({
+      const rawTenants = data.tenants || data.items || data.data || [];
+      const tenants = rawTenants.map((t: any) => ({
         id: t.tenant_id,
         ...t,
       }));
       return {
         data: tenants,
-        total: tenants.length,
+        total: data.total || data.count || tenants.length,
       };
     }
 
@@ -57,10 +58,15 @@ export const dataProvider: DataProvider = {
 
   getOne: async ({ resource, id }) => {
     if (resource === "tenants") {
+      const decodedId = decodeURIComponent(String(id || ""));
+      const cleanId = decodedId.split("?")[0].trim();
       const res = await fetch(API_BASE, {
         method: "POST",
         headers: getHeaders(),
-        body: JSON.stringify({ action: "GET_TENANT_DETAIL", tenant_id: id }),
+        body: JSON.stringify({
+          action: "GET_TENANT_DETAIL",
+          tenant_id: cleanId,
+        }),
       });
       if (res.status === 401) throw { status: 401, message: "Unauthorized" };
       const data = await res.json();
@@ -77,6 +83,7 @@ export const dataProvider: DataProvider = {
           incident: data.incident,
           incidents_history: data.incidents_history,
           audit_logs: data.audit_logs,
+          metrics: data.metrics,
         },
       } as any;
     }
@@ -148,7 +155,9 @@ export const dataProvider: DataProvider = {
     return { data: { id } } as any;
   },
 
-  getApiUrl: () => API_BASE,
+  getApiUrl(): string {
+    return API_BASE;
+  },
 
   custom: async ({ url, method, payload }) => {
     const res = await fetch(url || API_BASE, {

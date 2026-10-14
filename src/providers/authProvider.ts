@@ -1,6 +1,6 @@
 import { AuthProvider } from "@refinedev/core";
 
-const API_BASE = "/api";
+const API_BASE = (import.meta.env.VITE_API_URL as string) || "/api";
 
 export interface LoginParams {
   email?: string;
@@ -10,7 +10,12 @@ export interface LoginParams {
 }
 
 export const authProvider: AuthProvider = {
-  login: async ({ email, password, challenge_token, mfa_code }: LoginParams) => {
+  login: async ({
+    email,
+    password,
+    challenge_token,
+    mfa_code,
+  }: LoginParams) => {
     try {
       // 1. If verifying MFA challenge
       if (challenge_token && mfa_code) {
@@ -25,9 +30,12 @@ export const authProvider: AuthProvider = {
         });
         const data = await res.json();
         if (res.ok && data.token) {
-          sessionStorage.setItem("saas_admin_token", data.token);
-          sessionStorage.setItem("saas_admin_email", data.user || email || "admin@png261.dev");
-          sessionStorage.setItem("saas_admin_role", data.role || "SuperAdmin");
+          localStorage.setItem("saas_admin_token", data.token);
+          localStorage.setItem(
+            "saas_admin_email",
+            data.user || email || "SuperAdmin",
+          );
+          localStorage.setItem("saas_admin_role", data.role || "SuperAdmin");
           return {
             success: true,
             redirectTo: "/tenants",
@@ -37,7 +45,7 @@ export const authProvider: AuthProvider = {
           success: false,
           error: {
             name: "MFA Error",
-            message: data.error || "Invalid 6-digit TOTP verification code.",
+            message: data.error || "Invalid 6-digit verification code.",
           },
         };
       }
@@ -60,22 +68,21 @@ export const authProvider: AuthProvider = {
           success: false,
           error: {
             name: "MFA_REQUIRED",
-            message: data.message || "TOTP Code Required",
+            message: data.message || "Verification Code Required",
           },
           // Custom properties passed via error or custom return
           mfaData: {
             challenge_token: data.challenge_token,
             user: data.user,
             role: data.role,
-            demo_totp_secret: data.demo_totp_secret,
           },
         } as any;
       }
 
       if (res.ok && data.token) {
-        sessionStorage.setItem("saas_admin_token", data.token);
-        sessionStorage.setItem("saas_admin_email", email || "admin@png261.dev");
-        sessionStorage.setItem("saas_admin_role", data.role || "SuperAdmin");
+        localStorage.setItem("saas_admin_token", data.token);
+        localStorage.setItem("saas_admin_email", email || data.user || "SuperAdmin");
+        localStorage.setItem("saas_admin_role", data.role || "SuperAdmin");
         return {
           success: true,
           redirectTo: "/tenants",
@@ -101,9 +108,9 @@ export const authProvider: AuthProvider = {
   },
 
   logout: async () => {
-    sessionStorage.removeItem("saas_admin_token");
-    sessionStorage.removeItem("saas_admin_email");
-    sessionStorage.removeItem("saas_admin_role");
+    localStorage.removeItem("saas_admin_token");
+    localStorage.removeItem("saas_admin_email");
+    localStorage.removeItem("saas_admin_role");
     return {
       success: true,
       redirectTo: "/login",
@@ -111,7 +118,7 @@ export const authProvider: AuthProvider = {
   },
 
   check: async () => {
-    const token = sessionStorage.getItem("saas_admin_token");
+    const token = localStorage.getItem("saas_admin_token");
     if (token) {
       return {
         authenticated: true,
@@ -125,13 +132,13 @@ export const authProvider: AuthProvider = {
   },
 
   getPermissions: async () => {
-    const role = sessionStorage.getItem("saas_admin_role");
-    return role || "SecurityAuditor";
+    const role = localStorage.getItem("saas_admin_role");
+    return role || "SuperAdmin";
   },
 
   getIdentity: async () => {
-    const email = sessionStorage.getItem("saas_admin_email");
-    const role = sessionStorage.getItem("saas_admin_role") || "SuperAdmin";
+    const email = localStorage.getItem("saas_admin_email");
+    const role = localStorage.getItem("saas_admin_role") || "SuperAdmin";
     if (email) {
       return {
         id: email,

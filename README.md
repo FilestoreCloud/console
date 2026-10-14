@@ -4,6 +4,19 @@ Enterprise Super Admin Web Console for multi-tenant Nextcloud on AWS, built with
 
 ---
 
+## Architecture Overview
+
+![Super Admin Console AWS Architecture](docs/images/console_architecture.png)
+
+The Super Admin Console provides a decoupled, secure control plane for managing multi-tenant Nextcloud fleets across AWS:
+
+- **Edge Delivery & Security:** Amazon CloudFront CDN distribution with Origin Access Control (OAC) fronting an encrypted Amazon S3 static web bucket. Ingress protected by AWS WAF (OWASP rules, IP rate limiting, SQLi/XSS shielding).
+- **Role-Based Access Control (RBAC):** Authenticated administrative access (`SuperAdmin`) with RFC 6238 TOTP Multi-Factor Authentication.
+- **Fleet Telemetry & Operational Control:** Real-time metrics visualization via Apache ECharts, live Amazon CloudWatch log streaming (`/ecs/nextcloud`), remote OCC command execution, and automated incident management.
+- **Tenant Lifecycle Orchestration:** Systems Manager runbooks and dedicated container-per-tenant lifecycle provisioning.
+
+---
+
 ## Features
 
 - **Fleet Operations Management:** Real-time visibility into all provisioned tenants, container states, storage quotas, and dedicated AWS topology (ECS, RDS, EFS, S3, ALB).
@@ -45,13 +58,33 @@ npm run build
 
 Generates optimized, production-ready static assets in `dist/`.
 
+### Automated Testing
+
+```bash
+npm test
+```
+
+Runs the automated test suite powered by Vitest, verifying RBAC access control policies, authentication & MFA lifecycle, data provider APIs, and UI components.
+
 ---
 
 ## CI/CD Deployment
 
 Automated deployment is configured via GitHub Actions (`.github/workflows/deploy.yml`):
+
 - Automatically triggers on every `push` to `main` branch.
 - Compiles the React + Vite bundle (`npm ci && npm run build`).
 - Deploys static assets to Amazon S3 (`s3://prod-nextcloud-admin-web-649519997247/`).
 - Invalidates the Amazon CloudFront distribution cache (`/*`).
 - Executes post-deployment smoke test verification.
+
+---
+
+## Architecture Diagram as Code
+
+The console architecture diagram is generated and maintained as code using [AWS Diagram as Code (`awsdac`)](https://github.com/awslabs/diagram-as-code):
+
+```bash
+# Rebuild console architecture diagram
+awsdac docs/diagrams/console_architecture.yaml -o docs/images/console_architecture.png -f
+```

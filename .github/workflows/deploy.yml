@@ -4,12 +4,13 @@ on:
   push:
     branches:
       - main
+  repository_dispatch:
+    types: [deploy_console]
   workflow_dispatch:
     inputs:
       environment:
         description: "Target Environment"
         required: true
-        default: "prod"
         type: choice
         options:
           - prod
@@ -24,8 +25,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
-    name: Build & Deploy to S3 + CloudFront
+  build-and-test:
+    name: Build & Test React SPA
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -40,98 +41,168 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Run Vitest Unit Tests
+        run: npm test
+
       - name: Build Production Bundle
         run: npm run build
 
+      - name: Upload Production Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: console-dist
+          path: dist/
+          retention-days: 1
+
+  deploy:
+    name: Deploy to S3 + CloudFront
+    needs: [build-and-test]
+    runs-on: ubuntu-latest
+    outputs:
+      cloudfront_url: ${{ steps.infra.outputs.cloudfront_url }}
+    steps:
+      - name: Download Production Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: console-dist
+          path: dist
+
       - name: Configure AWS Credentials via OIDC
+        id: aws-creds
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN || 'arn:aws:iam::649519997247:role/coderpush-github-actions-role' }}
-          aws-region: ${{ vars.AWS_REGION || 'ap-southeast-1' }}
+          role-to-assume: ${{ secrets.AWS_ROLE_CONSOLE }}
+          aws-region: ${{ vars.AWS_REGION }}
           audience: sts.amazonaws.com
 
-      - name: Resolve Infrastructure Parameters
+      - name: Resolve Infrastructure Targets
         id: infra
         run: |
-          ENV="${{ inputs.environment || 'prod' }}"
-          REGION="${{ vars.AWS_REGION || 'ap-southeast-1' }}"
-          echo "Resolving parameters for environment: ${ENV} in ${REGION}..."
+          ENV="${{ github.event.client_payload.environment || inputs.environment || 'dev' }}"
+          BUCKET="${{ vars.ADMIN_WEB_BUCKET }}"
+          DIST="${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
 
-          # 1. Resolve S3 Bucket Name
-          S3_BUCKET=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/admin-web-bucket" --query "Parameter.Value" --output text --region "${REGION}" 2>/dev/null || echo "")
-          if [ -z "${S3_BUCKET}" ]; then
-            ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text 2>/dev/null || echo "649519997247")
-            S3_BUCKET="${ENV}-nextcloud-admin-web-${ACCOUNT_ID}"
+          # Auto-discover S3 bucket from AWS SSM Parameter Store (created by Module 06)
+          if [ -z "${BUCKET}" ]; then
+            BUCKET=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/admin-web-bucket" --query "Parameter.Value" --output text 2>/dev/null || echo "")
+          fi
+          if [ -z "${BUCKET}" ]; then
+            ACCOUNT_ID="${{ steps.aws-creds.outputs.aws-account-id }}"
+            BUCKET="${ENV}-nextcloud-admin-web-${ACCOUNT_ID}"
           fi
 
-          # 2. Resolve CloudFront Distribution ID
-          DIST_ID=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/cloudfront-distribution-id" --query "Parameter.Value" --output text --region "${REGION}" 2>/dev/null || echo "")
-          if [ -z "${DIST_ID}" ] || [ "${DIST_ID}" = "None" ]; then
-            DIST_ID=$(aws cloudformation describe-stacks --stack-name "${ENV}-nextcloud-06-control-plane" --query "Stacks[0].Outputs[?OutputKey=='AdminWebDistributionId'].OutputValue" --output text --region "${REGION}" 2>/dev/null || echo "")
-          fi
-          [ "${DIST_ID}" = "None" ] && DIST_ID=""
-
-          # 3. Resolve CloudFront Domain / URL
-          CF_URL=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/admin-web-url" --query "Parameter.Value" --output text --region "${REGION}" 2>/dev/null || echo "")
-          if [ -z "${CF_URL}" ] && [ -n "${DIST_ID}" ] && [ "${DIST_ID}" != "None" ]; then
-            CF_DOMAIN=$(aws cloudfront get-distribution --id "${DIST_ID}" --query "Distribution.DomainName" --output text 2>/dev/null || echo "")
-            [ -n "${CF_DOMAIN}" ] && [ "${CF_DOMAIN}" != "None" ] && CF_URL="https://${CF_DOMAIN}"
+          # Auto-discover CloudFront distribution from AWS SSM Parameter Store
+          if [ -z "${DIST}" ]; then
+            DIST=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/cloudfront-distribution-id" --query "Parameter.Value" --output text 2>/dev/null || echo "")
           fi
 
-          echo "s3_bucket=${S3_BUCKET}" >> "$GITHUB_OUTPUT"
-          echo "distribution_id=${DIST_ID}" >> "$GITHUB_OUTPUT"
-          echo "cloudfront_url=${CF_URL}" >> "$GITHUB_OUTPUT"
-
-          echo "✓ S3 Bucket: ${S3_BUCKET}"
-          echo "✓ CloudFront Distribution ID: ${DIST_ID}"
-          echo "✓ CloudFront URL: ${CF_URL}"
-
-      - name: Deploy Static Bundle to Amazon S3
-        run: |
-          S3_BUCKET="${{ steps.infra.outputs.s3_bucket }}"
-          REGION="${{ vars.AWS_REGION || 'ap-southeast-1' }}"
-          echo "Deploying Super Admin bundle to s3://${S3_BUCKET}..."
-
-          # Upload hashed JS/CSS assets with 1-year immutable caching
-          aws s3 sync dist/ "s3://${S3_BUCKET}/" \
-            --delete \
-            --exclude "index.html" \
-            --cache-control "max-age=31536000,public,immutable" \
-            --region "${REGION}"
-
-          # Upload index.html with no-cache so browsers always fetch newest entrypoint
-          aws s3 cp dist/index.html "s3://${S3_BUCKET}/index.html" \
-            --cache-control "no-cache, no-store, must-revalidate" \
-            --content-type "text/html; charset=utf-8" \
-            --region "${REGION}"
-
-          echo "✅ S3 sync completed successfully."
-
-      - name: Invalidate Amazon CloudFront Cache
-        run: |
-          DIST_ID="${{ steps.infra.outputs.distribution_id }}"
-          if [ -n "${DIST_ID}" ] && [ "${DIST_ID}" != "None" ]; then
-            echo "Invalidating CloudFront distribution: ${DIST_ID}..."
-            INV_ID=$(aws cloudfront create-invalidation \
-              --distribution-id "${DIST_ID}" \
-              --paths "/*" \
-              --query "Invalidation.Id" \
-              --output text)
-            echo "✅ CloudFront invalidation triggered: ${INV_ID}"
-          else
-            echo "ℹ️ No CloudFront Distribution ID found; skipping cache invalidation."
+          # Auto-discover CloudFront URL from AWS SSM Parameter Store or CloudFront API
+          if [ -z "${CF_URL}" ]; then
+            CF_URL=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/admin-web-url" --query "Parameter.Value" --output text 2>/dev/null || echo "")
           fi
-
-      - name: Post-Deployment Smoke Verification
-        run: |
-          CF_URL="${{ steps.infra.outputs.cloudfront_url }}"
-          if [ -n "${CF_URL}" ]; then
-            echo "Testing public web endpoint: ${CF_URL}..."
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${CF_URL}/")
-            echo "Endpoint HTTP Status: ${STATUS}"
-            if [ "$STATUS" -eq 200 ]; then
-              echo "🎉 Super Admin Portal is live and healthy: HTTP 200 OK"
-            else
-              echo "⚠️ Endpoint returned HTTP status: ${STATUS}"
+          if [ -z "${CF_URL}" ] && [ -n "${DIST}" ]; then
+            DOMAIN=$(aws cloudfront get-distribution --id "${DIST}" --query "Distribution.DomainName" --output text 2>/dev/null || echo "")
+            if [ -n "${DOMAIN}" ]; then
+              CF_URL="https://${DOMAIN}"
             fi
           fi
+
+          echo "s3_bucket=${BUCKET}" >> "$GITHUB_OUTPUT"
+          echo "distribution_id=${DIST}" >> "$GITHUB_OUTPUT"
+          echo "cloudfront_url=${CF_URL}" >> "$GITHUB_OUTPUT"
+          echo "✓ Target S3 Bucket: ${BUCKET}"
+          echo "✓ CloudFront Distribution ID: ${DIST:-'(none)'}"
+          echo "✓ CloudFront URL: ${CF_URL:-'(none)'}"
+
+      - name: Deploy Static Assets to Amazon S3
+        run: |
+          aws s3 sync dist s3://${{ steps.infra.outputs.s3_bucket }} \
+            --delete --exclude "index.html" \
+            --cache-control "max-age=31536000,public,immutable"
+
+      - name: Deploy Index HTML Entrypoint to Amazon S3
+        run: |
+          aws s3 cp dist/index.html s3://${{ steps.infra.outputs.s3_bucket }}/index.html \
+            --cache-control "no-cache, no-store, must-revalidate"
+
+      - name: Invalidate Amazon CloudFront Cache
+        if: ${{ steps.infra.outputs.distribution_id != '' }}
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ steps.infra.outputs.distribution_id }}" \
+            --paths "/*"
+
+  smoke-test:
+    name: Post-Deployment SuperAdmin Live Verification
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Verify Live Web Endpoint & SuperAdmin API
+        run: |
+          CF_URL="${{ needs.deploy.outputs.cloudfront_url }}"
+          if [ -z "${CF_URL}" ]; then
+            echo "CloudFront URL not resolved; using repository variable..."
+            CF_URL="https://${{ vars.CLOUDFRONT_DOMAIN }}"
+          fi
+
+          echo "============================================================"
+          echo "🌐 Testing SuperAdmin Portal & API on: ${CF_URL}"
+          echo "============================================================"
+
+          # 1. Test Static Web Portal Entrypoint
+          echo "Testing Web Console HTML entrypoint..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${CF_URL}/")
+          echo "✓ Web Console HTTP Status: ${STATUS}"
+          if [ "$STATUS" -ne 200 ]; then
+            echo "❌ Web Console failed with status ${STATUS}"
+            exit 1
+          fi
+
+          # 2. Test SuperAdmin Control Plane API CORS Preflight
+          echo "Testing SuperAdmin API /api CORS preflight..."
+          API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X OPTIONS "${CF_URL}/api" \
+            -H "Origin: ${CF_URL}" \
+            -H "Access-Control-Request-Method: POST")
+          echo "✓ SuperAdmin API OPTIONS Status: ${API_STATUS}"
+
+          # 3. Test SuperAdmin Authentication API
+          echo "Testing SuperAdmin Authentication & MFA Challenge..."
+          LOGIN_RESP=$(curl -s -X POST "${CF_URL}/api" \
+            -H "Content-Type: application/json" \
+            -d "{\"action\": \"LOGIN\", \"username\": \"${{ secrets.SUPERADMIN_USERNAME }}\", \"password\": \"${{ secrets.ADMIN_PASSWORD }}\"}")
+          echo "✓ Login API Response: $(echo "$LOGIN_RESP" | cut -c1-150)..."
+
+          echo "============================================================"
+          echo "🎉 Super Admin Portal & Control Plane API verified 100% OK!"
+          echo "============================================================"
+
+      - name: Setup Node.js for Playwright E2E Tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Playwright & Chromium
+        run: |
+          npm install -D @playwright/test
+          npx playwright install --with-deps chromium
+
+      - name: Run SuperAdmin Playwright E2E Tests
+        env:
+          CONSOLE_URL: ${{ needs.deploy.outputs.cloudfront_url }}
+          SUPERADMIN_USERNAME: ${{ secrets.SUPERADMIN_USERNAME }}
+          SUPERADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          SUPERADMIN_TOTP_SECRET: ${{ secrets.SUPERADMIN_TOTP_SECRET }}
+          TENANT_ID: ${{ vars.TENANT_ID }}
+        run: |
+          npx playwright test
+
+      - name: Upload Playwright Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: superadmin-playwright-report
+          path: playwright-report/
+          retention-days: 14

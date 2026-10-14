@@ -1,45 +1,66 @@
 import React, { useState, useEffect } from "react";
 import { useCustom } from "@refinedev/core";
-import { Card, Row, Col, Typography, Space, Select, Button, Tag, Spin } from "antd";
+import { useNavigate } from "react-router-dom";
 import {
-  LineChartOutlined,
+  Card,
+  Row,
+  Col,
+  Typography,
+  Space,
+  Select,
+  Button,
+  Tag,
+  Tooltip,
+} from "antd";
+import {
   ReloadOutlined,
   DashboardOutlined,
-  CloudUploadOutlined,
   ApartmentOutlined,
+  CloudUploadOutlined,
   LinkOutlined,
+  InfoCircleOutlined,
 } from "@ant-design/icons";
+import {
+  InteractiveFleetEcsChart,
+  InteractiveFleetAlbChart,
+  InteractiveFleetLifecycleChart,
+} from "../../components/InteractiveFleetCharts";
+import { InteractiveMetricsChart } from "../../components/InteractiveMetricsChart";
+import { dataProvider } from "../../providers/dataProvider";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 export const TelemetryDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [intervalSec, setIntervalSec] = useState<number>(15);
   const [countdown, setCountdown] = useState<number>(15);
   const [lastUpdate, setLastUpdate] = useState<string>("--:--:--");
+  const [selectedTenant, setSelectedTenant] = useState<string>("fleet");
 
-  // Fetch widgets
-  const { data: wSaas, refetch: refetchSaas, isFetching: loadingSaas } = useCustom({
-    url: "/api",
+  // 1. Fetch raw streaming metrics for fleet interactive charts
+  const { data: rawMetricsResp, refetch: refetchRawMetrics } = useCustom({
+    url: dataProvider.getApiUrl(),
     method: "post",
-    config: { payload: { action: "WIDGET", widget: "saas_fleet" } },
+    config: { payload: { action: "METRICS" } },
   });
 
-  const { data: wEcs, refetch: refetchEcs, isFetching: loadingEcs } = useCustom({
-    url: "/api",
+  // 2. Fetch tenant-specific full metrics if selected
+  const { data: tenantMetricsResp, refetch: refetchTenantMetrics } = useCustom({
+    url: dataProvider.getApiUrl(),
     method: "post",
-    config: { payload: { action: "WIDGET", widget: "ecs_compute" } },
-  });
-
-  const { data: wAlb, refetch: refetchAlb, isFetching: loadingAlb } = useCustom({
-    url: "/api",
-    method: "post",
-    config: { payload: { action: "WIDGET", widget: "alb_traffic" } },
+    config: {
+      payload: { action: "GET_TENANT_METRICS", tenant_id: selectedTenant },
+    },
+    queryOptions: {
+      enabled: selectedTenant !== "fleet",
+    },
   });
 
   const refreshAll = () => {
-    refetchSaas();
-    refetchEcs();
-    refetchAlb();
+    refetchRawMetrics();
+    if (selectedTenant !== "fleet") {
+      refetchTenantMetrics();
+    }
     setLastUpdate(new Date().toTimeString().split(" ")[0]);
     setCountdown(intervalSec);
   };
@@ -58,14 +79,16 @@ export const TelemetryDashboard: React.FC = () => {
     return () => clearInterval(timer);
   }, [intervalSec]);
 
-  const saasImg = (wSaas?.data as any)?.image_base64;
-  const ecsImg = (wEcs?.data as any)?.image_base64;
-  const albImg = (wAlb?.data as any)?.image_base64;
+  const fleetMetrics = (rawMetricsResp?.data as any)?.metrics;
+  const tenantMetrics = (tenantMetricsResp?.data as any) || {};
 
   return (
     <div>
-      {/* 1. Control Bar */}
-      <Card bordered={false} style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+      {/* 1. Interactive Control Bar */}
+      <Card
+        variant="borderless"
+        style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+      >
         <Row justify="space-between" align="middle" gutter={[16, 16]}>
           <Col>
             <Space align="center" size="middle">
@@ -81,20 +104,42 @@ export const TelemetryDashboard: React.FC = () => {
                   <Text type="secondary" style={{ fontSize: 12 }}>
                     Last updated: {lastUpdate}
                   </Text>
+                  <Tooltip title="Interactive mode enables mouse wheel zoom in/out, pan slider handles, crosshair tooltips, and legend series toggles.">
+                    <Tag
+                      icon={<InfoCircleOutlined />}
+                      color="cyan"
+                      style={{ cursor: "pointer" }}
+                    >
+                      Wheel Zoom & Pan Enabled
+                    </Tag>
+                  </Tooltip>
                 </Space>
               </div>
             </Space>
           </Col>
 
           <Col>
-            <Space>
+            <Space wrap>
+              {/* Tenant Filter */}
+              <Select
+                value={selectedTenant}
+                onChange={(val) => setSelectedTenant(val)}
+                style={{ width: 180 }}
+                options={[
+                  { value: "fleet", label: "🌐 All Tenants (Fleet)" },
+                  { value: "acme", label: "🏢 Acme Corp (Tenant)" },
+                  { value: "marvel", label: "🦸 Marvel Ent (Tenant)" },
+                ]}
+              />
+
+              {/* Streaming Interval */}
               <Select
                 value={intervalSec}
                 onChange={(val) => {
                   setIntervalSec(val);
                   setCountdown(val);
                 }}
-                style={{ width: 150 }}
+                style={{ width: 140 }}
                 options={[
                   { value: 15, label: "Every 15s (Live)" },
                   { value: 30, label: "Every 30s" },
@@ -119,123 +164,87 @@ export const TelemetryDashboard: React.FC = () => {
         </Row>
       </Card>
 
-      {/* 2. CloudWatch Native Widgets */}
+      {/* 2. Tenant-Specific Dedicated Telemetry View if selected */}
+      {selectedTenant !== "fleet" && (
+        <div style={{ marginBottom: 16 }}>
+          <InteractiveMetricsChart
+            tenantId={selectedTenant}
+            clusterName="prod-nextcloud-cluster"
+            history={tenantMetrics.history || []}
+            autoscalingTargetCpu={tenantMetrics.autoscaling_target_cpu || 70.0}
+            intervalSec={intervalSec}
+            countdown={countdown}
+            onRefresh={refreshAll}
+          />
+        </div>
+      )}
+
+      {/* 3. Fleet-Wide Telemetry Charts */}
       <Row gutter={[16, 16]}>
+        {/* Card 1: Tenant Lifecycle Status */}
         <Col xs={24} lg={8}>
           <Card
             title={
               <Space>
                 <ApartmentOutlined style={{ color: "#3b82f6" }} />
                 <span>Tenant Lifecycle Status</span>
+                <Tag color="blue">Interactive</Tag>
               </Space>
             }
-            bordered={false}
+            variant="borderless"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
           >
-            <div
-              style={{
-                minHeight: 240,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#f8fafc",
-                borderRadius: 6,
-                overflow: "hidden",
-              }}
+            <InteractiveFleetLifecycleChart height={260} />
+            <Text
+              type="secondary"
+              style={{ fontSize: 11, display: "block", marginTop: 8 }}
             >
-              {loadingSaas ? (
-                <Spin />
-              ) : saasImg ? (
-                <img
-                  src={`data:image/png;base64,${saasImg}`}
-                  alt="SaaS Fleet Status"
-                  style={{ width: "100%", height: "auto" }}
-                />
-              ) : (
-                <Text type="secondary">Widget loading or inactive</Text>
-              )}
-            </div>
-            <Text type="secondary" style={{ fontSize: 11, display: "block", marginTop: 8 }}>
               Metric: Nextcloud/SaaS &gt; TenantActiveStatus
             </Text>
           </Card>
         </Col>
 
+        {/* Card 2: ECS Fargate CPU & Memory */}
         <Col xs={24} lg={8}>
           <Card
             title={
               <Space>
                 <DashboardOutlined style={{ color: "#16a34a" }} />
                 <span>ECS Fargate CPU &amp; Memory</span>
+                <Tag color="green">Wheel Zoom</Tag>
               </Space>
             }
-            bordered={false}
+            variant="borderless"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
           >
-            <div
-              style={{
-                minHeight: 240,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#f8fafc",
-                borderRadius: 6,
-                overflow: "hidden",
-              }}
+            <InteractiveFleetEcsChart data={fleetMetrics} height={260} />
+            <Text
+              type="secondary"
+              style={{ fontSize: 11, display: "block", marginTop: 8 }}
             >
-              {loadingEcs ? (
-                <Spin />
-              ) : ecsImg ? (
-                <img
-                  src={`data:image/png;base64,${ecsImg}`}
-                  alt="ECS Fargate Metrics"
-                  style={{ width: "100%", height: "auto" }}
-                />
-              ) : (
-                <Text type="secondary">Widget loading or inactive</Text>
-              )}
-            </div>
-            <Text type="secondary" style={{ fontSize: 11, display: "block", marginTop: 8 }}>
               Namespace: AWS/ECS (prod-nextcloud-cluster)
             </Text>
           </Card>
         </Col>
 
+        {/* Card 3: ALB Ingress Requests & Latency */}
         <Col xs={24} lg={8}>
           <Card
             title={
               <Space>
                 <CloudUploadOutlined style={{ color: "#0284c7" }} />
                 <span>ALB Ingress Requests &amp; Latency</span>
+                <Tag color="cyan">Dual-Axis</Tag>
               </Space>
             }
-            bordered={false}
+            variant="borderless"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
           >
-            <div
-              style={{
-                minHeight: 240,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#f8fafc",
-                borderRadius: 6,
-                overflow: "hidden",
-              }}
+            <InteractiveFleetAlbChart data={fleetMetrics} height={260} />
+            <Text
+              type="secondary"
+              style={{ fontSize: 11, display: "block", marginTop: 8 }}
             >
-              {loadingAlb ? (
-                <Spin />
-              ) : albImg ? (
-                <img
-                  src={`data:image/png;base64,${albImg}`}
-                  alt="ALB Ingress Metrics"
-                  style={{ width: "100%", height: "auto" }}
-                />
-              ) : (
-                <Text type="secondary">Widget loading or inactive</Text>
-              )}
-            </div>
-            <Text type="secondary" style={{ fontSize: 11, display: "block", marginTop: 8 }}>
               Namespace: AWS/ApplicationELB (Dual-Axis)
             </Text>
           </Card>
