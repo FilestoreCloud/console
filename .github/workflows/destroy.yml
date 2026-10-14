@@ -1,4 +1,4 @@
-name: Destroy / Undeploy Super Admin Portal
+name: Destroy
 
 on:
   workflow_dispatch:

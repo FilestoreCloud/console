@@ -49,6 +49,7 @@ import {
   BranchesOutlined,
   LineChartOutlined,
   SyncOutlined,
+  ExperimentOutlined,
 } from "@ant-design/icons";
 import { CreateTenantModal } from "./create-modal";
 import { renderStatusTag } from "./helpers";
@@ -87,7 +88,7 @@ export const TenantList: React.FC = () => {
 
   // In-Flight Lifecycle Operations Detection & Real-Time Auto-Polling
   const inFlightTenants = tenants.filter((t) =>
-    ["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING"].includes(t.status),
+    ["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING", "SEEDING"].includes(t.status),
   );
   const hasInFlightTenants = inFlightTenants.length > 0;
 
@@ -146,6 +147,25 @@ export const TenantList: React.FC = () => {
     );
   };
 
+  const handleSeedTenant = (tenantId: string) => {
+    updateTenant(
+      {
+        resource: "tenants",
+        id: tenantId,
+        values: { action: "SEED" },
+      },
+      {
+        onSuccess: () => {
+          message.success(`Tenant ${tenantId} seeding workflow initiated!`);
+          refetch();
+        },
+        onError: (err: any) => {
+          message.error(err?.message || "Seeding failed");
+        },
+      },
+    );
+  };
+
   const handleDelete = (tenantId: string) => {
     deleteTenant(
       {
@@ -173,6 +193,7 @@ export const TenantList: React.FC = () => {
           domain: values.domain?.trim() || `${values.tenant_id}.png261.dev`,
           admin_email: values.admin_email.trim(),
           quota_gb: values.quota_gb,
+          is_demo: !!values.is_demo,
         },
       },
       {
@@ -360,6 +381,7 @@ export const TenantList: React.FC = () => {
           "DEPROVISIONING",
           "SUSPENDING",
           "RESUMING",
+          "SEEDING",
         ].includes(record.status);
         return (
           <Space>
@@ -382,6 +404,26 @@ export const TenantList: React.FC = () => {
             >
               Metrics
             </Button>
+
+            {isActive && (
+              <Popconfirm
+                title="Seed Demo Showcase Data?"
+                description={`Run dedicated TenantSeedingStateMachine for '${record.tenant_id}'?`}
+                onConfirm={() => handleSeedTenant(record.tenant_id)}
+                okText="Seed Demo"
+                cancelText="Cancel"
+                disabled={isInFlight}
+              >
+                <Button
+                  size="small"
+                  icon={<ExperimentOutlined style={{ color: "#722ed1" }} />}
+                  style={{ color: "#722ed1", borderColor: "#d3adf7" }}
+                  disabled={isInFlight}
+                >
+                  Seed
+                </Button>
+              </Popconfirm>
+            )}
 
             <Button
               size="small"
@@ -574,6 +616,8 @@ export const TenantList: React.FC = () => {
                       `${inFlightTenants.filter((t) => t.status === "SUSPENDING").length} suspending`,
                     inFlightTenants.filter((t) => t.status === "RESUMING").length > 0 &&
                       `${inFlightTenants.filter((t) => t.status === "RESUMING").length} resuming`,
+                    inFlightTenants.filter((t) => t.status === "SEEDING").length > 0 &&
+                      `${inFlightTenants.filter((t) => t.status === "SEEDING").length} seeding`,
                   ]
                     .filter(Boolean)
                     .join(", ")}

@@ -1,4 +1,4 @@
-name: Deploy Super Admin Portal
+name: Deploy
 
 on:
   push:

@@ -92,11 +92,13 @@ export const dataProvider: DataProvider = {
 
   create: async ({ resource, variables }) => {
     if (resource === "tenants") {
+      const isDemo = (variables as any).is_demo;
+      const action = (variables as any).action || (isDemo ? "PROVISION_DEMO" : "PROVISION");
       const res = await fetch(API_BASE, {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({
-          action: "PROVISION",
+          action,
           ...variables,
         }),
       });

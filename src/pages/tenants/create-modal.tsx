@@ -1,5 +1,5 @@
-import { Modal, Form, Input, InputNumber, Alert, Space, Button } from "antd";
-import { RocketOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import { Modal, Form, Input, InputNumber, Alert, Space, Button, Switch } from "antd";
+import { RocketOutlined, InfoCircleOutlined, ExperimentOutlined } from "@ant-design/icons";
 
 interface CreateTenantModalProps {
   visible: boolean;
@@ -97,6 +97,23 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
             />
             <Button disabled style={{ color: "rgba(0, 0, 0, 0.45)", backgroundColor: "#fafafa" }}>GB</Button>
           </Space.Compact>
+        </Form.Item>
+
+        <Form.Item
+          name="is_demo"
+          label={
+            <Space>
+              <ExperimentOutlined style={{ color: "#722ed1" }} />
+              <span>Provision Mode: Demo Tenant (Auto-Seed Showcase Data)</span>
+            </Space>
+          }
+          valuePropName="checked"
+          extra="When enabled, runs the dedicated Tenant Seeding Step Function immediately after infrastructure provisioning completes."
+        >
+          <Switch
+            checkedChildren="Demo Tenant (Seed Data)"
+            unCheckedChildren="Standard Tenant (No Seed)"
+          />
         </Form.Item>
 
         <Alert
