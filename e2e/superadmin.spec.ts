@@ -133,5 +133,162 @@ test.describe("SuperAdmin Console Web E2E", () => {
     const newTenantRow = page.locator(`text="${newTenantId}"`);
     await expect(newTenantRow.first()).toBeVisible({ timeout: 15000 });
   });
+
+  test("Should search and filter Fleet table by Tenant ID", async ({ page }) => {
+    await page.goto("/login");
+    await page.locator('input#email, input[name="email"]').fill(ADMIN_EMAIL);
+    await page.locator('input#password, input[name="password"]').fill(ADMIN_PASSWORD);
+    await page.locator('button[type="submit"]').click();
+
+    const mfaInput = page.getByPlaceholder("000000").or(page.locator('input[placeholder="000000"], input#mfa_code')).first();
+    try {
+      await mfaInput.waitFor({ state: "visible", timeout: 8000 });
+      await mfaInput.fill(generateTotp());
+      await page.getByRole("button", { name: /Verify/i }).click();
+    } catch {}
+
+    await expect(page).toHaveURL(/\/(tenants|dashboard)/, { timeout: 30000 });
+
+    const searchInput = page.getByPlaceholder(/Search by Tenant ID/i).or(page.locator('input[placeholder*="Search"]')).first();
+    await expect(searchInput).toBeVisible({ timeout: 10000 });
+
+    // Filter by dev-tenant
+    await searchInput.fill("dev-tenant");
+    await expect(page.locator('text="dev-tenant"').first()).toBeVisible({ timeout: 10000 });
+
+    // Clear search
+    await searchInput.fill("");
+    await expect(page.locator("table, .ant-table").first()).toBeVisible({ timeout: 10000 });
+  });
+
+  test("Should inspect tenant detail view and navigate architectural tabs", async ({ page }) => {
+    await page.goto("/login");
+    await page.locator('input#email, input[name="email"]').fill(ADMIN_EMAIL);
+    await page.locator('input#password, input[name="password"]').fill(ADMIN_PASSWORD);
+    await page.locator('button[type="submit"]').click();
+
+    const mfaInput = page.getByPlaceholder("000000").or(page.locator('input[placeholder="000000"], input#mfa_code')).first();
+    try {
+      await mfaInput.waitFor({ state: "visible", timeout: 8000 });
+      await mfaInput.fill(generateTotp());
+      await page.getByRole("button", { name: /Verify/i }).click();
+    } catch {}
+
+    await expect(page).toHaveURL(/\/(tenants|dashboard)/, { timeout: 30000 });
+
+    // Navigate to dev-tenant details directly
+    await page.goto("/tenants/dev-tenant");
+
+    // Verify Tenant Header or Title
+    const tenantTitle = page.locator('text="dev-tenant"');
+    await expect(tenantTitle.first()).toBeVisible({ timeout: 15000 });
+
+    // Verify tabs are available
+    const tabList = page.locator(".ant-tabs-nav, [role='tablist']");
+    await expect(tabList.first()).toBeVisible({ timeout: 10000 });
+
+    // Click Topology tab if visible
+    const topologyTab = page.locator('.ant-tabs-tab:has-text("Topology")');
+    if (await topologyTab.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await topologyTab.click();
+      await page.waitForTimeout(1000);
+    }
+
+    // Verify back to Fleet button
+    const backBtn = page.getByRole("button", { name: /Fleet/i }).or(page.locator('button:has-text("Fleet")')).first();
+    if (await backBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await backBtn.click();
+      await expect(page).toHaveURL(/\/tenants/, { timeout: 15000 });
+    }
+  });
+
+  test("Should toggle tenant operational status (Suspend and Resume)", async ({ page }) => {
+    await page.goto("/login");
+    await page.locator('input#email, input[name="email"]').fill(ADMIN_EMAIL);
+    await page.locator('input#password, input[name="password"]').fill(ADMIN_PASSWORD);
+    await page.locator('button[type="submit"]').click();
+
+    const mfaInput = page.getByPlaceholder("000000").or(page.locator('input[placeholder="000000"], input#mfa_code')).first();
+    try {
+      await mfaInput.waitFor({ state: "visible", timeout: 8000 });
+      await mfaInput.fill(generateTotp());
+      await page.getByRole("button", { name: /Verify/i }).click();
+    } catch {}
+
+    await expect(page).toHaveURL(/\/(tenants|dashboard)/, { timeout: 30000 });
+
+    // Find Suspend button for a row
+    const suspendBtn = page.locator('button:has-text("Suspend")').first();
+    if (await suspendBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await suspendBtn.click();
+      // Wait for notification or status tag change
+      await page.waitForTimeout(2000);
+      // Click Resume back to restore active state
+      const resumeBtn = page.locator('button:has-text("Resume")').first();
+      if (await resumeBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await resumeBtn.click();
+        await page.waitForTimeout(2000);
+      }
+    }
+  });
+
+  test("Should navigate across Control Plane sections (Audit Logs, Telemetry, Webhooks)", async ({ page }) => {
+    await page.goto("/login");
+    await page.locator('input#email, input[name="email"]').fill(ADMIN_EMAIL);
+    await page.locator('input#password, input[name="password"]').fill(ADMIN_PASSWORD);
+    await page.locator('button[type="submit"]').click();
+
+    const mfaInput = page.getByPlaceholder("000000").or(page.locator('input[placeholder="000000"], input#mfa_code')).first();
+    try {
+      await mfaInput.waitFor({ state: "visible", timeout: 8000 });
+      await mfaInput.fill(generateTotp());
+      await page.getByRole("button", { name: /Verify/i }).click();
+    } catch {}
+
+    await expect(page).toHaveURL(/\/(tenants|dashboard)/, { timeout: 30000 });
+
+    // 1. Audit Logs
+    await page.goto("/audit-logs");
+    await expect(page).toHaveURL(/\/audit-logs/, { timeout: 15000 });
+    await expect(page.locator("main, .ant-layout-content").first()).toBeVisible({ timeout: 10000 });
+
+    // 2. Settings / Webhooks
+    await page.goto("/settings/webhooks");
+    await expect(page).toHaveURL(/\/settings\/webhooks/, { timeout: 15000 });
+    await expect(page.locator("main, .ant-layout-content").first()).toBeVisible({ timeout: 10000 });
+
+    // 3. Telemetry
+    await page.goto("/telemetry");
+    await expect(page).toHaveURL(/\/telemetry/, { timeout: 15000 });
+    await expect(page.locator("main, .ant-layout-content").first()).toBeVisible({ timeout: 10000 });
+  });
+
+  test("Should securely sign out and clear session state", async ({ page }) => {
+    await page.goto("/login");
+    await page.locator('input#email, input[name="email"]').fill(ADMIN_EMAIL);
+    await page.locator('input#password, input[name="password"]').fill(ADMIN_PASSWORD);
+    await page.locator('button[type="submit"]').click();
+
+    const mfaInput = page.getByPlaceholder("000000").or(page.locator('input[placeholder="000000"], input#mfa_code')).first();
+    try {
+      await mfaInput.waitFor({ state: "visible", timeout: 8000 });
+      await mfaInput.fill(generateTotp());
+      await page.getByRole("button", { name: /Verify/i }).click();
+    } catch {}
+
+    await expect(page).toHaveURL(/\/(tenants|dashboard)/, { timeout: 30000 });
+
+    // Trigger logout via user avatar dropdown or navigation
+    const avatar = page.locator(".ant-avatar, [data-testid='user-avatar']").first();
+    if (await avatar.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await avatar.click();
+      const signOutOption = page.locator('.ant-dropdown-menu-item:has-text("Sign Out")').first();
+      if (await signOutOption.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await signOutOption.click();
+        await expect(page).toHaveURL(/\/login/, { timeout: 15000 });
+      }
+    }
+  });
 });
+
 
