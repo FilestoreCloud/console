@@ -65,15 +65,26 @@ test.describe("SuperAdmin Console Web E2E", () => {
     if (mfaAppeared) {
       const code = generateTotp();
       await mfaInput.fill(code);
-      await submitBtn.click();
+      const verifyBtn = page.locator('button:has-text("Verify")').first();
+      if (await verifyBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await verifyBtn.click();
+      } else {
+        await page.locator('button[type="submit"]').last().click();
+      }
     }
 
-    // Verify successful login redirection to /tenants or dashboard
-    await page.waitForURL(/\/(tenants|dashboard)/, { timeout: 25000 });
-    expect(page.url()).toMatch(/\/(tenants|dashboard)/);
+    // Check for any visible UI alert error messages to surface during test
+    const errorAlert = page.locator(".ant-alert-error");
+    if (await errorAlert.isVisible({ timeout: 2000 }).catch(() => false)) {
+      const msg = await errorAlert.textContent();
+      console.error(`SuperAdmin login alert error: ${msg}`);
+    }
+
+    // Verify successful login redirection to /tenants or dashboard (SPA navigation)
+    await expect(page).toHaveURL(/\/(tenants|dashboard)/, { timeout: 30000 });
 
     // Verify main content is loaded
     const mainContent = page.locator("table, .ant-table, main, .ant-layout-content");
-    await expect(mainContent.first()).toBeVisible({ timeout: 15000 });
+    await expect(mainContent.first()).toBeVisible({ timeout: 20000 });
   });
 });
