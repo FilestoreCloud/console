@@ -85,19 +85,19 @@ export const TenantList: React.FC = () => {
 
   const tenants = (data?.data || []) as any[];
 
-  // Provisioning Detection & Real-Time Auto-Polling
-  const provisioningTenants = tenants.filter(
-    (t) => t.status === "PROVISIONING",
+  // In-Flight Lifecycle Operations Detection & Real-Time Auto-Polling
+  const inFlightTenants = tenants.filter((t) =>
+    ["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING"].includes(t.status),
   );
-  const hasProvisioningTenants = provisioningTenants.length > 0;
+  const hasInFlightTenants = inFlightTenants.length > 0;
 
   useEffect(() => {
-    if (!hasProvisioningTenants) return;
+    if (!hasInFlightTenants) return;
     const interval = setInterval(() => {
       refetch();
     }, 2500);
     return () => clearInterval(interval);
-  }, [hasProvisioningTenants, refetch]);
+  }, [hasInFlightTenants, refetch]);
 
   // KPI Calculations
   const totalTenants = tenants.length;
@@ -354,6 +354,13 @@ export const TenantList: React.FC = () => {
       align: "right" as const,
       render: (_: any, record: any) => {
         const isActive = record.status === "ACTIVE";
+        const isInFlight = [
+          "PROVISIONING",
+          "DELETING",
+          "DEPROVISIONING",
+          "SUSPENDING",
+          "RESUMING",
+        ].includes(record.status);
         return (
           <Space>
             <Button
@@ -381,6 +388,7 @@ export const TenantList: React.FC = () => {
               icon={<BranchesOutlined />}
               style={{ color: "#8b5cf6", borderColor: "#8b5cf6" }}
               onClick={() => handleOpenForkModal(record)}
+              disabled={isInFlight}
             >
               Fork
             </Button>
@@ -391,7 +399,8 @@ export const TenantList: React.FC = () => {
               onClick={() =>
                 handleToggleStatus(record.tenant_id, record.status)
               }
-              loading={isUpdating}
+              loading={isUpdating && isInFlight}
+              disabled={isInFlight}
             >
               {isActive ? "Suspend" : "Resume"}
             </Button>
@@ -404,12 +413,14 @@ export const TenantList: React.FC = () => {
                 okText="Delete"
                 cancelText="Cancel"
                 okButtonProps={{ danger: true }}
+                disabled={isInFlight}
               >
                 <Button
                   size="small"
                   danger
                   icon={<DeleteOutlined />}
-                  loading={isDeleting}
+                  loading={isDeleting && isInFlight}
+                  disabled={isInFlight}
                 />
               </Popconfirm>
             ) : (
@@ -502,12 +513,16 @@ export const TenantList: React.FC = () => {
               <Select
                 value={statusFilter}
                 onChange={setStatusFilter}
-                style={{ width: 160 }}
+                style={{ width: 170 }}
                 options={[
                   { value: "ALL", label: "All Statuses" },
                   { value: "ACTIVE", label: "Active Only" },
                   { value: "PROVISIONING", label: "Provisioning Only" },
+                  { value: "DELETING", label: "Deleting Only" },
+                  { value: "SUSPENDING", label: "Suspending Only" },
+                  { value: "RESUMING", label: "Resuming Only" },
                   { value: "SUSPENDED", label: "Suspended Only" },
+                  { value: "FAILED", label: "Failed Only" },
                 ]}
               />
             </Space>
@@ -542,14 +557,27 @@ export const TenantList: React.FC = () => {
         variant="borderless"
         style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
       >
-        {hasProvisioningTenants && (
+        {hasInFlightTenants && (
           <Alert
             message={
               <Space>
                 <SyncOutlined spin style={{ color: "#1890ff" }} />
-                <Text strong>AWS Step Functions Provisioning Active</Text>
+                <Text strong>AWS Step Functions Fleet Orchestration Active</Text>
                 <span>
-                  — {provisioningTenants.length} tenant(s) being created. Real-time progress updates are polling automatically.
+                  — {inFlightTenants.length} operation(s) in progress (
+                  {[
+                    inFlightTenants.filter((t) => t.status === "PROVISIONING").length > 0 &&
+                      `${inFlightTenants.filter((t) => t.status === "PROVISIONING").length} creating`,
+                    inFlightTenants.filter((t) => ["DELETING", "DEPROVISIONING"].includes(t.status)).length > 0 &&
+                      `${inFlightTenants.filter((t) => ["DELETING", "DEPROVISIONING"].includes(t.status)).length} deleting`,
+                    inFlightTenants.filter((t) => t.status === "SUSPENDING").length > 0 &&
+                      `${inFlightTenants.filter((t) => t.status === "SUSPENDING").length} suspending`,
+                    inFlightTenants.filter((t) => t.status === "RESUMING").length > 0 &&
+                      `${inFlightTenants.filter((t) => t.status === "RESUMING").length} resuming`,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}
+                  ). Real-time progress is auto-polling every 2.5s.
                 </span>
               </Space>
             }

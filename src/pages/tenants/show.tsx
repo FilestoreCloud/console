@@ -68,6 +68,16 @@ export const TenantShow: React.FC = () => {
     return () => clearInterval(timer);
   }, [metricsIntervalSec, refetch]);
 
+  // Live auto-polling while tenant lifecycle operation is in progress
+  useEffect(() => {
+    const status = tenantData?.tenant?.status || tenantData?.status;
+    if (!["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING"].includes(status)) return;
+    const pollTimer = setInterval(() => {
+      refetch();
+    }, 2500);
+    return () => clearInterval(pollTimer);
+  }, [tenantData, refetch]);
+
   if (isLoading || !tenantData) {
     return (
       <Card style={{ margin: 24, textAlign: "center" }} variant="borderless">
@@ -156,6 +166,8 @@ export const TenantShow: React.FC = () => {
         domain={domain}
         adminEmail={tenant.admin_email}
         currentStatus={currentStatus}
+        progress={tenant.progress}
+        currentStep={tenant.current_step}
         isLoading={isLoading}
         isUpdating={isUpdating}
         onBack={() => list("tenants")}
@@ -172,6 +184,69 @@ export const TenantShow: React.FC = () => {
           setCloneModalVisible(true);
         }}
       />
+
+      {["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING"].includes(currentStatus) && (() => {
+        const isDeleting = ["DELETING", "DEPROVISIONING"].includes(currentStatus);
+        const isSuspending = currentStatus === "SUSPENDING";
+        const isResuming = currentStatus === "RESUMING";
+        const isProvisioning = currentStatus === "PROVISIONING";
+
+        let cardBg = "#e6f4ff";
+        let cardBorder = "#91caff";
+        let iconColor = "#1890ff";
+        let strokeColor: any = { "0%": "#108ee9", "100%": "#52c41a" };
+        let title = `Tenant Provisioning in Progress (${tenant.progress || 15}%)`;
+
+        if (isDeleting) {
+          cardBg = "#fff1f0";
+          cardBorder = "#ffa39e";
+          iconColor = "#ff4d4f";
+          strokeColor = { "0%": "#faad14", "100%": "#ff4d4f" };
+          title = `Tenant Teardown & Deprovisioning in Progress (${tenant.progress || 15}%)`;
+        } else if (isSuspending) {
+          cardBg = "#fffbe6";
+          cardBorder = "#ffe58f";
+          iconColor = "#fa8c16";
+          strokeColor = "#fa8c16";
+          title = `Tenant Suspension (FinOps Scale-to-Zero) in Progress (${tenant.progress || 30}%)`;
+        } else if (isResuming) {
+          cardBg = "#e6fffb";
+          cardBorder = "#87e8de";
+          iconColor = "#13c2c8";
+          strokeColor = "#13c2c8";
+          title = `Tenant Resumption & Container Rehydration in Progress (${tenant.progress || 25}%)`;
+        }
+
+        return (
+          <Card style={{ marginBottom: 20, borderColor: cardBorder, backgroundColor: cardBg }} variant="borderless">
+            <Row align="middle" gutter={[16, 16]}>
+              <Col xs={24} md={16}>
+                <Space direction="vertical" style={{ width: "100%" }}>
+                  <Space>
+                    <SyncOutlined spin style={{ color: iconColor, fontSize: 18 }} />
+                    <Text strong style={{ fontSize: 16 }}>
+                      {title}
+                    </Text>
+                  </Space>
+                  <Text type="secondary">
+                    Current Step: <Text strong>{tenant.current_step || "Step Functions Workflow in progress..."}</Text>
+                  </Text>
+                  <Progress
+                    percent={Number(tenant.progress || 15)}
+                    status={isDeleting ? "exception" : "active"}
+                    strokeColor={strokeColor}
+                  />
+                </Space>
+              </Col>
+              <Col xs={24} md={8} style={{ textAlign: "right" }}>
+                <Tag color={isDeleting ? "error" : isSuspending ? "warning" : "processing"} style={{ fontSize: 13, padding: "4px 12px" }}>
+                  AWS Step Functions Orchestrating
+                </Tag>
+              </Col>
+            </Row>
+          </Card>
+        );
+      })()}
 
       <TenantIncidentAlert
         currentStatus={currentStatus}

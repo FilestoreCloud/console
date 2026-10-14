@@ -37,6 +37,79 @@ export const renderStatusTag = (status: string, record?: any): React.ReactNode =
         </Tooltip>
       );
     }
+    case "DELETING":
+    case "DEPROVISIONING": {
+      const progress = Number(record?.progress || 15);
+      const step = record?.current_step || "Tearing down dedicated AWS resources...";
+      return (
+        <Tooltip title={`Step: ${step}`}>
+          <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
+            <Tag color="error" icon={<SyncOutlined spin />}>
+              DELETING ({progress}%)
+            </Tag>
+            <Progress
+              percent={progress}
+              size="small"
+              status="exception"
+              showInfo={false}
+              strokeColor={{ "0%": "#faad14", "100%": "#ff4d4f" }}
+              style={{ margin: 0 }}
+            />
+            <Typography.Text type="danger" ellipsis style={{ fontSize: 11, maxWidth: 180 }}>
+              {step}
+            </Typography.Text>
+          </Space>
+        </Tooltip>
+      );
+    }
+    case "SUSPENDING": {
+      const progress = Number(record?.progress || 30);
+      const step = record?.current_step || "Scaling tasks to 0 & draining traffic...";
+      return (
+        <Tooltip title={`Step: ${step}`}>
+          <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
+            <Tag color="warning" icon={<SyncOutlined spin />}>
+              SUSPENDING ({progress}%)
+            </Tag>
+            <Progress
+              percent={progress}
+              size="small"
+              status="active"
+              showInfo={false}
+              strokeColor="#fa8c16"
+              style={{ margin: 0 }}
+            />
+            <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#d46b08" }} ellipsis>
+              {step}
+            </Typography.Text>
+          </Space>
+        </Tooltip>
+      );
+    }
+    case "RESUMING": {
+      const progress = Number(record?.progress || 25);
+      const step = record?.current_step || "Scaling tasks to 1 & verifying container health...";
+      return (
+        <Tooltip title={`Step: ${step}`}>
+          <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
+            <Tag color="cyan" icon={<SyncOutlined spin />}>
+              RESUMING ({progress}%)
+            </Tag>
+            <Progress
+              percent={progress}
+              size="small"
+              status="active"
+              showInfo={false}
+              strokeColor="#13c2c8"
+              style={{ margin: 0 }}
+            />
+            <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#08979c" }} ellipsis>
+              {step}
+            </Typography.Text>
+          </Space>
+        </Tooltip>
+      );
+    }
     case "FAILED":
       return (
         <Tooltip title={record?.last_error || "Provisioning failed and Saga rollback completed"}>
@@ -58,6 +131,8 @@ export const renderStatusTag = (status: string, record?: any): React.ReactNode =
       return <Tag color="processing" icon={<ClockCircleOutlined />}>MAINTENANCE</Tag>;
     case "SUSPENDED":
       return <Tag color="default">SUSPENDED ($0 FINOPS)</Tag>;
+    case "DELETED":
+      return <Tag color="default">DELETED</Tag>;
     default:
       return <Tag color="default">{status}</Tag>;
   }
