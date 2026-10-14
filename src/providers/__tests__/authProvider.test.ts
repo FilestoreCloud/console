@@ -5,7 +5,7 @@ describe("authProvider", () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
-    sessionStorage.clear();
+    localStorage.clear();
     vi.restoreAllMocks();
   });
 
@@ -43,13 +43,13 @@ describe("authProvider", () => {
         success: true,
         redirectTo: "/tenants",
       });
-      expect(sessionStorage.getItem("saas_admin_token")).toBe(
+      expect(localStorage.getItem("saas_admin_token")).toBe(
         "mock-jwt-token-12345",
       );
-      expect(sessionStorage.getItem("saas_admin_email")).toBe(
+      expect(localStorage.getItem("saas_admin_email")).toBe(
         "admin@png261.dev",
       );
-      expect(sessionStorage.getItem("saas_admin_role")).toBe("SuperAdmin");
+      expect(localStorage.getItem("saas_admin_role")).toBe("SuperAdmin");
     });
 
     it("handles MFA_REQUIRED challenge when 2FA is enforced", async () => {
@@ -72,7 +72,7 @@ describe("authProvider", () => {
       expect(result.success).toBe(false);
       expect(result.error.name).toBe("MFA_REQUIRED");
       expect(result.mfaData.challenge_token).toBe("mfa-challenge-xyz");
-      expect(sessionStorage.getItem("saas_admin_token")).toBeNull();
+      expect(localStorage.getItem("saas_admin_token")).toBeNull();
     });
 
     it("verifies MFA code successfully and completes login", async () => {
@@ -104,10 +104,10 @@ describe("authProvider", () => {
         success: true,
         redirectTo: "/tenants",
       });
-      expect(sessionStorage.getItem("saas_admin_token")).toBe(
+      expect(localStorage.getItem("saas_admin_token")).toBe(
         "verified-mfa-token",
       );
-      expect(sessionStorage.getItem("saas_admin_role")).toBe("SuperAdmin");
+      expect(localStorage.getItem("saas_admin_role")).toBe("SuperAdmin");
     });
 
     it("returns error on invalid MFA verification code", async () => {
@@ -130,7 +130,7 @@ describe("authProvider", () => {
           message: "Invalid TOTP code supplied",
         },
       });
-      expect(sessionStorage.getItem("saas_admin_token")).toBeNull();
+      expect(localStorage.getItem("saas_admin_token")).toBeNull();
     });
 
     it("returns error on invalid administrative credentials", async () => {
@@ -167,15 +167,15 @@ describe("authProvider", () => {
 
   describe("logout", () => {
     it("clears all session storage tokens and redirects to /login", async () => {
-      sessionStorage.setItem("saas_admin_token", "test-token");
-      sessionStorage.setItem("saas_admin_email", "admin@example.com");
-      sessionStorage.setItem("saas_admin_role", "SuperAdmin");
+      localStorage.setItem("saas_admin_token", "test-token");
+      localStorage.setItem("saas_admin_email", "admin@example.com");
+      localStorage.setItem("saas_admin_role", "SuperAdmin");
 
       const result = await authProvider.logout({});
 
-      expect(sessionStorage.getItem("saas_admin_token")).toBeNull();
-      expect(sessionStorage.getItem("saas_admin_email")).toBeNull();
-      expect(sessionStorage.getItem("saas_admin_role")).toBeNull();
+      expect(localStorage.getItem("saas_admin_token")).toBeNull();
+      expect(localStorage.getItem("saas_admin_email")).toBeNull();
+      expect(localStorage.getItem("saas_admin_role")).toBeNull();
       expect(result).toEqual({
         success: true,
         redirectTo: "/login",
@@ -185,7 +185,7 @@ describe("authProvider", () => {
 
   describe("check", () => {
     it("returns authenticated: true when token is present", async () => {
-      sessionStorage.setItem("saas_admin_token", "valid-token");
+      localStorage.setItem("saas_admin_token", "valid-token");
       const result = await authProvider.check();
       expect(result).toEqual({ authenticated: true });
     });
@@ -201,8 +201,8 @@ describe("authProvider", () => {
   });
 
   describe("getPermissions", () => {
-    it("returns stored role from sessionStorage", async () => {
-      sessionStorage.setItem("saas_admin_role", "SuperAdmin");
+    it("returns stored role from localStorage", async () => {
+      localStorage.setItem("saas_admin_role", "SuperAdmin");
       const role = await authProvider.getPermissions!();
       expect(role).toBe("SuperAdmin");
     });
@@ -215,8 +215,8 @@ describe("authProvider", () => {
 
   describe("getIdentity", () => {
     it("returns identity object with formatted name and dicebear avatar", async () => {
-      sessionStorage.setItem("saas_admin_email", "jane.doe@enterprise.io");
-      sessionStorage.setItem("saas_admin_role", "SuperAdmin");
+      localStorage.setItem("saas_admin_email", "jane.doe@enterprise.io");
+      localStorage.setItem("saas_admin_role", "SuperAdmin");
 
       const identity = await authProvider.getIdentity!();
       expect(identity).toEqual({

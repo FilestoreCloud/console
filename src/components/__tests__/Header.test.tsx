@@ -16,7 +16,7 @@ describe("CustomHeader", () => {
     mockLogout.mockClear();
     mockUserData = {
       name: "ADMIN",
-      email: "admin@png261.dev",
+      email: "nhphuong.code@gmail.com",
       role: "SuperAdmin",
     };
   });
@@ -31,7 +31,7 @@ describe("CustomHeader", () => {
   });
 
   it("displays SuperAdmin role badge correctly", () => {
-    mockUserData = { email: "admin@png261.dev", role: "SuperAdmin" };
+    mockUserData = { email: "nhphuong.code@gmail.com", role: "SuperAdmin" };
     render(<CustomHeader />);
     expect(
       screen.getByText(/SuperAdmin \(Full Control\)/i),
@@ -39,7 +39,7 @@ describe("CustomHeader", () => {
   });
 
   it("defaults to SuperAdmin role badge when no role is specified", () => {
-    mockUserData = { email: "admin@png261.dev" };
+    mockUserData = { email: "nhphuong.code@gmail.com" };
     render(<CustomHeader />);
     expect(
       screen.getByText(/SuperAdmin \(Full Control\)/i),

@@ -26,6 +26,7 @@ import {
   InteractiveFleetLifecycleChart,
 } from "../../components/InteractiveFleetCharts";
 import { InteractiveMetricsChart } from "../../components/InteractiveMetricsChart";
+import { dataProvider } from "../../providers/dataProvider";
 
 const { Text } = Typography;
 
@@ -38,14 +39,14 @@ export const TelemetryDashboard: React.FC = () => {
 
   // 1. Fetch raw streaming metrics for fleet interactive charts
   const { data: rawMetricsResp, refetch: refetchRawMetrics } = useCustom({
-    url: "/api",
+    url: dataProvider.getApiUrl(),
     method: "post",
     config: { payload: { action: "METRICS" } },
   });
 
   // 2. Fetch tenant-specific full metrics if selected
   const { data: tenantMetricsResp, refetch: refetchTenantMetrics } = useCustom({
-    url: "/api",
+    url: dataProvider.getApiUrl(),
     method: "post",
     config: {
       payload: { action: "GET_TENANT_METRICS", tenant_id: selectedTenant },
@@ -85,7 +86,7 @@ export const TelemetryDashboard: React.FC = () => {
     <div>
       {/* 1. Interactive Control Bar */}
       <Card
-        bordered={false}
+        variant="borderless"
         style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
       >
         <Row justify="space-between" align="middle" gutter={[16, 16]}>
@@ -190,7 +191,7 @@ export const TelemetryDashboard: React.FC = () => {
                 <Tag color="blue">Interactive</Tag>
               </Space>
             }
-            bordered={false}
+            variant="borderless"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
           >
             <InteractiveFleetLifecycleChart height={260} />
@@ -213,7 +214,7 @@ export const TelemetryDashboard: React.FC = () => {
                 <Tag color="green">Wheel Zoom</Tag>
               </Space>
             }
-            bordered={false}
+            variant="borderless"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
           >
             <InteractiveFleetEcsChart data={fleetMetrics} height={260} />
@@ -236,7 +237,7 @@ export const TelemetryDashboard: React.FC = () => {
                 <Tag color="cyan">Dual-Axis</Tag>
               </Space>
             }
-            bordered={false}
+            variant="borderless"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
           >
             <InteractiveFleetAlbChart data={fleetMetrics} height={260} />

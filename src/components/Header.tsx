@@ -51,7 +51,7 @@ export const CustomHeader: React.FC<HeaderProps> = ({
       key: "user-info",
       label: (
         <div style={{ padding: "4px 8px" }}>
-          <Text strong>{user?.email || "admin@png261.dev"}</Text>
+          <Text strong>{user?.email || "SuperAdmin"}</Text>
           <br />
           <Text type="secondary" style={{ fontSize: 12 }}>
             Role: {role}
@@ -65,7 +65,7 @@ export const CustomHeader: React.FC<HeaderProps> = ({
         <Space style={{ padding: "2px 8px" }}>
           <CheckCircleFilled style={{ color: "#52c41a" }} />
           <Text orientation="left" style={{ fontSize: 12, color: "#52c41a" }}>
-            MFA: RFC 6238 TOTP Verified
+            MFA: Verified
           </Text>
         </Space>
       ),

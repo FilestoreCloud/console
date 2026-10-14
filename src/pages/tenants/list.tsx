@@ -190,7 +190,7 @@ export const TenantList: React.FC = () => {
     try {
       const targetId = values.target_tenant_id.toLowerCase().trim();
       await dataProvider.custom({
-        url: "/api",
+        url: dataProvider.getApiUrl(),
         method: "post",
         payload: {
           action: "CLONE_TENANT",
@@ -469,7 +469,7 @@ export const TenantList: React.FC = () => {
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} lg={6}>
           <Card
-            bordered={false}
+            variant="borderless"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
           >
             <Statistic
@@ -481,7 +481,7 @@ export const TenantList: React.FC = () => {
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card
-            bordered={false}
+            variant="borderless"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
           >
             <Statistic
@@ -494,7 +494,7 @@ export const TenantList: React.FC = () => {
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card
-            bordered={false}
+            variant="borderless"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
           >
             <Statistic
@@ -507,7 +507,7 @@ export const TenantList: React.FC = () => {
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card
-            bordered={false}
+            variant="borderless"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
           >
             <Statistic
@@ -523,7 +523,7 @@ export const TenantList: React.FC = () => {
 
       {/* 2. Action & Filter Bar */}
       <Card
-        bordered={false}
+        variant="borderless"
         style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
       >
         <Row justify="space-between" align="middle" gutter={[16, 16]}>
@@ -584,7 +584,7 @@ export const TenantList: React.FC = () => {
 
       {/* 3. Tenants Table */}
       <Card
-        bordered={false}
+        variant="borderless"
         style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
       >
         <Table
@@ -615,7 +615,7 @@ export const TenantList: React.FC = () => {
         open={forkModalVisible}
         onCancel={() => setForkModalVisible(false)}
         footer={null}
-        destroyOnClose
+        destroyOnHidden
       >
         <Alert
           type="info"

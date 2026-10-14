@@ -3,7 +3,7 @@ import { DataProvider } from "@refinedev/core";
 const API_BASE = (import.meta.env.VITE_API_URL as string) || "/api";
 
 function getHeaders(): HeadersInit {
-  const token = sessionStorage.getItem("saas_admin_token");
+  const token = localStorage.getItem("saas_admin_token");
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -154,7 +154,9 @@ export const dataProvider: DataProvider = {
     return { data: { id } } as any;
   },
 
-  getApiUrl: () => API_BASE,
+  getApiUrl(): string {
+    return API_BASE;
+  },
 
   custom: async ({ url, method, payload }) => {
     const res = await fetch(url || API_BASE, {

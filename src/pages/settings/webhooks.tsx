@@ -48,7 +48,7 @@ export const WebhooksSettings: React.FC = () => {
     setIsLoading(true);
     try {
       const res = await dataProvider.custom({
-        url: "/api",
+        url: dataProvider.getApiUrl(),
         method: "POST",
         payload: { action: "GET_WEBHOOK_CONFIG" },
       });
@@ -88,7 +88,7 @@ export const WebhooksSettings: React.FC = () => {
         },
       };
       await dataProvider.custom({
-        url: "/api",
+        url: dataProvider.getApiUrl(),
         method: "POST",
         payload: {
           action: "SAVE_WEBHOOK_CONFIG",
@@ -113,7 +113,7 @@ export const WebhooksSettings: React.FC = () => {
     setTestingType(type);
     try {
       const res = await dataProvider.custom({
-        url: "/api",
+        url: dataProvider.getApiUrl(),
         method: "POST",
         payload: {
           action: "TEST_WEBHOOK",
@@ -218,7 +218,7 @@ export const WebhooksSettings: React.FC = () => {
                   <span>Notification Engine Control</span>
                 </Space>
               }
-              bordered={false}
+              variant="borderless"
               style={{
                 marginBottom: 20,
                 boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
@@ -252,7 +252,7 @@ export const WebhooksSettings: React.FC = () => {
                   <span>Configured Webhook Endpoints</span>
                 </Space>
               }
-              bordered={false}
+              variant="borderless"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
             >
               {/* 1. Slack */}
@@ -465,7 +465,7 @@ export const WebhooksSettings: React.FC = () => {
                   <span>Subscribed Alert Triggers</span>
                 </Space>
               }
-              bordered={false}
+              variant="borderless"
               style={{
                 marginBottom: 20,
                 boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
@@ -592,7 +592,7 @@ export const WebhooksSettings: React.FC = () => {
                   <span>Alert Architecture Specification</span>
                 </Space>
               }
-              bordered={false}
+              variant="borderless"
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
             >
               <Alert

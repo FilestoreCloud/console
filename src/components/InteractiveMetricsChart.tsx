@@ -349,7 +349,7 @@ export const InteractiveMetricsChart: React.FC<
           )}
         </Space>
       }
-      bordered={false}
+      variant="borderless"
       style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
     >
       <div>

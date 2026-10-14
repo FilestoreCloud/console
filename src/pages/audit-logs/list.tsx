@@ -120,7 +120,7 @@ export const AuditLogList: React.FC = () => {
   return (
     <div>
       <Card
-        bordered={false}
+        variant="borderless"
         style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
       >
         <Row justify="space-between" align="middle">
@@ -154,7 +154,7 @@ export const AuditLogList: React.FC = () => {
       </Card>
 
       <Card
-        bordered={false}
+        variant="borderless"
         style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
       >
         <Table

@@ -16,7 +16,7 @@ describe("LoginPage — SuperAdmin Authentication Flow", () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
-    sessionStorage.clear();
+    localStorage.clear();
     mockLoginMutate.mockClear();
     vi.restoreAllMocks();
   });
@@ -25,34 +25,31 @@ describe("LoginPage — SuperAdmin Authentication Flow", () => {
     global.fetch = originalFetch;
   });
 
-  it("renders administrative sign-in form correctly", () => {
+  it("renders administrative sign-in form correctly with empty fields", () => {
     render(<LoginPage />);
 
     expect(screen.getByText("Super Admin Portal")).toBeInTheDocument();
     expect(
       screen.getByText("Nextcloud Multi-Tenant SaaS Control Plane"),
     ).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("admin@png261.dev")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("••••••••••••")).toBeInTheDocument();
+    const emailInput = screen.getByPlaceholderText("admin@example.com") as HTMLInputElement;
+    const passwordInput = screen.getByPlaceholderText("••••••••••••") as HTMLInputElement;
+    expect(emailInput).toBeInTheDocument();
+    expect(passwordInput).toBeInTheDocument();
+    // Verify security: fields are empty by default, no pre-filled credentials
+    expect(emailInput.value).toBe("");
+    expect(passwordInput.value).toBe("");
     expect(
       screen.getByRole("button", { name: /Sign In to Control Plane/i }),
     ).toBeInTheDocument();
   });
 
-  it("fills demo persona credentials when quick-fill button is clicked", () => {
+  it("verifies demo quick-fill buttons are not present for security", () => {
     render(<LoginPage />);
-
-    const quickFillBtn = screen.getByRole("button", {
-      name: /SuperAdmin \(Full Access\)/i,
-    });
-    expect(quickFillBtn).toBeInTheDocument();
-
-    fireEvent.click(quickFillBtn);
-
-    const emailInput = screen.getByPlaceholderText(
-      "admin@png261.dev",
-    ) as HTMLInputElement;
-    expect(emailInput.value).toBe("admin@png261.dev");
+    expect(screen.queryByText(/DEMO QUICK-FILL/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /SuperAdmin \(Full Access\)/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("transitions to TOTP MFA step when server responds with MFA_REQUIRED", async () => {
@@ -60,18 +57,17 @@ describe("LoginPage — SuperAdmin Authentication Flow", () => {
       ok: true,
       json: async () => ({
         status: "MFA_REQUIRED",
-        message: "Multi-Factor Authentication (TOTP) code required",
+        message: "Multi-Factor Authentication code required",
         challenge_token: "test-challenge-token-xyz",
-        demo_totp_secret: "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP",
-        user: "admin@png261.dev",
+        user: "admin@example.com",
         role: "SuperAdmin",
       }),
     } as Response);
 
     render(<LoginPage />);
 
-    fireEvent.change(screen.getByPlaceholderText("admin@png261.dev"), {
-      target: { value: "admin@png261.dev" },
+    fireEvent.change(screen.getByPlaceholderText("admin@example.com"), {
+      target: { value: "admin@example.com" },
     });
     fireEvent.change(screen.getByPlaceholderText("••••••••••••"), {
       target: { value: "AdminPassword123!" },
@@ -100,8 +96,8 @@ describe("LoginPage — SuperAdmin Authentication Flow", () => {
 
     render(<LoginPage />);
 
-    fireEvent.change(screen.getByPlaceholderText("admin@png261.dev"), {
-      target: { value: "wrong@png261.dev" },
+    fireEvent.change(screen.getByPlaceholderText("admin@example.com"), {
+      target: { value: "wrong@gmail.com" },
     });
     fireEvent.change(screen.getByPlaceholderText("••••••••••••"), {
       target: { value: "WrongPassword" },
@@ -129,16 +125,15 @@ describe("LoginPage — SuperAdmin Authentication Flow", () => {
       json: async () => ({
         status: "MFA_REQUIRED",
         challenge_token: "challenge-token-456",
-        demo_totp_secret: "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP",
-        user: "admin@png261.dev",
+        user: "admin@example.com",
         role: "SuperAdmin",
       }),
     } as Response);
 
     render(<LoginPage />);
 
-    fireEvent.change(screen.getByPlaceholderText("admin@png261.dev"), {
-      target: { value: "admin@png261.dev" },
+    fireEvent.change(screen.getByPlaceholderText("admin@example.com"), {
+      target: { value: "admin@example.com" },
     });
     fireEvent.change(screen.getByPlaceholderText("••••••••••••"), {
       target: { value: "AdminPassword123!" },
@@ -169,7 +164,7 @@ describe("LoginPage — SuperAdmin Authentication Flow", () => {
         {
           challenge_token: "challenge-token-456",
           mfa_code: "123456",
-          email: "admin@png261.dev",
+          email: "admin@example.com",
         },
         expect.any(Object),
       );

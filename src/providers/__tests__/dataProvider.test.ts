@@ -5,7 +5,7 @@ describe("dataProvider", () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
-    sessionStorage.clear();
+    localStorage.clear();
     vi.restoreAllMocks();
   });
 
@@ -15,7 +15,7 @@ describe("dataProvider", () => {
 
   describe("getList", () => {
     it("fetches tenants and maps tenant_id to id", async () => {
-      sessionStorage.setItem("saas_admin_token", "admin-token-xyz");
+      localStorage.setItem("saas_admin_token", "admin-token-xyz");
 
       global.fetch = vi.fn().mockResolvedValue({
         status: 200,

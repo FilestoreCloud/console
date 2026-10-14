@@ -3,12 +3,12 @@ import { accessControlProvider } from "../accessControlProvider";
 
 describe("accessControlProvider", () => {
   beforeEach(() => {
-    sessionStorage.clear();
+    localStorage.clear();
   });
 
   describe("SuperAdmin role", () => {
     beforeEach(() => {
-      sessionStorage.setItem("saas_admin_role", "SuperAdmin");
+      localStorage.setItem("saas_admin_role", "SuperAdmin");
     });
 
     it("allows full access to tenants creation, editing, and deletion", async () => {
@@ -67,7 +67,7 @@ describe("accessControlProvider", () => {
     });
 
     it("rejects unauthorized roles", async () => {
-      sessionStorage.setItem("saas_admin_role", "Guest");
+      localStorage.setItem("saas_admin_role", "Guest");
       const result = await accessControlProvider.can({
         resource: "tenants",
         action: "list",
@@ -79,7 +79,7 @@ describe("accessControlProvider", () => {
     });
 
     it("rejects deprecated roles (TenantOperator, SecurityAuditor)", async () => {
-      sessionStorage.setItem("saas_admin_role", "TenantOperator");
+      localStorage.setItem("saas_admin_role", "TenantOperator");
       const opsResult = await accessControlProvider.can({
         resource: "tenants",
         action: "list",
@@ -89,7 +89,7 @@ describe("accessControlProvider", () => {
         "Unauthorized: 'SuperAdmin' role is required.",
       );
 
-      sessionStorage.setItem("saas_admin_role", "SecurityAuditor");
+      localStorage.setItem("saas_admin_role", "SecurityAuditor");
       const auditResult = await accessControlProvider.can({
         resource: "tenants",
         action: "list",

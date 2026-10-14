@@ -1,5 +1,4 @@
-import React from "react";
-import { Modal, Form, Input, InputNumber, Alert } from "antd";
+import { Modal, Form, Input, InputNumber, Alert, Space, Button } from "antd";
 import { RocketOutlined, InfoCircleOutlined } from "@ant-design/icons";
 
 interface CreateTenantModalProps {
@@ -43,7 +42,7 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
       okButtonProps={{
         style: { backgroundColor: "#ec7211", borderColor: "#ec7211" },
       }}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form
         form={form}
@@ -90,12 +89,14 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
           label="Storage Quota (GB)"
           rules={[{ required: true, message: "Please enter quota" }]}
         >
-          <InputNumber
-            min={10}
-            max={5000}
-            style={{ width: "100%" }}
-            addonAfter="GB"
-          />
+          <Space.Compact style={{ width: "100%" }}>
+            <InputNumber
+              min={10}
+              max={5000}
+              style={{ width: "100%" }}
+            />
+            <Button disabled style={{ color: "rgba(0, 0, 0, 0.45)", backgroundColor: "#fafafa" }}>GB</Button>
+          </Space.Compact>
         </Form.Item>
 
         <Alert
