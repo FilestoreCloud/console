@@ -17,6 +17,8 @@ export interface TenantHeaderProps {
   domain: string;
   adminEmail?: string;
   currentStatus: string;
+  progress?: number;
+  currentStep?: string;
   isLoading: boolean;
   isUpdating: boolean;
   onBack: () => void;
@@ -31,6 +33,8 @@ export const TenantHeader: React.FC<TenantHeaderProps> = ({
   domain,
   adminEmail,
   currentStatus,
+  progress,
+  currentStep,
   isLoading,
   isUpdating,
   onBack,
@@ -48,7 +52,7 @@ export const TenantHeader: React.FC<TenantHeaderProps> = ({
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <Title level={4} style={{ margin: 0 }}>{tenantId}</Title>
-                {renderStatusTag(currentStatus)}
+                {renderStatusTag(currentStatus, { progress, current_step: currentStep })}
               </div>
               <div style={{ marginTop: 4 }}>
                 <a href={`https://${domain}`} target="_blank" rel="noreferrer" style={{ fontWeight: 600, color: "#0284c7" }}>

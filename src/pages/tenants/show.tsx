@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useShow, useUpdate, useNavigation } from "@refinedev/core";
-import { Card, Typography, Tabs, Form, message } from "antd";
+import { Card, Typography, Tabs, Form, message, Progress, Space, Row, Col, Tag } from "antd";
 import {
   SyncOutlined,
   LineChartOutlined,

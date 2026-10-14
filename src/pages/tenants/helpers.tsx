@@ -1,16 +1,55 @@
 import React from "react";
-import { Tag } from "antd";
+import { Tag, Progress, Space, Typography, Tooltip } from "antd";
 import {
   CheckCircleOutlined,
   AlertOutlined,
   WarningOutlined,
   ClockCircleOutlined,
+  SyncOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons";
 
-export const renderStatusTag = (status: string): React.ReactNode => {
+export const renderStatusTag = (status: string, record?: any): React.ReactNode => {
   switch (status) {
     case "ACTIVE":
       return <Tag color="success" icon={<CheckCircleOutlined />}>ACTIVE</Tag>;
+    case "PROVISIONING": {
+      const progress = Number(record?.progress || 20);
+      const step = record?.current_step || "Provisioning AWS resources...";
+      return (
+        <Tooltip title={`Step: ${step}`}>
+          <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
+            <Tag color="processing" icon={<SyncOutlined spin />}>
+              PROVISIONING ({progress}%)
+            </Tag>
+            <Progress
+              percent={progress}
+              size="small"
+              status="active"
+              showInfo={false}
+              strokeColor={{ "0%": "#108ee9", "100%": "#52c41a" }}
+              style={{ margin: 0 }}
+            />
+            <Typography.Text type="secondary" ellipsis style={{ fontSize: 11, maxWidth: 180 }}>
+              {step}
+            </Typography.Text>
+          </Space>
+        </Tooltip>
+      );
+    }
+    case "FAILED":
+      return (
+        <Tooltip title={record?.last_error || "Provisioning failed and Saga rollback completed"}>
+          <Space direction="vertical" size={2}>
+            <Tag color="error" icon={<CloseCircleOutlined />}>
+              FAILED
+            </Tag>
+            <Typography.Text type="danger" ellipsis style={{ fontSize: 10, maxWidth: 160 }}>
+              {record?.last_error || "Saga rollback completed"}
+            </Typography.Text>
+          </Space>
+        </Tooltip>
+      );
     case "DEGRADED":
       return <Tag color="warning" icon={<AlertOutlined />}>DEGRADED</Tag>;
     case "INCIDENT":

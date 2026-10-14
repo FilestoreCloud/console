@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   useList,
   useCreate,
@@ -48,8 +48,10 @@ import {
   ClockCircleOutlined,
   BranchesOutlined,
   LineChartOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
 import { CreateTenantModal } from "./create-modal";
+import { renderStatusTag } from "./helpers";
 import { dataProvider } from "../../providers/dataProvider";
 import { useNavigate } from "react-router-dom";
 
@@ -82,6 +84,20 @@ export const TenantList: React.FC = () => {
   const { data: canDelete } = useCan({ resource: "tenants", action: "delete" });
 
   const tenants = (data?.data || []) as any[];
+
+  // Provisioning Detection & Real-Time Auto-Polling
+  const provisioningTenants = tenants.filter(
+    (t) => t.status === "PROVISIONING",
+  );
+  const hasProvisioningTenants = provisioningTenants.length > 0;
+
+  useEffect(() => {
+    if (!hasProvisioningTenants) return;
+    const interval = setInterval(() => {
+      refetch();
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [hasProvisioningTenants, refetch]);
 
   // KPI Calculations
   const totalTenants = tenants.length;
@@ -297,44 +313,10 @@ export const TenantList: React.FC = () => {
       render: (quota: any) => <Tag color="blue">{quota || 100} GB</Tag>,
     },
     {
-      title: "Status",
+      title: "Status & Progress",
       dataIndex: "status",
       key: "status",
-      render: (st: string) => {
-        switch (st) {
-          case "ACTIVE":
-            return (
-              <Tag color="success" icon={<CheckCircleOutlined />}>
-                ACTIVE
-              </Tag>
-            );
-          case "DEGRADED":
-            return (
-              <Tag color="warning" icon={<AlertOutlined />}>
-                DEGRADED
-              </Tag>
-            );
-          case "INCIDENT":
-            return (
-              <Tag color="error" icon={<WarningOutlined />}>
-                INCIDENT
-              </Tag>
-            );
-          case "MAINTENANCE":
-            return (
-              <Tag color="processing" icon={<ClockCircleOutlined />}>
-                MAINTENANCE
-              </Tag>
-            );
-          case "SUSPENDED":
-          default:
-            return (
-              <Tag color="default" icon={<PauseCircleOutlined />}>
-                SUSPENDED
-              </Tag>
-            );
-        }
-      },
+      render: (st: string, record: any) => renderStatusTag(st, record),
     },
     {
       title: "Isolated Infrastructure",
@@ -520,10 +502,11 @@ export const TenantList: React.FC = () => {
               <Select
                 value={statusFilter}
                 onChange={setStatusFilter}
-                style={{ width: 150 }}
+                style={{ width: 160 }}
                 options={[
                   { value: "ALL", label: "All Statuses" },
                   { value: "ACTIVE", label: "Active Only" },
+                  { value: "PROVISIONING", label: "Provisioning Only" },
                   { value: "SUSPENDED", label: "Suspended Only" },
                 ]}
               />
@@ -559,6 +542,22 @@ export const TenantList: React.FC = () => {
         variant="borderless"
         style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
       >
+        {hasProvisioningTenants && (
+          <Alert
+            message={
+              <Space>
+                <SyncOutlined spin style={{ color: "#1890ff" }} />
+                <Text strong>AWS Step Functions Provisioning Active</Text>
+                <span>
+                  — {provisioningTenants.length} tenant(s) being created. Real-time progress updates are polling automatically.
+                </span>
+              </Space>
+            }
+            type="info"
+            showIcon={false}
+            style={{ marginBottom: 16 }}
+          />
+        )}
         <Table
           columns={columns}
           dataSource={filteredTenants}
