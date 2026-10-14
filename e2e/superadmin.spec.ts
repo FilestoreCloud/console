@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import crypto from "crypto";
 
 function generateTotp(
-  secret: string = process.env.SUPERADMIN_TOTP_SECRET || "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP"
+  secret: string = process.env.SUPERADMIN_TOTP_SECRET!
 ): string {
   const b32alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
   let bits = "";
@@ -28,8 +28,8 @@ function generateTotp(
   return code;
 }
 
-const ADMIN_EMAIL = process.env.SUPERADMIN_USERNAME || "nhphuong.code@gmail.com";
-const ADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD || "StorixAdmin2026!Secure";
+const ADMIN_EMAIL = process.env.SUPERADMIN_USERNAME!;
+const ADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD!;
 
 test.describe("SuperAdmin Console Web E2E", () => {
   test("Should render SuperAdmin login page and form controls", async ({ page }) => {

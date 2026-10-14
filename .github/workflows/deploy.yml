@@ -144,8 +144,8 @@ jobs:
         run: |
           CF_URL="${{ needs.deploy.outputs.cloudfront_url }}"
           if [ -z "${CF_URL}" ]; then
-            echo "CloudFront URL not resolved; using default fallback..."
-            CF_URL="https://${{ vars.CLOUDFRONT_DOMAIN || 'd2e29n6j95m1sw.cloudfront.net' }}"
+            echo "CloudFront URL not resolved; using repository variable..."
+            CF_URL="https://${{ vars.CLOUDFRONT_DOMAIN }}"
           fi
 
           echo "============================================================"
@@ -170,13 +170,9 @@ jobs:
 
           # 3. Test SuperAdmin Authentication API
           echo "Testing SuperAdmin Authentication & MFA Challenge..."
-          ADMIN_PASS="${{ secrets.ADMIN_PASSWORD }}"
-          if [ -z "${ADMIN_PASS}" ]; then
-            ADMIN_PASS="StorixAdmin2026!Secure"
-          fi
           LOGIN_RESP=$(curl -s -X POST "${CF_URL}/api" \
             -H "Content-Type: application/json" \
-            -d "{\"action\": \"LOGIN\", \"username\": \"nhphuong.code@gmail.com\", \"password\": \"${ADMIN_PASS}\"}")
+            -d "{\"action\": \"LOGIN\", \"username\": \"${{ secrets.SUPERADMIN_USERNAME }}\", \"password\": \"${{ secrets.ADMIN_PASSWORD }}\"}")
           echo "✓ Login API Response: $(echo "$LOGIN_RESP" | cut -c1-150)..."
 
           echo "============================================================"
@@ -196,9 +192,9 @@ jobs:
       - name: Run SuperAdmin Playwright E2E Tests
         env:
           CONSOLE_URL: ${{ needs.deploy.outputs.cloudfront_url }}
-          SUPERADMIN_USERNAME: "nhphuong.code@gmail.com"
-          SUPERADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD || 'StorixAdmin2026!Secure' }}
-          SUPERADMIN_TOTP_SECRET: ${{ secrets.SUPERADMIN_TOTP_SECRET || 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP' }}
+          SUPERADMIN_USERNAME: ${{ secrets.SUPERADMIN_USERNAME }}
+          SUPERADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          SUPERADMIN_TOTP_SECRET: ${{ secrets.SUPERADMIN_TOTP_SECRET }}
         run: |
           npx playwright test
 

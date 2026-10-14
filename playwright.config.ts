@@ -8,7 +8,7 @@ export default defineConfig({
   workers: 1,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
-    baseURL: process.env.CONSOLE_URL || "https://d12jxu8xpkp8ik.cloudfront.net",
+    baseURL: process.env.CONSOLE_URL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
