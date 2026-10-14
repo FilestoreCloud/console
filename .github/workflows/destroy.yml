@@ -6,7 +6,6 @@ on:
       environment:
         description: "Target Environment to Undeploy"
         required: true
-        default: "prod"
         type: choice
         options:
           - prod
@@ -14,7 +13,6 @@ on:
       confirmation:
         description: "Safety Confirmation: Type DESTROY to proceed"
         required: true
-        default: ""
         type: string
 
 permissions:
@@ -45,20 +43,20 @@ jobs:
         id: aws-creds
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN || 'arn:aws:iam::649519997247:role/coderpush-github-actions-role' }}
-          aws-region: ${{ vars.AWS_REGION || 'ap-southeast-1' }}
+          role-to-assume: ${{ secrets.AWS_ROLE_CONSOLE }}
+          aws-region: ${{ vars.AWS_REGION }}
           audience: sts.amazonaws.com
 
       - name: Resolve Infrastructure Targets
         id: infra
         run: |
-          ENV="${{ inputs.environment || 'prod' }}"
+          ENV="${{ inputs.environment }}"
           ACCOUNT_ID="${{ steps.aws-creds.outputs.aws-account-id }}"
           BUCKET="${{ vars.ADMIN_WEB_BUCKET }}"
           if [ -z "${BUCKET}" ]; then
             BUCKET="${ENV}-nextcloud-admin-web-${ACCOUNT_ID}"
           fi
-          DIST="${{ vars.CLOUDFRONT_DISTRIBUTION_ID || secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
+          DIST="${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
           echo "s3_bucket=${BUCKET}" >> "$GITHUB_OUTPUT"
           echo "distribution_id=${DIST}" >> "$GITHUB_OUTPUT"
           echo "Target S3 Bucket to empty: ${BUCKET}"
@@ -77,7 +75,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
           AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-          AWS_REGION: ${{ vars.AWS_REGION || 'ap-southeast-1' }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
           SOURCE_DIR: "/tmp/empty_payload"
 
       - name: Invalidate Amazon CloudFront Cache
@@ -86,7 +84,7 @@ jobs:
         env:
           DISTRIBUTION: ${{ steps.infra.outputs.distribution_id }}
           PATHS: "/*"
-          AWS_REGION: ${{ vars.AWS_REGION || 'ap-southeast-1' }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
 
       - name: Summary Report
         run: |
