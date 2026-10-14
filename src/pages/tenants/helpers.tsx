@@ -110,6 +110,30 @@ export const renderStatusTag = (status: string, record?: any): React.ReactNode =
         </Tooltip>
       );
     }
+    case "SEEDING": {
+      const progress = Number(record?.progress || 20);
+      const step = record?.current_step || "Seeding demo accounts and files...";
+      return (
+        <Tooltip title={`Step: ${step}`}>
+          <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
+            <Tag color="purple" icon={<SyncOutlined spin />}>
+              SEEDING ({progress}%)
+            </Tag>
+            <Progress
+              percent={progress}
+              size="small"
+              status="active"
+              showInfo={false}
+              strokeColor="#722ed1"
+              style={{ margin: 0 }}
+            />
+            <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#531dab" }} ellipsis>
+              {step}
+            </Typography.Text>
+          </Space>
+        </Tooltip>
+      );
+    }
     case "FAILED":
       return (
         <Tooltip title={record?.last_error || "Provisioning failed and Saga rollback completed"}>

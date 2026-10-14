@@ -71,7 +71,7 @@ export const TenantHeader: React.FC<TenantHeaderProps> = ({
               Refresh
             </Button>
             {(() => {
-              const isInFlight = ["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING"].includes(currentStatus);
+              const isInFlight = ["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING", "SEEDING"].includes(currentStatus);
               return (
                 <>
                   <Button
