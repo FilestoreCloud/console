@@ -58,6 +58,14 @@ npm run build
 
 Generates optimized, production-ready static assets in `dist/`.
 
+### Automated Testing
+
+```bash
+npm test
+```
+
+Runs the automated test suite powered by Vitest, verifying RBAC access control policies, authentication & MFA lifecycle, data provider APIs, and UI components.
+
 ---
 
 ## CI/CD Deployment

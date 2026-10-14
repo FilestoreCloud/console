@@ -60,15 +60,22 @@ npm run dev
 
 ### Production Build & Linting
 
-```bash
+# Run automated unit & integration test suite
+
+npm test
+
 # Type check & production build (outputs to dist/)
+
 npm run build
 
 # Preview production build locally
+
 npm run preview
 
 # Run AWS Labs DevSecOps pre-commit checks
+
 pre-commit run --all-files
+
 ```
 
 ---
@@ -103,5 +110,7 @@ pre-commit run --all-files
 Before concluding any implementation or opening a PR:
 
 1. [ ] **Pre-commit:** `pre-commit run --all-files` passes cleanly with zero errors.
-2. [ ] **Build:** `npm run build` succeeds without compiler errors.
-3. [ ] **Git:** Staged changes committed to `dev` with Conventional Commit message.
+2. [ ] **Tests:** `npm test` passes cleanly with 100% test success.
+3. [ ] **Build:** `npm run build` succeeds without compiler errors.
+4. [ ] **Git:** Staged changes committed to `dev` with Conventional Commit message.
+```
