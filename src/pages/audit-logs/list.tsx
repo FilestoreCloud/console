@@ -72,12 +72,7 @@ export const AuditLogList: React.FC = () => {
       dataIndex: "role",
       key: "role",
       render: (role: string) => {
-        const color =
-          role === "SuperAdmin"
-            ? "red"
-            : role === "TenantOperator"
-              ? "blue"
-              : "gold";
+        const color = role === "SuperAdmin" ? "red" : "default";
         return <Tag color={color}>{role || "Unauthenticated"}</Tag>;
       },
     },

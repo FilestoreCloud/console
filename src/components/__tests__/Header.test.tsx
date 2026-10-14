@@ -38,19 +38,11 @@ describe("CustomHeader", () => {
     ).toBeInTheDocument();
   });
 
-  it("displays TenantOperator role badge correctly", () => {
-    mockUserData = { email: "ops@png261.dev", role: "TenantOperator" };
+  it("defaults to SuperAdmin role badge when no role is specified", () => {
+    mockUserData = { email: "admin@png261.dev" };
     render(<CustomHeader />);
     expect(
-      screen.getByText(/TenantOperator \(Ops Only\)/i),
-    ).toBeInTheDocument();
-  });
-
-  it("displays SecurityAuditor role badge for auditor or default", () => {
-    mockUserData = { email: "auditor@png261.dev", role: "SecurityAuditor" };
-    render(<CustomHeader />);
-    expect(
-      screen.getByText(/SecurityAuditor \(Read-Only\)/i),
+      screen.getByText(/SuperAdmin \(Full Control\)/i),
     ).toBeInTheDocument();
   });
 

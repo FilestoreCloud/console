@@ -59,13 +59,13 @@ describe("authProvider", () => {
           status: "MFA_REQUIRED",
           message: "TOTP Code Required",
           challenge_token: "mfa-challenge-xyz",
-          user: "sec-admin@png261.dev",
-          role: "SecurityAuditor",
+          user: "admin@png261.dev",
+          role: "SuperAdmin",
         }),
       } as Response);
 
       const result: any = await authProvider.login({
-        email: "sec-admin@png261.dev",
+        email: "admin@png261.dev",
         password: "ValidPassword123!",
       });
 
@@ -80,8 +80,8 @@ describe("authProvider", () => {
         ok: true,
         json: async () => ({
           token: "verified-mfa-token",
-          user: "sec-admin@png261.dev",
-          role: "TenantOperator",
+          user: "admin@png261.dev",
+          role: "SuperAdmin",
         }),
       } as Response);
 
@@ -107,7 +107,7 @@ describe("authProvider", () => {
       expect(sessionStorage.getItem("saas_admin_token")).toBe(
         "verified-mfa-token",
       );
-      expect(sessionStorage.getItem("saas_admin_role")).toBe("TenantOperator");
+      expect(sessionStorage.getItem("saas_admin_role")).toBe("SuperAdmin");
     });
 
     it("returns error on invalid MFA verification code", async () => {
@@ -202,28 +202,28 @@ describe("authProvider", () => {
 
   describe("getPermissions", () => {
     it("returns stored role from sessionStorage", async () => {
-      sessionStorage.setItem("saas_admin_role", "TenantOperator");
+      sessionStorage.setItem("saas_admin_role", "SuperAdmin");
       const role = await authProvider.getPermissions!();
-      expect(role).toBe("TenantOperator");
+      expect(role).toBe("SuperAdmin");
     });
 
-    it("falls back to SecurityAuditor when role is not stored", async () => {
+    it("falls back to SuperAdmin when role is not stored", async () => {
       const role = await authProvider.getPermissions!();
-      expect(role).toBe("SecurityAuditor");
+      expect(role).toBe("SuperAdmin");
     });
   });
 
   describe("getIdentity", () => {
     it("returns identity object with formatted name and dicebear avatar", async () => {
       sessionStorage.setItem("saas_admin_email", "jane.doe@enterprise.io");
-      sessionStorage.setItem("saas_admin_role", "TenantOperator");
+      sessionStorage.setItem("saas_admin_role", "SuperAdmin");
 
       const identity = await authProvider.getIdentity!();
       expect(identity).toEqual({
         id: "jane.doe@enterprise.io",
         name: "JANE.DOE",
         email: "jane.doe@enterprise.io",
-        role: "TenantOperator",
+        role: "SuperAdmin",
         avatar:
           "https://api.dicebear.com/7.x/identicon/svg?seed=jane.doe@enterprise.io",
       });

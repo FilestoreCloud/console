@@ -11,7 +11,7 @@ Enterprise Super Admin Web Console for multi-tenant Nextcloud on AWS, built with
 The Super Admin Console provides a decoupled, secure control plane for managing multi-tenant Nextcloud fleets across AWS:
 
 - **Edge Delivery & Security:** Amazon CloudFront CDN distribution with Origin Access Control (OAC) fronting an encrypted Amazon S3 static web bucket. Ingress protected by AWS WAF (OWASP rules, IP rate limiting, SQLi/XSS shielding).
-- **Role-Based Access Control (RBAC):** Authenticated administrative roles (`SuperAdmin`, `TenantOperator`, `SecurityAuditor`) with RFC 6238 TOTP Multi-Factor Authentication.
+- **Role-Based Access Control (RBAC):** Authenticated administrative access (`SuperAdmin`) with RFC 6238 TOTP Multi-Factor Authentication.
 - **Fleet Telemetry & Operational Control:** Real-time metrics visualization via Apache ECharts, live Amazon CloudWatch log streaming (`/ecs/nextcloud`), remote OCC command execution, and automated incident management.
 - **Tenant Lifecycle Orchestration:** Systems Manager runbooks and dedicated container-per-tenant lifecycle provisioning.
 

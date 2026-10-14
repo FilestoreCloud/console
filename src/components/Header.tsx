@@ -17,8 +17,6 @@ import {
   CheckCircleFilled,
   LineChartOutlined,
   UserOutlined,
-  ToolFilled,
-  EyeFilled,
   LockFilled,
   BulbOutlined,
   BulbFilled,
@@ -41,23 +39,9 @@ export const CustomHeader: React.FC<HeaderProps> = ({
   const role = user?.role || "SuperAdmin";
 
   const getRoleBadge = () => {
-    if (role === "SuperAdmin") {
-      return (
-        <Tag color="error" icon={<SafetyCertificateFilled />}>
-          SuperAdmin (Full Control)
-        </Tag>
-      );
-    }
-    if (role === "TenantOperator") {
-      return (
-        <Tag color="processing" icon={<ToolFilled />}>
-          TenantOperator (Ops Only)
-        </Tag>
-      );
-    }
     return (
-      <Tag color="warning" icon={<EyeFilled />}>
-        SecurityAuditor (Read-Only)
+      <Tag color="error" icon={<SafetyCertificateFilled />}>
+        SuperAdmin (Full Control)
       </Tag>
     );
   };

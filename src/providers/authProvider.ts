@@ -134,7 +134,7 @@ export const authProvider: AuthProvider = {
 
   getPermissions: async () => {
     const role = sessionStorage.getItem("saas_admin_role");
-    return role || "SecurityAuditor";
+    return role || "SuperAdmin";
   },
 
   getIdentity: async () => {

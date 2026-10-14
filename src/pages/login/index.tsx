@@ -16,10 +16,8 @@ import {
   LockOutlined,
   MailOutlined,
   SafetyCertificateOutlined,
-  KeyOutlined,
   ThunderboltFilled,
   ArrowLeftOutlined,
-  CheckCircleFilled,
 } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
@@ -85,23 +83,11 @@ export const LoginPage: React.FC = () => {
   } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const fillPersona = (type: "admin" | "ops" | "auditor") => {
-    if (type === "admin") {
-      form.setFieldsValue({
-        email: "admin@png261.dev",
-        password: "AdminPassword123!",
-      });
-    } else if (type === "ops") {
-      form.setFieldsValue({
-        email: "ops@png261.dev",
-        password: "OperatorPassword123!",
-      });
-    } else if (type === "auditor") {
-      form.setFieldsValue({
-        email: "auditor@png261.dev",
-        password: "AuditorPassword123!",
-      });
-    }
+  const fillPersona = () => {
+    form.setFieldsValue({
+      email: "admin@png261.dev",
+      password: "AdminPassword123!",
+    });
   };
 
   const handleCredentialsSubmit = async (values: any) => {
@@ -275,7 +261,7 @@ export const LoginPage: React.FC = () => {
 
             <Divider style={{ margin: "24px 0 16px" }}>
               <Text type="secondary" style={{ fontSize: 12 }}>
-                ENTERPRISE RBAC PERSONAS (DEMO QUICK-FILL)
+                DEMO QUICK-FILL
               </Text>
             </Divider>
 
@@ -288,7 +274,7 @@ export const LoginPage: React.FC = () => {
                   justifyContent: "space-between",
                   alignItems: "center",
                 }}
-                onClick={() => fillPersona("admin")}
+                onClick={fillPersona}
               >
                 <span>
                   <SafetyCertificateOutlined
@@ -297,42 +283,6 @@ export const LoginPage: React.FC = () => {
                   <strong>SuperAdmin</strong> (Full Access)
                 </span>
                 <Tag color="error">admin@png261.dev</Tag>
-              </Button>
-
-              <Button
-                block
-                style={{
-                  textAlign: "left",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-                onClick={() => fillPersona("ops")}
-              >
-                <span>
-                  <KeyOutlined style={{ color: "#3b82f6", marginRight: 8 }} />
-                  <strong>TenantOperator</strong> (Ops Only)
-                </span>
-                <Tag color="processing">ops@png261.dev</Tag>
-              </Button>
-
-              <Button
-                block
-                style={{
-                  textAlign: "left",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-                onClick={() => fillPersona("auditor")}
-              >
-                <span>
-                  <CheckCircleFilled
-                    style={{ color: "#f59e0b", marginRight: 8 }}
-                  />
-                  <strong>SecurityAuditor</strong> (Read-Only)
-                </span>
-                <Tag color="warning">auditor@png261.dev</Tag>
               </Button>
             </Space>
           </div>
