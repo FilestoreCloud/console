@@ -24,13 +24,14 @@ export const dataProvider: DataProvider = {
       });
       if (res.status === 401) throw { status: 401, message: "Unauthorized" };
       const data = await res.json();
-      const tenants = (data.tenants || []).map((t: any) => ({
+      const rawTenants = data.tenants || data.items || data.data || [];
+      const tenants = rawTenants.map((t: any) => ({
         id: t.tenant_id,
         ...t,
       }));
       return {
         data: tenants,
-        total: tenants.length,
+        total: data.total || data.count || tenants.length,
       };
     }
 
