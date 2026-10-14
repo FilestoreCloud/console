@@ -35,7 +35,7 @@ export const TenantIncidentAlert: React.FC<TenantIncidentAlertProps> = ({
             {incident?.severity && <span style={{ marginLeft: 8 }}>{renderSeverityTag(incident.severity)}</span>}
           </div>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            Reported by: {incident?.reported_by || "Operator"} at {incident?.reported_at || lastUpdated}
+            Reported by: {incident?.reported_by || "System"} at {incident?.reported_at || lastUpdated}
           </Text>
         </div>
       }

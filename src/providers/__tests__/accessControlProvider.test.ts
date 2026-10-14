@@ -78,24 +78,24 @@ describe("accessControlProvider", () => {
       );
     });
 
-    it("rejects deprecated roles (TenantOperator, SecurityAuditor)", async () => {
-      localStorage.setItem("saas_admin_role", "TenantOperator");
-      const opsResult = await accessControlProvider.can({
+    it("rejects unauthorized roles (Viewer, Editor)", async () => {
+      localStorage.setItem("saas_admin_role", "Viewer");
+      const viewerResult = await accessControlProvider.can({
         resource: "tenants",
         action: "list",
       });
-      expect(opsResult.can).toBe(false);
-      expect(opsResult.reason).toBe(
+      expect(viewerResult.can).toBe(false);
+      expect(viewerResult.reason).toBe(
         "Unauthorized: 'SuperAdmin' role is required.",
       );
 
-      localStorage.setItem("saas_admin_role", "SecurityAuditor");
-      const auditResult = await accessControlProvider.can({
+      localStorage.setItem("saas_admin_role", "Editor");
+      const editorResult = await accessControlProvider.can({
         resource: "tenants",
         action: "list",
       });
-      expect(auditResult.can).toBe(false);
-      expect(auditResult.reason).toBe(
+      expect(editorResult.can).toBe(false);
+      expect(editorResult.reason).toBe(
         "Unauthorized: 'SuperAdmin' role is required.",
       );
     });

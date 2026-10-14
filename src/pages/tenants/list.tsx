@@ -371,26 +371,6 @@ export const TenantList: React.FC = () => {
       key: "actions",
       align: "right" as const,
       render: (_: any, record: any) => {
-        const isAuditor = canCreate?.can === false && canDelete?.can === false;
-        if (isAuditor) {
-          return (
-            <Space>
-              <Button
-                size="small"
-                type="primary"
-                ghost
-                icon={<EyeOutlined />}
-                onClick={() => show("tenants", record.tenant_id)}
-              >
-                Inspect
-              </Button>
-              <Tag color="default" icon={<LockOutlined />}>
-                Read Only
-              </Tag>
-            </Space>
-          );
-        }
-
         const isActive = record.status === "ACTIVE";
         return (
           <Space>
@@ -559,7 +539,7 @@ export const TenantList: React.FC = () => {
               >
                 Refresh
               </Button>
-              {canCreate?.can ? (
+              {canCreate?.can && (
                 <Button
                   type="primary"
                   icon={<PlusOutlined />}
@@ -568,14 +548,6 @@ export const TenantList: React.FC = () => {
                 >
                   Provision Dedicated Tenant
                 </Button>
-              ) : (
-                <Tag
-                  color="warning"
-                  icon={<LockOutlined />}
-                  style={{ padding: "4px 8px" }}
-                >
-                  Auditor Mode: Read-Only
-                </Tag>
               )}
             </Space>
           </Col>

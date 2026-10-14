@@ -137,6 +137,9 @@ jobs:
     needs: [deploy]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Verify Live Web Endpoint & SuperAdmin API
         run: |
           CF_URL="${{ needs.deploy.outputs.cloudfront_url }}"
