@@ -95,3 +95,10 @@ The console architecture diagram is generated and maintained as code using [AWS 
 # Rebuild console architecture diagram
 awsdac docs/diagrams/console_architecture.yaml -o docs/images/console_architecture.png -f
 ```
+
+---
+
+## License
+
+Distributed under the [MIT License](LICENSE).
+
