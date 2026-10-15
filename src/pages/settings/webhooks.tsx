@@ -197,7 +197,7 @@ export const WebhooksSettings: React.FC = () => {
                 icon={<SaveOutlined />}
                 loading={isSaving}
                 onClick={() => form.submit()}
-                style={{ background: "#ec7211", borderColor: "#ec7211" }}
+                style={{ background: "#1652f0", borderColor: "#1652f0" }}
               >
                 Save Configuration
               </Button>
@@ -214,7 +214,7 @@ export const WebhooksSettings: React.FC = () => {
             <Card
               title={
                 <Space>
-                  <BellOutlined style={{ color: "#ec7211" }} />
+                  <BellOutlined style={{ color: "#1652f0" }} />
                   <span>Notification Engine Control</span>
                 </Space>
               }
@@ -565,7 +565,7 @@ export const WebhooksSettings: React.FC = () => {
                 >
                   <div>
                     <Space>
-                      <ThunderboltOutlined style={{ color: "#ec7211" }} />
+                      <ThunderboltOutlined style={{ color: "#1652f0" }} />
                       <strong>Agent Rolling Restarts</strong>
                     </Space>
                     <div style={{ fontSize: 11, color: "#64748b" }}>

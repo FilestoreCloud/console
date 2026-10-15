@@ -85,22 +85,26 @@ export const CustomHeader: React.FC<HeaderProps> = ({
   return (
     <Layout.Header
       style={{
-        backgroundColor: "#0f1b2a",
+        backgroundColor: "#071736",
         padding: "0 24px",
         height: 64,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        borderBottom: "2px solid #ec7211",
+        borderBottom: "2px solid #1652f0",
         position: "sticky",
         top: 0,
         zIndex: 1000,
       }}
     >
       <Space size="middle" align="center">
-        <span style={{ fontSize: 24 }}>☁️</span>
+        <img
+          src="/storix-icon.png"
+          alt="Storix"
+          style={{ width: 28, height: 28, objectFit: "contain" }}
+        />
         <Text strong style={{ color: "#ffffff", fontSize: 16 }}>
-          Filestore Cloud Console
+          Storix Console
         </Text>
         <Tag
           color="default"
@@ -174,7 +178,7 @@ export const CustomHeader: React.FC<HeaderProps> = ({
             <Avatar
               size="small"
               icon={<UserOutlined />}
-              style={{ backgroundColor: "#ec7211" }}
+              style={{ backgroundColor: "#1652f0" }}
             />
             <span>{user?.name || "ADMIN"}</span>
           </Button>

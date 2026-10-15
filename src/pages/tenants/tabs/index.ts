@@ -6,3 +6,4 @@ export * from "./IncidentsTab";
 export * from "./AuditTab";
 export * from "./TerminalTab";
 export * from "./LogsTab";
+export * from "./ObservabilityTab";

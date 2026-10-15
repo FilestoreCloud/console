@@ -30,7 +30,7 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
     <Modal
       title={
         <span>
-          <RocketOutlined style={{ color: "#ec7211", marginRight: 8 }} />
+          <RocketOutlined style={{ color: "#1652f0", marginRight: 8 }} />
           Provision Dedicated Tenant
         </span>
       }
@@ -40,7 +40,7 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
       confirmLoading={loading}
       okText="Launch Tenant Instance"
       okButtonProps={{
-        style: { backgroundColor: "#ec7211", borderColor: "#ec7211" },
+        style: { backgroundColor: "#1652f0", borderColor: "#1652f0" },
       }}
       destroyOnHidden
     >

@@ -28,7 +28,7 @@ describe("LoginPage — SuperAdmin Authentication Flow", () => {
   it("renders administrative sign-in form correctly with empty fields", () => {
     render(<LoginPage />);
 
-    expect(screen.getByText("Super Admin Portal")).toBeInTheDocument();
+    expect(screen.getByText("Storix Super Admin Portal")).toBeInTheDocument();
     expect(
       screen.getByText("Nextcloud Multi-Tenant SaaS Control Plane"),
     ).toBeInTheDocument();

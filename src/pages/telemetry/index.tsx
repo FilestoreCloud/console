@@ -155,7 +155,7 @@ export const TelemetryDashboard: React.FC = () => {
                 href="https://ap-southeast-1.console.aws.amazon.com/cloudwatch/home?region=ap-southeast-1#dashboards/dashboard/prod-Nextcloud-SaaS-Control-Plane"
                 target="_blank"
                 icon={<LinkOutlined />}
-                style={{ backgroundColor: "#ec7211", borderColor: "#ec7211" }}
+                style={{ backgroundColor: "#1652f0", borderColor: "#1652f0" }}
               >
                 AWS Console
               </Button>

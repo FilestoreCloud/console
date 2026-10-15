@@ -67,12 +67,13 @@ const LoadingFallback: React.FC = () => (
 
 const App: React.FC = () => {
   const [isDark, setIsDark] = useState<boolean>(() => {
-    return localStorage.getItem("filestore_theme") === "dark";
+    return (localStorage.getItem("storix_theme") || localStorage.getItem("filestore_theme")) === "dark";
   });
 
   const handleToggleTheme = () => {
     setIsDark((prev) => {
       const next = !prev;
+      localStorage.setItem("storix_theme", next ? "dark" : "light");
       localStorage.setItem("filestore_theme", next ? "dark" : "light");
       return next;
     });
@@ -84,8 +85,8 @@ const App: React.FC = () => {
         theme={{
           algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
           token: {
-            colorPrimary: "#ec7211",
-            colorInfo: "#0284c7",
+            colorPrimary: "#1652f0",
+            colorInfo: "#0091ff",
             borderRadius: 6,
             fontFamily:
               '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -167,13 +168,26 @@ const App: React.FC = () => {
                                   gap: 8,
                                 }}
                               >
-                                <span style={{ fontSize: 20 }}>☁️</span>
-                                {!collapsed && (
-                                  <strong
-                                    style={{ color: "#ffffff", fontSize: 14 }}
-                                  >
-                                    Filestore Cloud
-                                  </strong>
+                                {collapsed ? (
+                                  <img
+                                    src="/storix-icon.png"
+                                    alt="Storix"
+                                    style={{
+                                      width: 28,
+                                      height: 28,
+                                      objectFit: "contain",
+                                    }}
+                                  />
+                                ) : (
+                                  <img
+                                    src="/storix-logo-white.png"
+                                    alt="Storix"
+                                    style={{
+                                      height: 32,
+                                      maxWidth: 140,
+                                      objectFit: "contain",
+                                    }}
+                                  />
                                 )}
                               </div>
                             )}

@@ -152,7 +152,7 @@ export const AgentTab: React.FC<AgentTabProps> = ({
           <Card
             title={
               <Space>
-                <CloudServerOutlined style={{ color: "#ec7211" }} />
+                <CloudServerOutlined style={{ color: "#1652f0" }} />
                 <span>
                   Dedicated Application Container (Nextcloud Enterprise)
                 </span>

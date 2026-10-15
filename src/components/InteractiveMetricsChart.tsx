@@ -154,9 +154,9 @@ export const InteractiveMetricsChart: React.FC<
           height: 22,
           bottom: 12,
           borderColor: "#e2e8f0",
-          fillerColor: "rgba(236, 114, 17, 0.18)",
+          fillerColor: "rgba(22, 82, 240, 0.18)",
           handleStyle: {
-            color: "#ec7211",
+            color: "#1652f0",
             borderColor: "#c2410c",
           },
           textStyle: { color: "#64748b", fontSize: 10 },
@@ -314,7 +314,7 @@ export const InteractiveMetricsChart: React.FC<
     <Card
       title={
         <Space>
-          <LineChartOutlined style={{ color: "#ec7211" }} />
+          <LineChartOutlined style={{ color: "#1652f0" }} />
           <span>Interactive Live Telemetry Stream</span>
           <Tag color={intervalSec > 0 ? "processing" : "default"}>
             {intervalSec > 0 ? `STREAMING (${countdown}s)` : "PAUSED"}

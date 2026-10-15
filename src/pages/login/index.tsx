@@ -119,9 +119,13 @@ export const LoginPage: React.FC = () => {
         variant="borderless"
       >
         <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <div style={{ fontSize: 48, marginBottom: 8 }}>☁️</div>
+          <img
+            src="/storix-logo.png"
+            alt="Storix"
+            style={{ height: 44, marginBottom: 12, objectFit: "contain" }}
+          />
           <Title level={3} style={{ marginBottom: 4 }}>
-            Super Admin Portal
+            Storix Super Admin Portal
           </Title>
           <Text type="secondary" style={{ fontSize: 13 }}>
             Nextcloud Multi-Tenant SaaS Control Plane
@@ -183,8 +187,8 @@ export const LoginPage: React.FC = () => {
                 block
                 loading={isLoading || isSubmitting}
                 style={{
-                  backgroundColor: "#ec7211",
-                  borderColor: "#ec7211",
+                  backgroundColor: "#1652f0",
+                  borderColor: "#1652f0",
                   fontWeight: 600,
                   marginTop: 8,
                 }}
@@ -244,8 +248,8 @@ export const LoginPage: React.FC = () => {
                 block
                 loading={isLoading}
                 style={{
-                  backgroundColor: "#ec7211",
-                  borderColor: "#ec7211",
+                  backgroundColor: "#1652f0",
+                  borderColor: "#1652f0",
                   fontWeight: 600,
                   marginTop: 16,
                 }}

@@ -24,7 +24,7 @@ describe("CustomHeader", () => {
   it("renders console title, AWS region and online status", () => {
     render(<CustomHeader />);
 
-    expect(screen.getByText("Filestore Cloud Console")).toBeInTheDocument();
+    expect(screen.getByText("Storix Console")).toBeInTheDocument();
     expect(screen.getByText(/Region: ap-southeast-1/i)).toBeInTheDocument();
     expect(screen.getByText(/Online/i)).toBeInTheDocument();
     expect(screen.getByText("CloudWatch Dashboard ↗")).toBeInTheDocument();

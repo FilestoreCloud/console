@@ -11,6 +11,7 @@ import {
   AuditOutlined,
   CodeOutlined,
   FileTextOutlined,
+  BranchesOutlined,
 } from "@ant-design/icons";
 import { useParams } from "react-router-dom";
 import { dataProvider } from "../../providers/dataProvider";
@@ -23,6 +24,7 @@ import {
   AuditTab,
   TerminalTab,
   LogsTab,
+  ObservabilityTab,
 } from "./tabs";
 import { TenantModals } from "./modals";
 import { TenantHeader } from "./TenantHeader";
@@ -81,7 +83,7 @@ export const TenantShow: React.FC = () => {
   if (isLoading || !tenantData) {
     return (
       <Card style={{ margin: 24, textAlign: "center" }} variant="borderless">
-        <SyncOutlined spin style={{ fontSize: 28, color: "#ec7211", marginBottom: 12 }} />
+        <SyncOutlined spin style={{ fontSize: 28, color: "#1652f0", marginBottom: 12 }} />
         <br />
         <Text type="secondary">Loading tenant configuration & agent telemetry...</Text>
       </Card>
@@ -282,7 +284,7 @@ export const TenantShow: React.FC = () => {
         items={[
           {
             key: "metrics",
-            label: <span><LineChartOutlined style={{ color: "#ec7211" }} /> Live Metrics & Telemetry</span>,
+            label: <span><LineChartOutlined style={{ color: "#1652f0" }} /> Live Metrics & Telemetry</span>,
             children: (
               <MetricsTab
                 tenantId={tenantId}
@@ -351,6 +353,11 @@ export const TenantShow: React.FC = () => {
             key: "logs",
             label: <span><FileTextOutlined /> Live Container Logs</span>,
             children: <LogsTab tenantId={tenantId} awsTopology={awsTopology} />,
+          },
+          {
+            key: "observability",
+            label: <span><BranchesOutlined /> Step Functions & X-Ray</span>,
+            children: <ObservabilityTab tenantId={tenantId} />,
           },
         ]}
       />

@@ -44,7 +44,7 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
             style={{
               margin: 0,
               fontWeight: 700,
-              color: "#ec7211",
+              color: "#1652f0",
               fontSize: 16,
             }}
           >
