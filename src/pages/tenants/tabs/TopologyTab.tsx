@@ -25,7 +25,7 @@ export const TopologyTab: React.FC<TopologyTabProps> = ({
           <Card
             title={
               <Space>
-                <CloudServerOutlined style={{ color: "#ec7211" }} />
+                <CloudServerOutlined style={{ color: "#1652f0" }} />
                 <span>Container-per-Tenant Compute & Ingress</span>
               </Space>
             }

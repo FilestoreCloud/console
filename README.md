@@ -1,4 +1,11 @@
-# Nextcloud SaaS Super Admin Portal
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/storix-logo-white.png">
+    <img alt="Storix Logo" src="docs/images/storix-logo.png" width="360">
+  </picture>
+</p>
+
+# Storix Super Admin Console
 
 Enterprise Super Admin Web Console for multi-tenant Nextcloud on AWS, built with **React 18**, **Refine v4**, **Ant Design 5**, **TypeScript 5**, and **Vite**.
 

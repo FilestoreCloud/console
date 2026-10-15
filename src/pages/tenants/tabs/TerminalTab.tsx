@@ -79,7 +79,7 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
             }}
           >
             <Space>
-              <CodeOutlined style={{ color: "#ec7211" }} />
+              <CodeOutlined style={{ color: "#1652f0" }} />
               <span>Interactive Nextcloud `occ` CLI Diagnostic Runner</span>
               <Tag color="geekblue">Container: service-{tenantId}</Tag>
             </Space>
@@ -186,8 +186,8 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
               loading={occLoading}
               onClick={() => handleExecuteOcc()}
               style={{
-                background: "#ec7211",
-                borderColor: "#ec7211",
+                background: "#1652f0",
+                borderColor: "#1652f0",
               }}
             >
               Execute

@@ -95,7 +95,7 @@ export const TenantHeader: React.FC<TenantHeaderProps> = ({
                       icon={<ThunderboltOutlined />}
                       loading={isUpdating && isInFlight}
                       disabled={isInFlight}
-                      style={{ background: "#ec7211", borderColor: "#ec7211" }}
+                      style={{ background: "#1652f0", borderColor: "#1652f0" }}
                     >
                       Restart Agent Task
                     </Button>

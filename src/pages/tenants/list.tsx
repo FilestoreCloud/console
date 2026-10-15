@@ -398,7 +398,7 @@ export const TenantList: React.FC = () => {
 
             <Button
               size="small"
-              icon={<LineChartOutlined style={{ color: "#ec7211" }} />}
+              icon={<LineChartOutlined style={{ color: "#1652f0" }} />}
               onClick={() =>
                 navigate(`/tenants/${record.tenant_id}?tab=metrics`)
               }
@@ -585,7 +585,7 @@ export const TenantList: React.FC = () => {
                   type="primary"
                   icon={<PlusOutlined />}
                   onClick={() => setModalVisible(true)}
-                  style={{ backgroundColor: "#ec7211", borderColor: "#ec7211" }}
+                  style={{ backgroundColor: "#1652f0", borderColor: "#1652f0" }}
                 >
                   Provision Dedicated Tenant
                 </Button>
