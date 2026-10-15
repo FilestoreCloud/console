@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as echarts from "echarts";
+import { echarts, EChartsType, EChartsOption } from "../utils/echarts";
 import { Card, Space, Button, Tag, Typography, Radio, Tooltip } from "antd";
 import {
   LineChartOutlined,
@@ -43,7 +43,7 @@ export const InteractiveMetricsChart: React.FC<
   onRefresh,
 }) => {
   const chartRef = useRef<HTMLDivElement>(null);
-  const chartInstance = useRef<echarts.EChartsType | null>(null);
+  const chartInstance = useRef<EChartsType | null>(null);
   const [zoomPreset, setZoomPreset] = useState<"all" | "1h" | "30m">("all");
 
   // Ensure chronological ordering (oldest -> newest)
@@ -75,7 +75,7 @@ export const InteractiveMetricsChart: React.FC<
       zoomStart = Math.max(0, 100 - (12 / timestamps.length) * 100);
     }
 
-    const option: echarts.EChartsOption = {
+    const option: EChartsOption = {
       animationDuration: 500,
       tooltip: {
         trigger: "axis",

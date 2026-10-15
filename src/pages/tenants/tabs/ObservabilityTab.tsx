@@ -162,7 +162,7 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
       >
         <Row justify="space-between" align="middle" gutter={[16, 16]}>
           <Col xs={24} lg={14}>
-            <Space orientation="vertical" size={4}>
+            <Space direction="vertical" size={4}>
               <Space align="center">
                 <BranchesOutlined style={{ fontSize: 20, color: "#1652f0" }} />
                 <Typography.Title level={4} style={{ margin: 0 }}>
@@ -303,7 +303,7 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
               dataIndex: "name",
               key: "name",
               render: (name: string, record: any) => (
-                <Space orientation="vertical" size={1}>
+                <Space direction="vertical" size={1}>
                   <Text
                     strong
                     style={{
@@ -425,7 +425,7 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
             style={{ height: "100%", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
           >
             {obsData.selected_execution ? (
-              <Space orientation="vertical" style={{ width: "100%" }} size={12}>
+              <Space direction="vertical" style={{ width: "100%" }} size={12}>
                 <div>
                   <Text strong>Execution ARN:</Text>
                   <br />

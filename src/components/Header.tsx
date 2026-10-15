@@ -64,7 +64,7 @@ export const CustomHeader: React.FC<HeaderProps> = ({
       label: (
         <Space style={{ padding: "2px 8px" }}>
           <CheckCircleFilled style={{ color: "#52c41a" }} />
-          <Text orientation="left" style={{ fontSize: 12, color: "#52c41a" }}>
+          <Text style={{ fontSize: 12, color: "#52c41a" }}>
             MFA: Verified
           </Text>
         </Space>

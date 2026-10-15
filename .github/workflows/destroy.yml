@@ -46,7 +46,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_CONSOLE }}
-          aws-region: ${{ vars.AWS_REGION || 'ap-southeast-1' }}
+          aws-region: ${{ vars.AWS_REGION }}
           audience: sts.amazonaws.com
 
       - name: Resolve Infrastructure Targets
@@ -65,37 +65,45 @@ jobs:
           echo "Target CloudFront Distribution to invalidate: ${DIST:-'(none)'}"
 
       - name: Wipe S3 Bucket Objects (Including Versions & Delete Markers)
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
         run: |
           BUCKET="${{ steps.infra.outputs.s3_bucket }}"
-          echo "Checking S3 bucket status for s3://${BUCKET}..."
-          if aws s3api head-bucket --bucket "${BUCKET}" 2>/dev/null; then
-            echo "Purging all object versions and delete markers from s3://${BUCKET}..."
-            python3 -c "
-            import boto3, os
-            bucket_name = '${BUCKET}'
-            s3 = boto3.resource('s3', region_name='${{ vars.AWS_REGION || 'ap-southeast-1' }}')
-            try:
-                bucket = s3.Bucket(bucket_name)
-                bucket.object_versions.delete()
-                print(f'✓ Successfully wiped all versions and delete markers from {bucket_name}.')
-            except Exception as e:
-                print(f'Notice during object version wipe: {e}')
-            "
-            echo "Emptying any remaining unversioned objects..."
-            aws s3 rm "s3://${BUCKET}" --recursive || true
-            echo "✅ S3 bucket s3://${BUCKET} wiped cleanly."
-          else
-            echo "ℹ️ S3 bucket s3://${BUCKET} does not exist or has already been removed."
-          fi
+          echo "Purging all objects and versions from s3://${BUCKET}..."
+          python3 -c "
+          import boto3, os
+          bucket_name = '${BUCKET}'
+          s3 = boto3.resource('s3', region_name=os.environ['AWS_REGION'])
+          try:
+              bucket = s3.Bucket(bucket_name)
+              bucket.object_versions.delete()
+              bucket.objects.all().delete()
+              print(f'✓ Successfully wiped all versions and objects from {bucket_name}.')
+          except Exception as e:
+              print(f'Notice during bucket wipe: {e}')
+          "
+          echo "✅ S3 bucket s3://${BUCKET} wiped cleanly."
 
       - name: Invalidate Amazon CloudFront Cache
         if: ${{ steps.infra.outputs.distribution_id != '' }}
         continue-on-error: true
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
         run: |
-          echo "Invalidating CloudFront cache for ${{ steps.infra.outputs.distribution_id }}..."
-          aws cloudfront create-invalidation \
-            --distribution-id "${{ steps.infra.outputs.distribution_id }}" \
-            --paths "/*" || true
+          python3 -c "
+          import boto3, os, time
+          dist_id = '${{ steps.infra.outputs.distribution_id }}'
+          if dist_id:
+              cf = boto3.client('cloudfront', region_name=os.environ['AWS_REGION'])
+              cf.create_invalidation(
+                  DistributionId=dist_id,
+                  InvalidationBatch={
+                      'Paths': {'Quantity': 1, 'Items': ['/*']},
+                      'CallerReference': f'destroy-{int(time.time())}'
+                  }
+              )
+              print(f'CloudFront invalidation created for {dist_id}')
+          "
 
       - name: Summary Report
         run: |
@@ -103,5 +111,5 @@ jobs:
           echo "🎉 Super Admin Portal undeployed and S3 bucket wiped cleanly!"
           echo "Environment : ${{ inputs.environment }}"
           echo "S3 Bucket   : ${{ steps.infra.outputs.s3_bucket }}"
-          echo "CloudFront  : ${{ steps.infra.outputs.distribution_id || 'N/A' }}"
+          echo "CloudFront  : ${{ steps.infra.outputs.distribution_id }}"
           echo "============================================================"

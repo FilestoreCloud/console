@@ -55,7 +55,7 @@ export const renderStatusTag = (status: string, record?: any): React.ReactNode =
               strokeColor={{ "0%": "#faad14", "100%": "#ff4d4f" }}
               style={{ margin: 0 }}
             />
-            <Typography.Text type="danger" ellipsis style={{ fontSize: 11, maxWidth: 180 }}>
+            <Typography.Text ellipsis style={{ fontSize: 11, maxWidth: 180, color: "#ff4d4f" }}>
               {step}
             </Typography.Text>
           </Space>
@@ -165,7 +165,7 @@ export const renderStatusTag = (status: string, record?: any): React.ReactNode =
             <Tag color="error" icon={<CloseCircleOutlined />}>
               FAILED
             </Tag>
-            <Typography.Text type="danger" ellipsis style={{ fontSize: 10, maxWidth: 160 }}>
+            <Typography.Text ellipsis style={{ fontSize: 10, maxWidth: 160, color: "#ff4d4f" }}>
               {record?.last_error || "Saga rollback completed"}
             </Typography.Text>
           </Space>

@@ -261,7 +261,7 @@ describe("dataProvider", () => {
 
       const result = await dataProvider.custom!({
         url: "/api",
-        method: "POST",
+        method: "post",
         payload: { action: "EXEC_OCC", command: "status" },
       });
 
