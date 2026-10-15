@@ -134,6 +134,30 @@ export const renderStatusTag = (status: string, record?: any): React.ReactNode =
         </Tooltip>
       );
     }
+    case "UPGRADING": {
+      const progress = Number(record?.progress || 25);
+      const step = record?.current_step || "Rolling ECS container image upgrade in progress...";
+      return (
+        <Tooltip title={`Step: ${step}`}>
+          <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
+            <Tag color="geekblue" icon={<SyncOutlined spin />}>
+              UPGRADING ({progress}%)
+            </Tag>
+            <Progress
+              percent={progress}
+              size="small"
+              status="active"
+              showInfo={false}
+              strokeColor="#2f54eb"
+              style={{ margin: 0 }}
+            />
+            <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#1d39c4" }} ellipsis>
+              {step}
+            </Typography.Text>
+          </Space>
+        </Tooltip>
+      );
+    }
     case "FAILED":
       return (
         <Tooltip title={record?.last_error || "Provisioning failed and Saga rollback completed"}>
