@@ -71,7 +71,7 @@ export const TenantShow: React.FC = () => {
   // Live auto-polling while tenant lifecycle operation is in progress
   useEffect(() => {
     const status = tenantData?.tenant?.status || tenantData?.status;
-    if (!["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING", "SEEDING"].includes(status)) return;
+    if (!["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING", "SEEDING", "UPGRADING"].includes(status)) return;
     const pollTimer = setInterval(() => {
       refetch();
     }, 2500);
@@ -185,11 +185,12 @@ export const TenantShow: React.FC = () => {
         }}
       />
 
-      {["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING", "SEEDING"].includes(currentStatus) && (() => {
+      {["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING", "SEEDING", "UPGRADING"].includes(currentStatus) && (() => {
         const isDeleting = ["DELETING", "DEPROVISIONING"].includes(currentStatus);
         const isSuspending = currentStatus === "SUSPENDING";
         const isResuming = currentStatus === "RESUMING";
         const isSeeding = currentStatus === "SEEDING";
+        const isUpgrading = currentStatus === "UPGRADING";
         const isProvisioning = currentStatus === "PROVISIONING";
 
         let cardBg = "#e6f4ff";
@@ -222,6 +223,12 @@ export const TenantShow: React.FC = () => {
           iconColor = "#722ed1";
           strokeColor = "#722ed1";
           title = `Tenant Demo Data Seeding in Progress (${tenant.progress || 20}%)`;
+        } else if (isUpgrading) {
+          cardBg = "#f0f5ff";
+          cardBorder = "#adc6ff";
+          iconColor = "#2f54eb";
+          strokeColor = "#2f54eb";
+          title = `Rolling Container Image Upgrade in Progress (${tenant.progress || 25}%)`;
         }
 
         return (
