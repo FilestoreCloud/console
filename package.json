@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "private": true,
   "description": "Filestore Cloud Multi-Tenant SaaS — Enterprise Super Admin Console powered by Refine & Ant Design",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
