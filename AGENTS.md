@@ -33,11 +33,10 @@ Enterprise Super Admin Web Portal for multi-tenant SaaS fleet operations, built 
 │   └── main.tsx        # React DOM bootstrap
 ├── .github/
 │   └── workflows/
-│       ├── deploy.yml       # Production build & deploy to Amazon S3 / CloudFront
-│       └── branch-guard.yml # Enforces PR into main only originates from dev
-├── .devsecops/         # AWS Labs DevSecOps configurations (Ferret Scan, ESLint Security)
+│       └── deploy.yml       # Production build & deploy to Amazon S3 / CloudFront
+├── .devsecops/         # AWS Labs DevSecOps configurations (Ferret Scan, ESLint Security, Pre-commit)
+│   └── .pre-commit-config.yaml # DevSecOps master hook suite
 ├── .githook/           # Git hooks (Conventional Commits, branch protection)
-├── .pre-commit-config.yaml # DevSecOps linters (ESLint Security, Prettier, Ferret Scan)
 ├── index.html          # HTML entrypoint
 ├── package.json        # Dependencies and scripts
 ├── tsconfig.json       # TypeScript 5 strict configuration
@@ -74,7 +73,7 @@ npm run preview
 
 # Run AWS Labs DevSecOps pre-commit checks
 
-pre-commit run --all-files
+pre-commit run --config .devsecops/.pre-commit-config.yaml --all-files
 
 ```
 
@@ -109,7 +108,7 @@ pre-commit run --all-files
 
 Before concluding any implementation or opening a PR:
 
-1. [ ] **Pre-commit:** `pre-commit run --all-files` passes cleanly with zero errors.
+1. [ ] **Pre-commit:** `pre-commit run --config .devsecops/.pre-commit-config.yaml --all-files` passes cleanly with zero errors.
 2. [ ] **Tests:** `npm test` passes cleanly with 100% test success.
 3. [ ] **Build:** `npm run build` succeeds without compiler errors.
 4. [ ] **Git:** Staged changes committed to `dev` with Conventional Commit message.
