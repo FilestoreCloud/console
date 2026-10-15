@@ -88,7 +88,7 @@ export const TenantList: React.FC = () => {
 
   // In-Flight Lifecycle Operations Detection & Real-Time Auto-Polling
   const inFlightTenants = tenants.filter((t) =>
-    ["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING", "SEEDING"].includes(t.status),
+    ["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING", "SEEDING", "UPGRADING"].includes(t.status),
   );
   const hasInFlightTenants = inFlightTenants.length > 0;
 
@@ -382,6 +382,7 @@ export const TenantList: React.FC = () => {
           "SUSPENDING",
           "RESUMING",
           "SEEDING",
+          "UPGRADING",
         ].includes(record.status);
         return (
           <Space>
@@ -618,6 +619,8 @@ export const TenantList: React.FC = () => {
                       `${inFlightTenants.filter((t) => t.status === "RESUMING").length} resuming`,
                     inFlightTenants.filter((t) => t.status === "SEEDING").length > 0 &&
                       `${inFlightTenants.filter((t) => t.status === "SEEDING").length} seeding`,
+                    inFlightTenants.filter((t) => t.status === "UPGRADING").length > 0 &&
+                      `${inFlightTenants.filter((t) => t.status === "UPGRADING").length} upgrading`,
                   ]
                     .filter(Boolean)
                     .join(", ")}
