@@ -107,5 +107,16 @@ export default defineConfig({
     setupFiles: "./src/setupTests.ts",
     css: false,
     exclude: ["node_modules", "dist", "e2e/**"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "html"],
+      include: ["src/providers/**", "src/types/**"],
+      thresholds: {
+        lines: 85,
+        functions: 85,
+        branches: 65,
+        statements: 85,
+      },
+    },
   },
 });
