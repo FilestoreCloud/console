@@ -168,6 +168,15 @@ export const dataProvider: DataProvider = {
       body: payload ? JSON.stringify(payload) : undefined,
     });
     const data = await res.json();
+    if (!res.ok) {
+      const errorMsg =
+        data && typeof data === "object" && "error" in data
+          ? (data as any).error
+          : res.statusText || "Request failed";
+      const err = new Error(errorMsg || "Request failed") as any;
+      err.statusCode = res.status;
+      throw err;
+    }
     return { data };
   },
 };
