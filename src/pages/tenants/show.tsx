@@ -189,6 +189,7 @@ export const TenantShow: React.FC = () => {
       />
 
       <TenantProgressCard
+        tenantId={tenantId}
         currentStatus={currentStatus}
         progress={tenant.progress}
         currentStep={tenant.current_step}

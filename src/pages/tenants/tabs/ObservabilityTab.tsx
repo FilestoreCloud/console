@@ -15,6 +15,7 @@ import {
   Alert,
   Tooltip,
   Badge,
+  Progress,
 } from "antd";
 import {
   ApartmentOutlined,
@@ -29,6 +30,9 @@ import {
   ThunderboltOutlined,
   DashboardOutlined,
   FileTextOutlined,
+  CheckCircleFilled,
+  LoadingOutlined,
+  InfoCircleOutlined,
 } from "@ant-design/icons";
 import { dataProvider } from "../../../providers/dataProvider";
 
@@ -59,6 +63,30 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
     traces: [],
     console_links: {},
   });
+
+  const [liveStream, setLiveStream] = useState<any>(null);
+
+  const fetchLiveStream = useCallback(
+    async (execArn?: string) => {
+      try {
+        const res = await dataProvider.custom({
+          url: dataProvider.getApiUrl(),
+          method: "post",
+          payload: {
+            action: "STREAM_SFN_PROGRESS",
+            tenant_id: tenantId,
+            execution_arn: execArn || selectedExecutionArn || undefined,
+          },
+        });
+        if (res.data) {
+          setLiveStream(res.data);
+        }
+      } catch {
+        // Fallback gracefully
+      }
+    },
+    [tenantId, selectedExecutionArn]
+  );
 
   const fetchData = useCallback(
     async (execArn?: string) => {
@@ -91,19 +119,22 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    fetchLiveStream();
+  }, [fetchData, fetchLiveStream]);
 
   useEffect(() => {
     if (!autoRefresh) return;
     const interval = setInterval(() => {
       fetchData();
+      fetchLiveStream();
     }, 4000);
     return () => clearInterval(interval);
-  }, [autoRefresh, fetchData]);
+  }, [autoRefresh, fetchData, fetchLiveStream]);
 
   const handleSelectExecution = (arn: string) => {
     setSelectedExecutionArn(arn);
     fetchData(arn);
+    fetchLiveStream(arn);
   };
 
   const executions = (obsData.executions || []).filter((ex: any) => {
@@ -254,6 +285,145 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
             )}
           </Space>
         </div>
+      </Card>
+
+      {/* Real-time State Machine Lifecycle Visualizer */}
+      <Card
+        variant="borderless"
+        style={{
+          marginBottom: 16,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+          borderLeft: "4px solid #1652f0",
+          background: "#ffffff",
+        }}
+        title={
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <Space>
+              <ThunderboltOutlined style={{ color: "#1652f0" }} />
+              <span style={{ fontWeight: 600 }}>State Machine Lifecycle Visualizer</span>
+              {liveStream?.status === "RUNNING" ? (
+                <Tag color="processing" icon={<SyncOutlined spin />}>
+                  Live Stream Active
+                </Tag>
+              ) : (
+                <Tag color="success" icon={<CheckCircleOutlined />}>
+                  Synchronized
+                </Tag>
+              )}
+            </Space>
+            {liveStream && (
+              <Space size={14}>
+                {liveStream.elapsedSeconds !== undefined && (
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    <ClockCircleOutlined style={{ marginRight: 4 }} />
+                    Elapsed: <Text strong>{liveStream.elapsedSeconds}s</Text>
+                  </Text>
+                )}
+                {liveStream.estimatedRemainingSeconds > 0 && (
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    Est. Remaining: <Text strong>~{liveStream.estimatedRemainingSeconds}s</Text>
+                  </Text>
+                )}
+              </Space>
+            )}
+          </div>
+        }
+      >
+        <Space direction="vertical" style={{ width: "100%" }} size={12}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <Text strong style={{ fontSize: 14 }}>
+                Current Active Step:{" "}
+                <span style={{ color: "#1652f0" }}>
+                  {liveStream?.currentStep || "Workflow Completed & Operational"}
+                </span>
+              </Text>
+              {liveStream?.currentStepDescription && (
+                <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                  <InfoCircleOutlined style={{ marginRight: 4 }} />
+                  {liveStream.currentStepDescription}
+                </div>
+              )}
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <Text strong style={{ fontSize: 16 }}>
+                {liveStream?.progress ?? 100}%
+              </Text>
+            </div>
+          </div>
+
+          <Progress
+            percent={liveStream?.progress ?? 100}
+            status={
+              liveStream?.status === "FAILED"
+                ? "exception"
+                : liveStream?.status === "RUNNING"
+                  ? "active"
+                  : "success"
+            }
+            strokeColor={{ "0%": "#1652f0", "100%": "#52c41a" }}
+          />
+
+          <Row gutter={[8, 8]} style={{ marginTop: 8 }}>
+            {(
+              liveStream?.milestones || [
+                { id: "VALIDATE", name: "Validation", percent: 15, status: "completed", description: "Validate tenant parameters & initialize DynamoDB" },
+                { id: "DATABASE", name: "Postgres Isolation", percent: 35, status: "completed", description: "Create isolated database schema" },
+                { id: "STORAGE", name: "EFS Storage", percent: 55, status: "completed", description: "Provision dedicated EFS access point" },
+                { id: "COMPUTE", name: "ECS Task", percent: 75, status: "completed", description: "Register container task definition & service" },
+                { id: "HEALTH_CHECK", name: "Health Probe", percent: 90, status: "completed", description: "Verify container health check probe" },
+                { id: "ACTIVE", name: "Ready & Active", percent: 100, status: "completed", description: "Tenant operational and ready for use" },
+              ]
+            ).map((m: any) => {
+              const isDone = m.status === "completed";
+              const isActive = m.status === "active";
+              const isError = m.status === "error";
+
+              let badgeBg = "#f8fafc";
+              let badgeBorder = "#e2e8f0";
+              let badgeColor = "#64748b";
+
+              if (isDone) {
+                badgeBg = "#f6ffed";
+                badgeBorder = "#b7eb8f";
+                badgeColor = "#389e0d";
+              } else if (isActive) {
+                badgeBg = "#e6f4ff";
+                badgeBorder = "#91caff";
+                badgeColor = "#0958d9";
+              } else if (isError) {
+                badgeBg = "#fff1f0";
+                badgeBorder = "#ffa39e";
+                badgeColor = "#cf1322";
+              }
+
+              return (
+                <Col xs={12} sm={8} md={4} key={m.id}>
+                  <Tooltip title={m.description}>
+                    <div
+                      style={{
+                        background: badgeBg,
+                        border: `1px solid ${badgeBorder}`,
+                        borderRadius: 6,
+                        padding: "8px 6px",
+                        textAlign: "center",
+                        transition: "all 0.3s ease",
+                      }}
+                    >
+                      <div style={{ fontSize: 12, fontWeight: isActive ? 600 : 500, color: badgeColor }}>
+                        {isDone && <CheckCircleFilled style={{ marginRight: 4, color: "#52c41a" }} />}
+                        {isActive && <LoadingOutlined style={{ marginRight: 4, color: "#1652f0" }} />}
+                        {isError && <InfoCircleOutlined style={{ marginRight: 4, color: "#ff4d4f" }} />}
+                        {m.name}
+                      </div>
+                      <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 2 }}>{m.percent}%</div>
+                    </div>
+                  </Tooltip>
+                </Col>
+              );
+            })}
+          </Row>
+        </Space>
       </Card>
 
       {/* 2. Step Functions Workflow Executions Table */}
