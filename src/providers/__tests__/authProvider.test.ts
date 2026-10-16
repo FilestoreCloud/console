@@ -147,8 +147,8 @@ describe("authProvider", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error.name).toBe("Login Error");
-      expect(result.error.message).toBe("Invalid username or password");
+      expect(result.error?.name).toBe("Login Error");
+      expect(result.error?.message).toBe("Invalid username or password");
     });
 
     it("handles network failure gracefully", async () => {
@@ -160,8 +160,8 @@ describe("authProvider", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error.name).toBe("Network Error");
-      expect(result.error.message).toBe("Connection refused");
+      expect(result.error?.name).toBe("Network Error");
+      expect(result.error?.message).toBe("Connection refused");
     });
   });
 

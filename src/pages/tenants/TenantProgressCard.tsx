@@ -55,6 +55,7 @@ export const TenantProgressCard: React.FC<TenantProgressCardProps> = ({
   } | null>(null);
 
   const fetchLiveStream = useCallback(async () => {
+    if (!dataProvider.custom) return;
     if (!tenantId || !activeStatuses.includes(currentStatus)) return;
     try {
       const res = await dataProvider.custom({

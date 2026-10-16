@@ -35,6 +35,7 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
   ]);
 
   const handleExecuteOcc = async (cmdToRun?: string) => {
+    if (!dataProvider.custom) return;
     const cmd = (cmdToRun || occCommand).trim();
     if (!cmd) return;
     setOccLoading(true);

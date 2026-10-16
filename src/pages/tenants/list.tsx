@@ -223,6 +223,7 @@ export const TenantList: React.FC = () => {
   };
 
   const handleForkSubmit = async (values: any) => {
+    if (!dataProvider.custom) return;
     setForkLoading(true);
     try {
       const targetId = values.target_tenant_id.toLowerCase().trim();

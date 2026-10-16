@@ -38,6 +38,7 @@ export const LogsTab: React.FC<LogsTabProps> = ({
   const [containerLogs, setContainerLogs] = useState<any[]>([]);
 
   const handleFetchLogs = useCallback(async () => {
+    if (!dataProvider.custom) return;
     setLogsLoading(true);
     try {
       const res = await dataProvider.custom({

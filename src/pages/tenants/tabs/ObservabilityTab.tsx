@@ -68,6 +68,7 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
 
   const fetchLiveStream = useCallback(
     async (execArn?: string) => {
+      if (!dataProvider.custom) return;
       try {
         const res = await dataProvider.custom({
           url: dataProvider.getApiUrl(),
@@ -90,6 +91,7 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
 
   const fetchData = useCallback(
     async (execArn?: string) => {
+      if (!dataProvider.custom) return;
       setLoading(true);
       try {
         const res = await dataProvider.custom({
