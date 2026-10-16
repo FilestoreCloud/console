@@ -87,6 +87,7 @@ export const TenantModals: React.FC<TenantModalsProps> = ({
   };
 
   const handleCloneTenant = async (values: any) => {
+    if (!dataProvider.custom) return;
     setCloneLoading(true);
     try {
       const targetId = values.target_tenant_id.toLowerCase().trim();

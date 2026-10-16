@@ -1,0 +1,100 @@
+import React from "react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { BrowserRouter } from "react-router-dom";
+import { TenantShow } from "../show";
+
+const mockTenantData = {
+  id: "tenant-alpha",
+  tenant_id: "tenant-alpha",
+  domain: "tenant-alpha.png261.dev",
+  status: "ACTIVE",
+  admin_email: "admin@tenant-alpha.com",
+  quota_gb: 100,
+  storage_used_gb: 12.5,
+  service_name: "service-tenant-alpha",
+  database_name: "nc_tenant_alpha",
+  release_channel: "STABLE",
+  created_at: "2026-10-14T08:00:00Z",
+  last_updated: "2026-10-15T10:00:00Z",
+  accounts: [
+    { username: "admin", display_name: "Admin User", email: "admin@tenant-alpha.com", role: "TenantAdmin", quota_gb: 50 },
+  ],
+  aws_topology: {
+    cluster_name: "prod-nextcloud-cluster",
+    service_name: "service-tenant-alpha",
+    database_endpoint: "db.internal:5432",
+    efs_id: "fs-12345",
+  },
+  metrics: {
+    current_cpu_percent: 15.2,
+    current_memory_mb: 256.0,
+    memory_limit_mb: 1024.0,
+    active_connections: 5,
+    requests_per_minute: 42,
+    storage_used_gb: 12.5,
+    quota_gb: 100,
+  },
+};
+
+const mockRefetch = vi.fn();
+const mockUpdate = vi.fn();
+const mockList = vi.fn();
+
+vi.mock("@refinedev/core", () => ({
+  useShow: () => ({
+    queryResult: {
+      data: { data: mockTenantData },
+      isLoading: false,
+      refetch: mockRefetch,
+    },
+  }),
+  useUpdate: () => ({ mutate: mockUpdate, isLoading: false }),
+  useNavigation: () => ({ list: mockList }),
+}));
+
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
+  return {
+    ...actual,
+    useParams: () => ({ id: "tenant-alpha" }),
+  };
+});
+
+vi.mock("../../../components/InteractiveMetricsChart", () => ({
+  InteractiveMetricsChart: () => <div data-testid="interactive-metrics-chart">Interactive Metrics Chart</div>,
+}));
+
+describe("TenantShowPage — Deep Multi-Tab Inspections", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const renderComponent = () => {
+    return render(
+      <BrowserRouter>
+        <TenantShow />
+      </BrowserRouter>,
+    );
+  };
+
+  it("renders tenant title, domain, and status badges", () => {
+    renderComponent();
+    expect(screen.getByText("tenant-alpha")).toBeInTheDocument();
+    expect(screen.getByText(/tenant-alpha\.png261\.dev/)).toBeInTheDocument();
+    expect(screen.getAllByText("ACTIVE")[0]).toBeInTheDocument();
+  });
+
+  it("renders all 9 operational and telemetry tab options", () => {
+    renderComponent();
+    expect(screen.getByText(/Live Metrics & Telemetry/)).toBeInTheDocument();
+    expect(screen.getByText(/Dedicated Architecture & Topology/)).toBeInTheDocument();
+    expect(screen.getByText(/Agent Detail & Container Monitor/)).toBeInTheDocument();
+    expect(screen.getByText(/Tenant Accounts Management/)).toBeInTheDocument();
+    expect(screen.getByText(/Accidents & Incident History/)).toBeInTheDocument();
+    expect(screen.getByText(/Tenant Audit Trail/)).toBeInTheDocument();
+    expect(screen.getByText(/OCC Terminal & Diagnostics/)).toBeInTheDocument();
+    expect(screen.getByText(/Live Container Logs/)).toBeInTheDocument();
+    expect(screen.getByText(/Step Functions & X-Ray/)).toBeInTheDocument();
+  });
+});

@@ -45,6 +45,7 @@ export const WebhooksSettings: React.FC = () => {
   }, []);
 
   const loadConfig = async () => {
+    if (!dataProvider.custom) return;
     setIsLoading(true);
     try {
       const res = await dataProvider.custom({
@@ -72,6 +73,7 @@ export const WebhooksSettings: React.FC = () => {
   };
 
   const handleSave = async (values: any) => {
+    if (!dataProvider.custom) return;
     setIsSaving(true);
     try {
       const payloadConfig = {
@@ -104,6 +106,7 @@ export const WebhooksSettings: React.FC = () => {
   };
 
   const handleTestWebhook = async (type: string, url: string) => {
+    if (!dataProvider.custom) return;
     if (!url) {
       message.warning(
         `Please enter a valid URL or key for ${type.toUpperCase()}`,

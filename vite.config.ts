@@ -39,11 +39,17 @@ export default defineConfig({
             ) {
               return "vendor-icons";
             }
-            if (id.includes("/rc-")) {
-              return "vendor-rc";
-            }
             if (id.includes("/@ant-design/pro-")) {
               return "vendor-pro";
+            }
+            if (id.includes("/@ant-design/cssinjs")) {
+              return "vendor-cssinjs";
+            }
+            if (id.includes("/dayjs/")) {
+              return "vendor-dayjs";
+            }
+            if (id.includes("/rc-")) {
+              return "vendor-rc";
             }
             if (
               id.includes("/antd/es/table") ||
@@ -58,12 +64,11 @@ export default defineConfig({
               id.includes("/antd/es/date-picker") ||
               id.includes("/antd/es/time-picker") ||
               id.includes("/antd/es/calendar") ||
-              id.includes("/antd/es/color-picker") ||
-              id.includes("/@ant-design/cssinjs")
+              id.includes("/antd/es/color-picker")
             ) {
               return "vendor-antd-pickers";
             }
-            if (id.includes("/antd/") || id.includes("/@ant-design/")) {
+            if (id.includes("/antd/")) {
               return "vendor-antd";
             }
             if (id.includes("/@tanstack/")) {
