@@ -32,8 +32,8 @@ jobs:
       - name: TypeScript Verification
         run: npx tsc --noEmit
 
-      - name: Run Unit Tests
-        run: npm test
+      - name: Run Unit Tests with Coverage Gate (> 85%)
+        run: npm run test:coverage
 
       - name: Build Bundle & Verify Budget (< 500 KB per chunk)
         run: npm run build
