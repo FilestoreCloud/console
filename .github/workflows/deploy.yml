@@ -59,7 +59,7 @@ jobs:
     needs: [build-and-test]
     runs-on: ubuntu-latest
     outputs:
-      cloudfront_url: ${{ steps.infra.outputs.cloudfront_url }}
+      cloudfront_url: ${{ steps.deploy-spa.outputs.cloudfront_url }}
     steps:
       - name: Download Production Build Artifact
         uses: actions/download-artifact@v4
@@ -75,62 +75,90 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           audience: sts.amazonaws.com
 
-      - name: Resolve Infrastructure Targets
-        id: infra
+      - name: Deploy Static Assets & Invalidate Cache (AWS Python SDK)
+        id: deploy-spa
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          DEPLOY_ENV: ${{ inputs.environment }}
+          ADMIN_WEB_BUCKET: ${{ vars.ADMIN_WEB_BUCKET }}
+          CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
         run: |
-          ENV="${{ github.event.client_payload.environment || inputs.environment || 'dev' }}"
-          BUCKET="${{ vars.ADMIN_WEB_BUCKET }}"
-          DIST="${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
+          pip install boto3
+          python3 -c "
+          import os, sys, boto3, mimetypes, time
+          from botocore.exceptions import ClientError
 
-          # Auto-discover S3 bucket from AWS SSM Parameter Store (created by Module 06)
-          if [ -z "${BUCKET}" ]; then
-            BUCKET=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/admin-web-bucket" --query "Parameter.Value" --output text 2>/dev/null || echo "")
-          fi
-          if [ -z "${BUCKET}" ]; then
-            ACCOUNT_ID="${{ steps.aws-creds.outputs.aws-account-id }}"
-            BUCKET="${ENV}-nextcloud-admin-web-${ACCOUNT_ID}"
-          fi
+          region = os.environ['AWS_REGION']
+          env_name = os.environ['DEPLOY_ENV']
+          ssm = boto3.client('ssm', region_name=region)
+          s3 = boto3.client('s3', region_name=region)
+          cf = boto3.client('cloudfront', region_name=region)
 
-          # Auto-discover CloudFront distribution from AWS SSM Parameter Store
-          if [ -z "${DIST}" ]; then
-            DIST=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/cloudfront-distribution-id" --query "Parameter.Value" --output text 2>/dev/null || echo "")
-          fi
+          bucket = os.environ.get('ADMIN_WEB_BUCKET', '').strip()
+          if not bucket:
+              try:
+                  bucket = ssm.get_parameter(Name=f'/nextcloud/{env_name}/control-plane/admin-web-bucket')['Parameter']['Value']
+              except Exception:
+                  sts = boto3.client('sts', region_name=region)
+                  acc_id = sts.get_caller_identity()['Account']
+                  bucket = f'{env_name}-nextcloud-admin-web-{acc_id}'
 
-          # Auto-discover CloudFront URL from AWS SSM Parameter Store or CloudFront API
-          if [ -z "${CF_URL}" ]; then
-            CF_URL=$(aws ssm get-parameter --name "/nextcloud/${ENV}/control-plane/admin-web-url" --query "Parameter.Value" --output text 2>/dev/null || echo "")
-          fi
-          if [ -z "${CF_URL}" ] && [ -n "${DIST}" ]; then
-            DOMAIN=$(aws cloudfront get-distribution --id "${DIST}" --query "Distribution.DomainName" --output text 2>/dev/null || echo "")
-            if [ -n "${DOMAIN}" ]; then
-              CF_URL="https://${DOMAIN}"
-            fi
-          fi
+          dist_id = os.environ.get('CLOUDFRONT_DISTRIBUTION_ID', '').strip()
+          if not dist_id:
+              try:
+                  dist_id = ssm.get_parameter(Name=f'/nextcloud/{env_name}/control-plane/cloudfront-distribution-id')['Parameter']['Value']
+              except Exception:
+                  pass
 
-          echo "s3_bucket=${BUCKET}" >> "$GITHUB_OUTPUT"
-          echo "distribution_id=${DIST}" >> "$GITHUB_OUTPUT"
-          echo "cloudfront_url=${CF_URL}" >> "$GITHUB_OUTPUT"
-          echo "✓ Target S3 Bucket: ${BUCKET}"
-          echo "✓ CloudFront Distribution ID: ${DIST:-'(none)'}"
-          echo "✓ CloudFront URL: ${CF_URL:-'(none)'}"
+          cf_url = ''
+          try:
+              cf_url = ssm.get_parameter(Name=f'/nextcloud/{env_name}/control-plane/admin-web-url')['Parameter']['Value']
+          except Exception:
+              if dist_id:
+                  try:
+                      domain = cf.get_distribution(Id=dist_id)['Distribution']['DomainName']
+                      cf_url = f'https://{domain}'
+                  except Exception:
+                      pass
 
-      - name: Deploy Static Assets to Amazon S3
-        run: |
-          aws s3 sync dist s3://${{ steps.infra.outputs.s3_bucket }} \
-            --delete --exclude "index.html" \
-            --cache-control "max-age=31536000,public,immutable"
+          print(f'Target S3 Bucket: {bucket}')
+          print(f'Target CloudFront Distribution: {dist_id}')
+          print(f'Resolved CloudFront URL: {cf_url}')
 
-      - name: Deploy Index HTML Entrypoint to Amazon S3
-        run: |
-          aws s3 cp dist/index.html s3://${{ steps.infra.outputs.s3_bucket }}/index.html \
-            --cache-control "no-cache, no-store, must-revalidate"
+          dist_dir = 'dist'
+          for root, _, files in os.walk(dist_dir):
+              for filename in files:
+                  local_path = os.path.join(root, filename)
+                  rel_path = os.path.relpath(local_path, dist_dir).replace('\\\\', '/')
+                  content_type, _ = mimetypes.guess_type(local_path)
+                  if not content_type:
+                      content_type = 'application/octet-stream'
+                  cache_ctrl = 'no-cache, no-store, must-revalidate' if rel_path == 'index.html' else 'max-age=31536000,public,immutable'
+                  with open(local_path, 'rb') as fp:
+                      s3.put_object(
+                          Bucket=bucket,
+                          Key=rel_path,
+                          Body=fp,
+                          ContentType=content_type,
+                          CacheControl=cache_ctrl
+                      )
+                  print(f'Uploaded: {rel_path} ({content_type})')
 
-      - name: Invalidate Amazon CloudFront Cache
-        if: ${{ steps.infra.outputs.distribution_id != '' }}
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id "${{ steps.infra.outputs.distribution_id }}" \
-            --paths "/*"
+          if dist_id:
+              cf.create_invalidation(
+                  DistributionId=dist_id,
+                  InvalidationBatch={
+                      'Paths': {'Quantity': 1, 'Items': ['/*']},
+                      'CallerReference': f'gha-{int(time.time())}'
+                  }
+              )
+              print(f'CloudFront invalidation submitted for {dist_id}')
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write(f'cloudfront_url={cf_url}\n')
+              out.write(f's3_bucket={bucket}\n')
+              out.write(f'distribution_id={dist_id}\n')
+          "
 
   smoke-test:
     name: Post-Deployment SuperAdmin Live Verification
@@ -197,6 +225,9 @@ jobs:
           SUPERADMIN_TOTP_SECRET: ${{ secrets.SUPERADMIN_TOTP_SECRET }}
           TENANT_ID: ${{ vars.TENANT_ID }}
         run: |
+          if [ -z "$CONSOLE_URL" ]; then
+            export CONSOLE_URL="https://${{ vars.CLOUDFRONT_DOMAIN }}"
+          fi
           npx playwright test
 
       - name: Upload Playwright Test Report

@@ -49,7 +49,7 @@ export const WebhooksSettings: React.FC = () => {
     try {
       const res = await dataProvider.custom({
         url: dataProvider.getApiUrl(),
-        method: "POST",
+        method: "post",
         payload: { action: "GET_WEBHOOK_CONFIG" },
       });
       const cfg = res.data?.config || {};
@@ -89,7 +89,7 @@ export const WebhooksSettings: React.FC = () => {
       };
       await dataProvider.custom({
         url: dataProvider.getApiUrl(),
-        method: "POST",
+        method: "post",
         payload: {
           action: "SAVE_WEBHOOK_CONFIG",
           config: payloadConfig,
@@ -114,7 +114,7 @@ export const WebhooksSettings: React.FC = () => {
     try {
       const res = await dataProvider.custom({
         url: dataProvider.getApiUrl(),
-        method: "POST",
+        method: "post",
         payload: {
           action: "TEST_WEBHOOK",
           webhook_type: type,
@@ -282,7 +282,6 @@ export const WebhooksSettings: React.FC = () => {
                 <Space.Compact style={{ width: "100%" }}>
                   <Form.Item
                     name="slack_url"
-                    orientation="vertical"
                     style={{ flex: 1, marginBottom: 0 }}
                   >
                     <Input placeholder="https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX" />
@@ -331,7 +330,6 @@ export const WebhooksSettings: React.FC = () => {
                 <Space.Compact style={{ width: "100%" }}>
                   <Form.Item
                     name="discord_url"
-                    orientation="vertical"
                     style={{ flex: 1, marginBottom: 0 }}
                   >
                     <Input placeholder="https://discord.com/api/webhooks/1234567890/abcdefg..." />
@@ -382,7 +380,6 @@ export const WebhooksSettings: React.FC = () => {
                 <Space.Compact style={{ width: "100%" }}>
                   <Form.Item
                     name="pagerduty_key"
-                    orientation="vertical"
                     style={{ flex: 1, marginBottom: 0 }}
                   >
                     <Input placeholder="32-character PagerDuty Integration / Routing Key" />
@@ -433,7 +430,6 @@ export const WebhooksSettings: React.FC = () => {
                 <Space.Compact style={{ width: "100%" }}>
                   <Form.Item
                     name="custom_url"
-                    orientation="vertical"
                     style={{ flex: 1, marginBottom: 0 }}
                   >
                     <Input placeholder="https://api.yourcompany.com/v1/saas-events" />
@@ -491,7 +487,6 @@ export const WebhooksSettings: React.FC = () => {
                   <Form.Item
                     name="ev_incident"
                     valuePropName="checked"
-                    orientation="vertical"
                     style={{ margin: 0 }}
                   >
                     <Switch size="small" />
@@ -519,7 +514,6 @@ export const WebhooksSettings: React.FC = () => {
                   <Form.Item
                     name="ev_circuit"
                     valuePropName="checked"
-                    orientation="vertical"
                     style={{ margin: 0 }}
                   >
                     <Switch size="small" />
@@ -547,7 +541,6 @@ export const WebhooksSettings: React.FC = () => {
                   <Form.Item
                     name="ev_clone"
                     valuePropName="checked"
-                    orientation="vertical"
                     style={{ margin: 0 }}
                   >
                     <Switch size="small" />
@@ -575,7 +568,6 @@ export const WebhooksSettings: React.FC = () => {
                   <Form.Item
                     name="ev_restart"
                     valuePropName="checked"
-                    orientation="vertical"
                     style={{ margin: 0 }}
                   >
                     <Switch size="small" />

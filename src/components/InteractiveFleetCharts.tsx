@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import * as echarts from "echarts";
+import { echarts, EChartsType, EChartsOption } from "../utils/echarts";
 
 interface FleetMetricSeries {
   timestamps: string[];
@@ -19,7 +19,7 @@ export const InteractiveFleetEcsChart: React.FC<{
   height?: number;
 }> = ({ data, height = 280 }) => {
   const chartRef = useRef<HTMLDivElement>(null);
-  const chartInstance = useRef<echarts.EChartsType | null>(null);
+  const chartInstance = useRef<EChartsType | null>(null);
 
   useEffect(() => {
     if (!chartRef.current) return;
@@ -51,7 +51,7 @@ export const InteractiveFleetEcsChart: React.FC<{
       Number((v * 1.05 + (i % 2 === 0 ? 0.2 : 0.0)).toFixed(2)),
     );
 
-    const option: echarts.EChartsOption = {
+    const option: EChartsOption = {
       tooltip: {
         trigger: "axis",
         axisPointer: { type: "cross" },
@@ -152,7 +152,7 @@ export const InteractiveFleetAlbChart: React.FC<{
   height?: number;
 }> = ({ data, height = 280 }) => {
   const chartRef = useRef<HTMLDivElement>(null);
-  const chartInstance = useRef<echarts.EChartsType | null>(null);
+  const chartInstance = useRef<EChartsType | null>(null);
 
   useEffect(() => {
     if (!chartRef.current) return;
@@ -175,7 +175,7 @@ export const InteractiveFleetAlbChart: React.FC<{
       data?.alb_latency?.values || [0.08, 0.12, 0.19, 0.14, 0.09]
     ).map((v) => Number(v.toFixed(3)));
 
-    const option: echarts.EChartsOption = {
+    const option: EChartsOption = {
       tooltip: {
         trigger: "axis",
         axisPointer: { type: "cross" },
@@ -269,7 +269,7 @@ export const InteractiveFleetLifecycleChart: React.FC<{
   height?: number;
 }> = ({ height = 280 }) => {
   const chartRef = useRef<HTMLDivElement>(null);
-  const chartInstance = useRef<echarts.EChartsType | null>(null);
+  const chartInstance = useRef<EChartsType | null>(null);
 
   useEffect(() => {
     if (!chartRef.current) return;
@@ -290,7 +290,7 @@ export const InteractiveFleetLifecycleChart: React.FC<{
       "07:45",
     ];
 
-    const option: echarts.EChartsOption = {
+    const option: EChartsOption = {
       tooltip: {
         trigger: "axis",
         axisPointer: { type: "line" },
