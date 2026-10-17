@@ -15,8 +15,11 @@ export default defineConfig({
     },
   },
   build: {
+    target: "es2022",
     outDir: "dist",
     emptyOutDir: true,
+    cssCodeSplit: true,
+    minify: "esbuild",
     chunkSizeWarningLimit: 800,
     rollupOptions: {
       onwarn(warning, defaultHandler) {
