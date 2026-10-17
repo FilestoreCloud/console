@@ -138,6 +138,17 @@ const App: React.FC = () => {
             options={{
               syncWithLocation: true,
               warnWhenUnsavedChanges: true,
+              reactQuery: {
+                clientConfig: {
+                  defaultOptions: {
+                    queries: {
+                      staleTime: 30000,
+                      cacheTime: 300000,
+                      refetchOnWindowFocus: false,
+                    },
+                  },
+                },
+              },
             }}
           >
             <Suspense fallback={<LoadingFallback />}>

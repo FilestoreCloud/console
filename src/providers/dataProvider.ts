@@ -180,3 +180,16 @@ export const dataProvider: DataProvider = {
     return { data };
   },
 };
+
+export const CACHE_CONFIG = {
+  staleTime: 30 * 1000,
+  cacheTime: 5 * 60 * 1000,
+  refetchOnWindowFocus: false,
+};
+
+export const queryClientConfig = {
+  defaultOptions: {
+    queries: CACHE_CONFIG,
+  },
+};
+
