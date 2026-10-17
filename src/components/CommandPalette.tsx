@@ -153,7 +153,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
       }
       width={560}
-      destroyOnClose
+      destroyOnHidden
       style={{ top: 120 }}
     >
       <Input
