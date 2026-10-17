@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   Table,
@@ -9,6 +9,8 @@ import {
   Tooltip,
   Popconfirm,
   Alert,
+  Modal,
+  message,
 } from "antd";
 import {
   BranchesOutlined,
@@ -24,6 +26,8 @@ import {
   DeleteOutlined,
   LockOutlined,
   SyncOutlined,
+  ThunderboltOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 import { renderStatusTag } from "../helpers";
 
@@ -58,6 +62,36 @@ export const TenantTable: React.FC<TenantTableProps> = ({
   onShowTenant,
   onNavigate,
 }) => {
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [batchActionType, setBatchActionType] = useState<"SUSPEND" | "RESUME" | "UPGRADE" | null>(null);
+  const [batchExecuting, setBatchExecuting] = useState(false);
+
+  const handleTriggerBatch = (type: "SUSPEND" | "RESUME" | "UPGRADE") => {
+    setBatchActionType(type);
+  };
+
+  const executeBatchAction = async () => {
+    if (!batchActionType || selectedRowKeys.length === 0) return;
+    setBatchExecuting(true);
+    try {
+      for (const key of selectedRowKeys) {
+        const tenant = tenants.find((t) => t.id === key || t.tenant_id === key);
+        if (tenant) {
+          if (batchActionType === "SUSPEND" || batchActionType === "RESUME") {
+            onToggleStatus(tenant.tenant_id || tenant.id, tenant.status);
+          }
+        }
+      }
+      message.success(`Batch ${batchActionType} dispatched for ${selectedRowKeys.length} tenants`);
+      setSelectedRowKeys([]);
+      setBatchActionType(null);
+    } catch (err: any) {
+      message.error(`Batch action error: ${err.message}`);
+    } finally {
+      setBatchExecuting(false);
+    }
+  };
+
   const inFlightTenants = tenants.filter((t) =>
     [
       "PROVISIONING",
@@ -344,13 +378,79 @@ export const TenantTable: React.FC<TenantTableProps> = ({
           style={{ marginBottom: 16 }}
         />
       )}
+      {selectedRowKeys.length > 0 && (
+        <div
+          style={{
+            marginBottom: 16,
+            padding: "10px 16px",
+            backgroundColor: "#f0f5ff",
+            border: "1px solid #adc6ff",
+            borderRadius: 6,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Space>
+            <Text strong>{selectedRowKeys.length} tenant(s) selected</Text>
+            <Button
+              size="small"
+              icon={<PauseOutlined />}
+              onClick={() => handleTriggerBatch("SUSPEND")}
+            >
+              Batch Suspend
+            </Button>
+            <Button
+              size="small"
+              icon={<CaretRightOutlined />}
+              onClick={() => handleTriggerBatch("RESUME")}
+            >
+              Batch Resume
+            </Button>
+            <Button
+              size="small"
+              icon={<SyncOutlined />}
+              onClick={() => handleTriggerBatch("UPGRADE")}
+            >
+              Batch Upgrade Image
+            </Button>
+          </Space>
+          <Button size="small" type="text" onClick={() => setSelectedRowKeys([])}>
+            Deselect All
+          </Button>
+        </div>
+      )}
+
       <Table
+        rowSelection={{
+          selectedRowKeys,
+          onChange: (keys) => setSelectedRowKeys(keys),
+        }}
         columns={columns}
         dataSource={filteredTenants}
         rowKey="id"
         loading={isLoading}
         pagination={{ pageSize: 10, showSizeChanger: true }}
       />
+
+      <Modal
+        title={`Confirm Batch ${batchActionType}`}
+        open={!!batchActionType}
+        onOk={executeBatchAction}
+        onCancel={() => setBatchActionType(null)}
+        confirmLoading={batchExecuting}
+        okText={`Execute Batch ${batchActionType}`}
+      >
+        <p>
+          Are you sure you want to execute <b>{batchActionType}</b> across{" "}
+          <b>{selectedRowKeys.length}</b> selected tenant(s)?
+        </p>
+        <Alert
+          type="warning"
+          message="This action will trigger asynchronous Step Functions Saga fleet execution."
+          showIcon
+        />
+      </Modal>
     </Card>
   );
 };

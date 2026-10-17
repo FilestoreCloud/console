@@ -129,6 +129,21 @@ export const CustomHeader: React.FC<HeaderProps> = ({
 
       <Space size="middle" align="center">
         <Button
+          size="small"
+          onClick={() => {
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
+          }}
+          style={{
+            backgroundColor: isDark ? "#1e293b" : "#334155",
+            borderColor: "#475569",
+            color: "#e2e8f0",
+            fontSize: 12,
+          }}
+        >
+          ⌘K Palette
+        </Button>
+
+        <Button
           type="link"
           href="https://ap-southeast-1.console.aws.amazon.com/cloudwatch/home?region=ap-southeast-1#dashboards/dashboard/prod-Nextcloud-SaaS-Control-Plane"
           target="_blank"
