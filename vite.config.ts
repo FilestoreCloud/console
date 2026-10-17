@@ -81,21 +81,11 @@ export default defineConfig({
             ) {
               return "vendor-antd-pickers";
             }
-            if (id.includes("/@ant-design/cssinjs/")) {
-              return "vendor-cssinjs";
-            }
             if (id.includes("/antd/")) {
-              if (id.includes("/table/") || id.includes("/table.")) {
-                return "vendor-antd-table";
-              }
-              if (id.includes("/form/") || id.includes("/form.")) {
-                return "vendor-antd-form";
-              }
-              if (id.includes("/theme/")) {
-                return "vendor-antd-theme";
-              }
               return "vendor-antd";
             }
+
+
           }
         },
       },

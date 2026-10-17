@@ -194,7 +194,7 @@ const App: React.FC = () => {
                                   />
                                 ) : (
                                   <img
-                                    src="/storix-logo-white.png"
+                                    src={isDark ? "/storix-logo-white.png" : "/storix-logo.png"}
                                     alt="Storix"
                                     style={{
                                       height: 32,
