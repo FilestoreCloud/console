@@ -27,7 +27,7 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
   >([
     {
       cmd: "occ status",
-      output: `  - installed: true\n  - version: 30.0.1.3\n  - versionstring: 30.0.1\n  - edition: Enterprise AI\n  - maintenance: false\n  - needsDbUpgrade: false\n  - productname: Nextcloud\n  - extendedSupport: true`,
+      output: `  - installed: true\n  - version: 30.0.1.3\n  - versionstring: 30.0.1\n  - edition: Enterprise AI\n  - maintenance: false\n  - needsDbUpgrade: false\n  - productname: Storix\n  - extendedSupport: true`,
       exit_code: 0,
       duration_ms: 182,
       timestamp: new Date().toISOString(),
@@ -81,7 +81,7 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
           >
             <Space>
               <CodeOutlined style={{ color: "#1652f0" }} />
-              <span>Interactive Nextcloud `occ` CLI Diagnostic Runner</span>
+              <span>Interactive Storix `occ` CLI Diagnostic Runner</span>
               <Tag color="geekblue">Container: service-{tenantId}</Tag>
             </Space>
             <Button
@@ -245,7 +245,7 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
           {terminalOutput.length === 0 ? (
             <div style={{ color: "#64748b", fontStyle: "italic" }}>
               Terminal output buffer empty. Execute a command above to inspect
-              Nextcloud internals.
+              Storix platform internals.
             </div>
           ) : (
             terminalOutput.map((item, idx) => (
@@ -259,7 +259,7 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
                 >
                   <div>
                     <span style={{ color: "#38bdf8" }}>
-                      nextcloud@{tenantId}
+                      storix@{tenantId}
                     </span>
                     <span style={{ color: "#94a3b8" }}>:</span>
                     <span style={{ color: "#a855f7" }}>/var/www/html</span>

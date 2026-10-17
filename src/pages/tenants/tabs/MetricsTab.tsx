@@ -250,7 +250,7 @@ export const MetricsTab: React.FC<MetricsTabProps> = ({
         <Col xs={24} lg={15}>
           <InteractiveMetricsChart
             tenantId={tenantId}
-            clusterName={metrics.cluster_name || "prod-nextcloud-cluster"}
+            clusterName={metrics.cluster_name || "prod-storix-cluster"}
             history={metrics.history || []}
             autoscalingTargetCpu={metrics.autoscaling_target_cpu || 70.0}
             intervalSec={metricsIntervalSec}

@@ -21,7 +21,7 @@ const mockTenantData = {
     { username: "admin", display_name: "Admin User", email: "admin@tenant-alpha.com", role: "TenantAdmin", quota_gb: 50 },
   ],
   aws_topology: {
-    cluster_name: "prod-nextcloud-cluster",
+    cluster_name: "prod-storix-cluster",
     service_name: "service-tenant-alpha",
     database_endpoint: "db.internal:5432",
     efs_id: "fs-12345",

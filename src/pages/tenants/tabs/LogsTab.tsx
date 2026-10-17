@@ -83,7 +83,7 @@ export const LogsTab: React.FC<LogsTabProps> = ({
                 <span>Container Log Stream</span>
                 <Tag color="cyan">
                   Log Group: /ecs/
-                  {awsTopology.cluster_name ? "prod-nextcloud" : "nextcloud"}
+                  {awsTopology.cluster_name ? "prod-storix" : "storix"}
                 </Tag>
               </Space>
             </Col>
@@ -97,8 +97,8 @@ export const LogsTab: React.FC<LogsTabProps> = ({
                   options={[
                     { value: "all", label: "All Logs" },
                     {
-                      value: "nextcloud-app",
-                      label: "Nextcloud 30 App",
+                      value: "storix-app",
+                      label: "Storix 30 App",
                     },
                   ]}
                 />

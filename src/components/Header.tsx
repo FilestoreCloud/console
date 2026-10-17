@@ -150,7 +150,7 @@ export const CustomHeader: React.FC<HeaderProps> = ({
 
         <Button
           type="link"
-          href="https://ap-southeast-1.console.aws.amazon.com/cloudwatch/home?region=ap-southeast-1#dashboards/dashboard/prod-Nextcloud-SaaS-Control-Plane"
+          href="https://ap-southeast-1.console.aws.amazon.com/cloudwatch/home?region=ap-southeast-1#dashboards/dashboard/prod-Storix-SaaS-Control-Plane"
           target="_blank"
           icon={<LineChartOutlined style={{ color: "#faad14" }} />}
           style={{ color: "#f8fafc" }}

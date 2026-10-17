@@ -256,7 +256,7 @@ describe("dataProvider", () => {
       global.fetch = vi.fn().mockResolvedValue({
         status: 200,
         ok: true,
-        json: async () => ({ exit_code: 0, output: "Nextcloud is healthy" }),
+        json: async () => ({ exit_code: 0, output: "Storix platform is healthy" }),
       } as Response);
 
       const result = await dataProvider.custom!({
@@ -267,7 +267,7 @@ describe("dataProvider", () => {
 
       expect(result.data).toEqual({
         exit_code: 0,
-        output: "Nextcloud is healthy",
+        output: "Storix platform is healthy",
       });
     });
 

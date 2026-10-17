@@ -128,7 +128,7 @@ export const LoginPage: React.FC = () => {
             Storix Super Admin Portal
           </Title>
           <Text type="secondary" style={{ fontSize: 13 }}>
-            Nextcloud Multi-Tenant SaaS Control Plane
+            Storix Multi-Tenant SaaS Control Plane
           </Text>
         </div>
 
