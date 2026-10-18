@@ -18,6 +18,7 @@ import {
   SyncOutlined,
 } from "@ant-design/icons";
 import { dataProvider } from "../../../providers/dataProvider";
+import { useSmartInterval } from "../../../hooks/useSmartInterval";
 
 const { Text } = Typography;
 
@@ -64,13 +65,13 @@ export const LogsTab: React.FC<LogsTabProps> = ({
     handleFetchLogs();
   }, [handleFetchLogs]);
 
-  useEffect(() => {
-    if (!logsAutoRefresh) return;
-    const interval = setInterval(() => {
-      handleFetchLogs();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [logsAutoRefresh, handleFetchLogs]);
+  // Task 1.2 & 4.2: Intelligent polling with Page Visibility pause & idle backoff
+  useSmartInterval(handleFetchLogs, logsAutoRefresh ? 5000 : null, {
+    maxIdleSeconds: 120,
+    backoffFactor: 1.5,
+    maxDelay: 30000,
+    immediateOnVisible: true,
+  });
 
   return (
     <div>

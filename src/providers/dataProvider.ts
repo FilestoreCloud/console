@@ -20,6 +20,7 @@ export const dataProvider: DataProvider = {
       const res = await fetch(API_BASE, {
         method: "POST",
         headers: getHeaders(),
+        credentials: "include",
         body: JSON.stringify({ action: "LIST" }),
       });
       if (res.status === 401) throw { status: 401, message: "Unauthorized" };
@@ -39,6 +40,7 @@ export const dataProvider: DataProvider = {
       const res = await fetch(API_BASE, {
         method: "POST",
         headers: getHeaders(),
+        credentials: "include",
         body: JSON.stringify({ action: "AUDIT_LOGS" }),
       });
       if (res.status === 401) throw { status: 401, message: "Unauthorized" };
@@ -63,6 +65,7 @@ export const dataProvider: DataProvider = {
       const res = await fetch(API_BASE, {
         method: "POST",
         headers: getHeaders(),
+        credentials: "include",
         body: JSON.stringify({
           action: "GET_TENANT_DETAIL",
           tenant_id: cleanId,
@@ -97,6 +100,7 @@ export const dataProvider: DataProvider = {
       const res = await fetch(API_BASE, {
         method: "POST",
         headers: getHeaders(),
+        credentials: "include",
         body: JSON.stringify({
           action,
           ...variables,
@@ -119,6 +123,7 @@ export const dataProvider: DataProvider = {
       const res = await fetch(API_BASE, {
         method: "POST",
         headers: getHeaders(),
+        credentials: "include",
         body: JSON.stringify({
           action,
           tenant_id: id,
@@ -141,6 +146,7 @@ export const dataProvider: DataProvider = {
       const res = await fetch(API_BASE, {
         method: "POST",
         headers: getHeaders(),
+        credentials: "include",
         body: JSON.stringify({
           action: "DELETE",
           tenant_id: id,
@@ -165,6 +171,7 @@ export const dataProvider: DataProvider = {
     const res = await fetch(url || API_BASE, {
       method: method || "POST",
       headers: getHeaders(),
+      credentials: "include",
       body: payload ? JSON.stringify(payload) : undefined,
     });
     const data = await res.json();

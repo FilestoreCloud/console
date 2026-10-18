@@ -15,6 +15,8 @@ import {
 } from "@ant-design/icons";
 import { useParams } from "react-router-dom";
 import { dataProvider } from "../../providers/dataProvider";
+import { usePageVisibility } from "../../hooks/usePageVisibility";
+import { useSmartInterval } from "../../hooks/useSmartInterval";
 import {
   MetricsTab,
   TopologyTab,
@@ -63,26 +65,29 @@ export const TenantShow: React.FC = () => {
   const [accountForm] = Form.useForm();
   const [cloneForm] = Form.useForm();
 
+  const isPageVisible = usePageVisibility();
   const [metricsIntervalSec, setMetricsIntervalSec] = useState(15);
   const [metricsCountdown, setMetricsCountdown] = useState(15);
 
   useEffect(() => {
-    if (metricsIntervalSec === 0) return;
+    if (metricsIntervalSec === 0 || !isPageVisible) return;
     const timer = setInterval(() => {
       setMetricsCountdown((prev) => (prev <= 1 ? (refetch(), metricsIntervalSec) : prev - 1));
     }, 1000);
     return () => clearInterval(timer);
-  }, [metricsIntervalSec, refetch]);
+  }, [metricsIntervalSec, isPageVisible, refetch]);
 
-  // Live auto-polling while tenant lifecycle operation is in progress
-  useEffect(() => {
-    const status = tenantData?.tenant?.status || tenantData?.status;
-    if (!["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING", "SEEDING", "UPGRADING"].includes(status)) return;
-    const pollTimer = setInterval(() => {
-      refetch();
-    }, 2500);
-    return () => clearInterval(pollTimer);
-  }, [tenantData, refetch]);
+  // Live smart auto-polling while tenant lifecycle operation is in progress
+  const status = tenantData?.tenant?.status || tenantData?.status;
+  const isTransitioning = ["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING", "SEEDING", "UPGRADING"].includes(status);
+  useSmartInterval(() => {
+    refetch();
+  }, isTransitioning ? 2500 : null, {
+    maxIdleSeconds: 60,
+    backoffFactor: 1.5,
+    maxDelay: 10000,
+    immediateOnVisible: true,
+  });
 
   if (isLoading || !tenantData) {
     return (

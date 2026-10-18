@@ -32,6 +32,7 @@ describe("authProvider", () => {
       expect(global.fetch).toHaveBeenCalledWith("/api", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           action: "LOGIN",
           username: "admin@png261.dev",
@@ -93,6 +94,7 @@ describe("authProvider", () => {
       expect(global.fetch).toHaveBeenCalledWith("/api", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           action: "VERIFY_MFA",
           challenge_token: "mfa-challenge-xyz",
