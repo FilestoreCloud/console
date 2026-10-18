@@ -25,7 +25,9 @@ import {
   TerminalTab,
   LogsTab,
   ObservabilityTab,
+  FinOpsTab,
 } from "./tabs";
+import { DollarOutlined } from "@ant-design/icons";
 import { TenantModals } from "./modals";
 import { TenantHeader } from "./TenantHeader";
 import { TenantIncidentAlert } from "./TenantIncidentAlert";
@@ -289,6 +291,11 @@ export const TenantShow: React.FC = () => {
             key: "observability",
             label: <span><BranchesOutlined /> Step Functions & X-Ray</span>,
             children: <ObservabilityTab tenantId={tenantId} />,
+          },
+          {
+            key: "finops",
+            label: <span><DollarOutlined style={{ color: "#52c41a" }} /> FinOps & Custom Domain</span>,
+            children: <FinOpsTab tenantId={tenantId} tenant={tenant} finops={tenantData.finops} />,
           },
         ]}
       />
