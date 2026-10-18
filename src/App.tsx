@@ -29,6 +29,7 @@ import { dataProvider } from "./providers/dataProvider";
 import { accessControlProvider } from "./providers/accessControlProvider";
 
 import { CustomHeader } from "./components/Header";
+import { CommandPalette } from "./components/CommandPalette";
 
 // Lazy-loaded routes for code splitting and instant initial page load
 const LoginPage = React.lazy(() =>
@@ -67,7 +68,9 @@ const LoadingFallback: React.FC = () => (
 
 const App: React.FC = () => {
   const [isDark, setIsDark] = useState<boolean>(() => {
-    return (localStorage.getItem("storix_theme") || localStorage.getItem("filestore_theme")) === "dark";
+    const saved = localStorage.getItem("storix_theme") || localStorage.getItem("filestore_theme");
+    if (saved) return saved === "dark";
+    return typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
   const handleToggleTheme = () => {
@@ -138,6 +141,17 @@ const App: React.FC = () => {
             options={{
               syncWithLocation: true,
               warnWhenUnsavedChanges: true,
+              reactQuery: {
+                clientConfig: {
+                  defaultOptions: {
+                    queries: {
+                      staleTime: 30000,
+                      cacheTime: 300000,
+                      refetchOnWindowFocus: false,
+                    },
+                  },
+                },
+              },
             }}
           >
             <Suspense fallback={<LoadingFallback />}>
@@ -180,7 +194,7 @@ const App: React.FC = () => {
                                   />
                                 ) : (
                                   <img
-                                    src="/storix-logo-white.png"
+                                    src={isDark ? "/storix-logo-white.png" : "/storix-logo.png"}
                                     alt="Storix"
                                     style={{
                                       height: 32,
@@ -218,6 +232,7 @@ const App: React.FC = () => {
                 <Route path="*" element={<Navigate to="/tenants" replace />} />
               </Routes>
             </Suspense>
+            <CommandPalette isDark={isDark} onToggleTheme={handleToggleTheme} />
             <UnsavedChangesNotifier />
           </Refine>
         </AntdApp>

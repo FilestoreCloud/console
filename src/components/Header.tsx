@@ -88,6 +88,7 @@ export const CustomHeader: React.FC<HeaderProps> = ({
         backgroundColor: "#071736",
         padding: "0 24px",
         height: 64,
+        lineHeight: "64px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -95,15 +96,16 @@ export const CustomHeader: React.FC<HeaderProps> = ({
         position: "sticky",
         top: 0,
         zIndex: 1000,
+        overflow: "hidden",
       }}
     >
-      <Space size="middle" align="center">
+      <Space size="middle" align="center" wrap={false} style={{ flexShrink: 0 }}>
         <img
           src="/storix-icon.png"
           alt="Storix"
-          style={{ width: 28, height: 28, objectFit: "contain" }}
+          style={{ width: 26, height: 26, objectFit: "contain" }}
         />
-        <Text strong style={{ color: "#ffffff", fontSize: 16 }}>
+        <Text strong style={{ color: "#ffffff", fontSize: 15, whiteSpace: "nowrap" }}>
           Storix Console
         </Text>
         <Tag
@@ -112,6 +114,7 @@ export const CustomHeader: React.FC<HeaderProps> = ({
             backgroundColor: "#1e293b",
             color: "#cbd5e1",
             borderColor: "#334155",
+            whiteSpace: "nowrap",
           }}
         >
           <GlobalOutlined style={{ marginRight: 4 }} /> Region: ap-southeast-1
@@ -121,16 +124,33 @@ export const CustomHeader: React.FC<HeaderProps> = ({
           style={{
             backgroundColor: "rgba(82, 196, 26, 0.15)",
             borderColor: "#52c41a",
+            whiteSpace: "nowrap",
           }}
         >
           <CheckCircleFilled style={{ marginRight: 4 }} /> Online
         </Tag>
       </Space>
 
-      <Space size="middle" align="center">
+      <Space size="middle" align="center" wrap={false} style={{ flexShrink: 0 }}>
+        <Button
+          size="small"
+          onClick={() => {
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
+          }}
+          style={{
+            backgroundColor: isDark ? "#1e293b" : "#334155",
+            borderColor: "#475569",
+            color: "#e2e8f0",
+            fontSize: 12,
+            whiteSpace: "nowrap",
+          }}
+        >
+          ⌘K Palette
+        </Button>
+
         <Button
           type="link"
-          href="https://ap-southeast-1.console.aws.amazon.com/cloudwatch/home?region=ap-southeast-1#dashboards/dashboard/prod-Nextcloud-SaaS-Control-Plane"
+          href="https://ap-southeast-1.console.aws.amazon.com/cloudwatch/home?region=ap-southeast-1#dashboards/dashboard/prod-Storix-SaaS-Control-Plane"
           target="_blank"
           icon={<LineChartOutlined style={{ color: "#faad14" }} />}
           style={{ color: "#f8fafc" }}

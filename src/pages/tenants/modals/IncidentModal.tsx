@@ -93,7 +93,7 @@ export const IncidentModal: React.FC<IncidentModalProps> = ({
           label="Incident Title / Summary"
           rules={[{ required: true, message: "Please provide incident title" }]}
         >
-          <Input placeholder="e.g. High memory utilization in Nextcloud worker container" />
+          <Input placeholder="e.g. High memory utilization in Storix worker container" />
         </Form.Item>
 
         <Form.Item name="description" label="Incident Details">

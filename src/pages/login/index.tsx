@@ -15,6 +15,7 @@ import {
   MailOutlined,
   SafetyCertificateOutlined,
   ArrowLeftOutlined,
+  KeyOutlined,
 } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
@@ -80,6 +81,68 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  const handlePasskeySignIn = async () => {
+    setErrorMessage(null);
+    setIsSubmitting(true);
+    try {
+      if (typeof window === "undefined" || !window.PublicKeyCredential) {
+        setErrorMessage("WebAuthn / Passkeys is not supported on this browser.");
+        return;
+      }
+      const challengeRes = await fetch(API_BASE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ action: "WEBAUTHN_CHALLENGE" }),
+      });
+      const challengeData = await challengeRes.json();
+      if (!challengeRes.ok || !challengeData.challenge) {
+        throw new Error(challengeData.error || "Could not initiate Passkey authentication.");
+      }
+
+      // Convert challenge base64 to Uint8Array
+      const challengeBytes = Uint8Array.from(atob(challengeData.challenge), (c) => c.charCodeAt(0));
+      const credential = (await navigator.credentials.get({
+        publicKey: {
+          challenge: challengeBytes,
+          timeout: 60000,
+          userVerification: "preferred",
+          rpId: window.location.hostname || "localhost",
+        },
+      })) as any;
+
+      if (!credential) {
+        throw new Error("No Passkey credentials received.");
+      }
+
+      const verifyRes = await fetch(API_BASE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          action: "WEBAUTHN_LOGIN",
+          credential_id: credential.id,
+          raw_id: credential.id,
+        }),
+      });
+      const verifyData = await verifyRes.json();
+      if (verifyRes.ok && verifyData.token) {
+        localStorage.setItem("saas_admin_token", verifyData.token);
+        localStorage.setItem("saas_admin_email", verifyData.user || "admin@storix.io");
+        localStorage.setItem("saas_admin_role", verifyData.role || "SuperAdmin");
+        window.location.href = "/tenants";
+      } else {
+        setErrorMessage(verifyData.error || "Passkey verification failed.");
+      }
+    } catch (err: any) {
+      if (err.name !== "NotAllowedError") {
+        setErrorMessage(err.message || "Passkey authentication encountered an error.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleMfaSubmit = async (values: any) => {
     if (!pendingMfa) return;
     setErrorMessage(null);
@@ -128,7 +191,7 @@ export const LoginPage: React.FC = () => {
             Storix Super Admin Portal
           </Title>
           <Text type="secondary" style={{ fontSize: 13 }}>
-            Nextcloud Multi-Tenant SaaS Control Plane
+            Storix Multi-Tenant SaaS Control Plane
           </Text>
         </div>
 
@@ -194,6 +257,21 @@ export const LoginPage: React.FC = () => {
                 }}
               >
                 Sign In to Control Plane
+              </Button>
+
+              <Button
+                type="default"
+                size="large"
+                block
+                icon={<KeyOutlined />}
+                loading={isSubmitting}
+                onClick={handlePasskeySignIn}
+                style={{
+                  marginTop: 10,
+                  fontWeight: 500,
+                }}
+              >
+                Sign In with Passkey / WebAuthn
               </Button>
             </Form>
           </div>

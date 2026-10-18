@@ -30,7 +30,7 @@ describe("LoginPage — SuperAdmin Authentication Flow", () => {
 
     expect(screen.getByText("Storix Super Admin Portal")).toBeInTheDocument();
     expect(
-      screen.getByText("Nextcloud Multi-Tenant SaaS Control Plane"),
+      screen.getByText("Storix Multi-Tenant SaaS Control Plane"),
     ).toBeInTheDocument();
     const emailInput = screen.getByPlaceholderText("admin@example.com") as HTMLInputElement;
     const passwordInput = screen.getByPlaceholderText("••••••••••••") as HTMLInputElement;

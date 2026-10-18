@@ -152,7 +152,7 @@ export const TelemetryDashboard: React.FC = () => {
               </Button>
               <Button
                 type="primary"
-                href="https://ap-southeast-1.console.aws.amazon.com/cloudwatch/home?region=ap-southeast-1#dashboards/dashboard/prod-Nextcloud-SaaS-Control-Plane"
+                href="https://ap-southeast-1.console.aws.amazon.com/cloudwatch/home?region=ap-southeast-1#dashboards/dashboard/prod-Storix-SaaS-Control-Plane"
                 target="_blank"
                 icon={<LinkOutlined />}
                 style={{ backgroundColor: "#1652f0", borderColor: "#1652f0" }}
@@ -169,7 +169,7 @@ export const TelemetryDashboard: React.FC = () => {
         <div style={{ marginBottom: 16 }}>
           <InteractiveMetricsChart
             tenantId={selectedTenant}
-            clusterName="prod-nextcloud-cluster"
+            clusterName="prod-storix-cluster"
             history={tenantMetrics.history || []}
             autoscalingTargetCpu={tenantMetrics.autoscaling_target_cpu || 70.0}
             intervalSec={intervalSec}
@@ -199,7 +199,7 @@ export const TelemetryDashboard: React.FC = () => {
               type="secondary"
               style={{ fontSize: 11, display: "block", marginTop: 8 }}
             >
-              Metric: Nextcloud/SaaS &gt; TenantActiveStatus
+              Metric: Storix/SaaS &gt; TenantActiveStatus
             </Text>
           </Card>
         </Col>
@@ -222,7 +222,7 @@ export const TelemetryDashboard: React.FC = () => {
               type="secondary"
               style={{ fontSize: 11, display: "block", marginTop: 8 }}
             >
-              Namespace: AWS/ECS (prod-nextcloud-cluster)
+              Namespace: AWS/ECS (prod-storix-cluster)
             </Text>
           </Card>
         </Col>

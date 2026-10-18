@@ -35,7 +35,7 @@ export const InteractiveMetricsChart: React.FC<
   InteractiveMetricsChartProps
 > = ({
   tenantId,
-  clusterName = "prod-nextcloud-cluster",
+  clusterName = "prod-storix-cluster",
   history = [],
   autoscalingTargetCpu = 70.0,
   intervalSec = 15,

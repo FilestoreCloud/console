@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Card, Space, Button, Input, Tag, Typography, message } from "antd";
+import { Card, Space, Button, Input, Tag, Typography, message, Switch } from "antd";
 import {
   CodeOutlined,
   ClearOutlined,
   PlayCircleOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
 import { dataProvider } from "../../../providers/dataProvider";
 
@@ -16,6 +17,8 @@ export interface TerminalTabProps {
 export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
   const [occCommand, setOccCommand] = useState("status");
   const [occLoading, setOccLoading] = useState(false);
+  const [isAsync, setIsAsync] = useState(false);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [terminalOutput, setTerminalOutput] = useState<
     Array<{
       cmd: string;
@@ -27,43 +30,111 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
   >([
     {
       cmd: "occ status",
-      output: `  - installed: true\n  - version: 30.0.1.3\n  - versionstring: 30.0.1\n  - edition: Enterprise AI\n  - maintenance: false\n  - needsDbUpgrade: false\n  - productname: Nextcloud\n  - extendedSupport: true`,
+      output: `  - installed: true\n  - version: 30.0.1.3\n  - versionstring: 30.0.1\n  - edition: Enterprise AI\n  - maintenance: false\n  - needsDbUpgrade: false\n  - productname: Storix\n  - extendedSupport: true`,
       exit_code: 0,
       duration_ms: 182,
       timestamp: new Date().toISOString(),
     },
   ]);
 
+  const pollJobStatus = async (jobId: string, cmd: string, startTime: number) => {
+    const maxAttempts = 30;
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise((r) => setTimeout(r, 2000));
+      try {
+        const res = await dataProvider.custom!({
+          url: dataProvider.getApiUrl(),
+          method: "post",
+          payload: {
+            action: "CHECK_OCC_JOB",
+            tenant_id: tenantId,
+            job_id: jobId,
+          },
+        });
+        const job = res.data?.job || res.data;
+        if (job.status === "COMPLETED" || job.status === "FAILED") {
+          const duration = Math.round((Date.now() - startTime));
+          setTerminalOutput((prev) => [
+            ...prev,
+            {
+              cmd: `occ ${cmd} (Async Job ${jobId})`,
+              output: job.output || (job.status === "COMPLETED" ? "Async job finished successfully." : "Job failed."),
+              exit_code: job.exit_code ?? (job.status === "COMPLETED" ? 0 : 1),
+              duration_ms: duration,
+              timestamp: new Date().toISOString(),
+            },
+          ]);
+          setActiveJobId(null);
+          setOccLoading(false);
+          message.success(`Async job 'occ ${cmd}' completed!`);
+          return;
+        }
+      } catch (_) {
+        // continue polling
+      }
+    }
+    setActiveJobId(null);
+    setOccLoading(false);
+    message.warning(`Async job ${jobId} is taking longer than expected. Check Audit logs.`);
+  };
+
   const handleExecuteOcc = async (cmdToRun?: string) => {
     if (!dataProvider.custom) return;
     const cmd = (cmdToRun || occCommand).trim();
     if (!cmd) return;
     setOccLoading(true);
+    const startTime = Date.now();
     try {
-      const res = await dataProvider.custom({
-        url: dataProvider.getApiUrl(),
-        method: "post",
-        payload: {
-          action: "EXECUTE_OCC_COMMAND",
-          tenant_id: tenantId,
-          command: cmd,
-        },
-      });
-      const data = res.data;
-      setTerminalOutput((prev) => [
-        ...prev,
-        {
-          cmd: data.command || `occ ${cmd}`,
-          output: data.output || "Execution completed.",
-          exit_code: data.exit_code ?? 0,
-          duration_ms: data.duration_ms ?? 240,
-          timestamp: data.executed_at || new Date().toISOString(),
-        },
-      ]);
-      message.success(`Command 'occ ${cmd}' executed successfully!`);
+      if (isAsync) {
+        const res = await dataProvider.custom({
+          url: dataProvider.getApiUrl(),
+          method: "post",
+          payload: {
+            action: "EXECUTE_OCC_ASYNC",
+            tenant_id: tenantId,
+            command: cmd,
+          },
+        });
+        const jobId = res.data?.job_id || `job-${Date.now()}`;
+        setActiveJobId(jobId);
+        setTerminalOutput((prev) => [
+          ...prev,
+          {
+            cmd: `occ ${cmd}`,
+            output: `[ASYNC DISPATCH] Job ${jobId} submitted to Step Functions state engine. Polling output in background...`,
+            exit_code: 0,
+            duration_ms: 50,
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+        message.info(`Dispatched async OCC job: ${jobId}`);
+        pollJobStatus(jobId, cmd, startTime);
+      } else {
+        const res = await dataProvider.custom({
+          url: dataProvider.getApiUrl(),
+          method: "post",
+          payload: {
+            action: "EXECUTE_OCC_COMMAND",
+            tenant_id: tenantId,
+            command: cmd,
+          },
+        });
+        const data = res.data;
+        setTerminalOutput((prev) => [
+          ...prev,
+          {
+            cmd: data.command || `occ ${cmd}`,
+            output: data.output || "Execution completed.",
+            exit_code: data.exit_code ?? 0,
+            duration_ms: data.duration_ms ?? 240,
+            timestamp: data.executed_at || new Date().toISOString(),
+          },
+        ]);
+        message.success(`Command 'occ ${cmd}' executed successfully!`);
+        setOccLoading(false);
+      }
     } catch (err: any) {
       message.error(err?.message || "OCC execution failed");
-    } finally {
       setOccLoading(false);
     }
   };
@@ -81,16 +152,26 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
           >
             <Space>
               <CodeOutlined style={{ color: "#1652f0" }} />
-              <span>Interactive Nextcloud `occ` CLI Diagnostic Runner</span>
+              <span>Interactive Storix `occ` CLI Diagnostic Runner</span>
               <Tag color="geekblue">Container: service-{tenantId}</Tag>
             </Space>
-            <Button
-              size="small"
-              icon={<ClearOutlined />}
-              onClick={() => setTerminalOutput([])}
-            >
-              Clear Screen
-            </Button>
+            <Space>
+              <Space size={4}>
+                <Text type="secondary" style={{ fontSize: 12 }}>Async Mode</Text>
+                <Switch
+                  size="small"
+                  checked={isAsync}
+                  onChange={setIsAsync}
+                />
+              </Space>
+              <Button
+                size="small"
+                icon={<ClearOutlined />}
+                onClick={() => setTerminalOutput([])}
+              >
+                Clear Screen
+              </Button>
+            </Space>
           </div>
         }
         variant="borderless"
@@ -245,7 +326,7 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
           {terminalOutput.length === 0 ? (
             <div style={{ color: "#64748b", fontStyle: "italic" }}>
               Terminal output buffer empty. Execute a command above to inspect
-              Nextcloud internals.
+              Storix platform internals.
             </div>
           ) : (
             terminalOutput.map((item, idx) => (
@@ -259,7 +340,7 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
                 >
                   <div>
                     <span style={{ color: "#38bdf8" }}>
-                      nextcloud@{tenantId}
+                      storix@{tenantId}
                     </span>
                     <span style={{ color: "#94a3b8" }}>:</span>
                     <span style={{ color: "#a855f7" }}>/var/www/html</span>

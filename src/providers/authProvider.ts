@@ -22,6 +22,7 @@ export const authProvider: AuthProvider = {
         const res = await fetch(API_BASE, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             action: "VERIFY_MFA",
             challenge_token,
@@ -54,6 +55,7 @@ export const authProvider: AuthProvider = {
       const res = await fetch(API_BASE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           action: "LOGIN",
           username: email,
@@ -108,6 +110,16 @@ export const authProvider: AuthProvider = {
   },
 
   logout: async () => {
+    try {
+      await fetch(API_BASE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ action: "LOGOUT" }),
+      });
+    } catch (_) {
+      // Ignore network errors during logout
+    }
     localStorage.removeItem("saas_admin_token");
     localStorage.removeItem("saas_admin_email");
     localStorage.removeItem("saas_admin_role");

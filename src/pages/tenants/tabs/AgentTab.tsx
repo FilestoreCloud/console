@@ -154,7 +154,7 @@ export const AgentTab: React.FC<AgentTabProps> = ({
               <Space>
                 <CloudServerOutlined style={{ color: "#1652f0" }} />
                 <span>
-                  Dedicated Application Container (Nextcloud Enterprise)
+                  Dedicated Application Container (Storix Enterprise Storage)
                 </span>
               </Space>
             }
@@ -173,8 +173,8 @@ export const AgentTab: React.FC<AgentTabProps> = ({
                   }}
                 >
                   {awsTopology.cluster_name
-                    ? "649519997247.dkr.ecr.ap-southeast-1.amazonaws.com/nextcloud-enterprise-ai:latest"
-                    : "nextcloud-enterprise-ai:latest"}
+                    ? "649519997247.dkr.ecr.ap-southeast-1.amazonaws.com/storix-enterprise-ai:latest"
+                    : "storix-enterprise-ai:latest"}
                 </Paragraph>
               </Descriptions.Item>
               <Descriptions.Item label="Runtime Stack">

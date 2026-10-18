@@ -53,7 +53,7 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
   const [obsData, setObsData] = useState<any>({
     region: "ap-southeast-1",
     environment: "prod",
-    log_group: "/aws/vendedlogs/states/prod-nextcloud-sfn",
+    log_group: "/aws/vendedlogs/states/prod-storix-sfn",
     tracing_enabled: true,
     state_machines: [],
     executions: [],

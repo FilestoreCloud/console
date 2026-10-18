@@ -15,6 +15,8 @@ import {
 } from "@ant-design/icons";
 import { useParams } from "react-router-dom";
 import { dataProvider } from "../../providers/dataProvider";
+import { usePageVisibility } from "../../hooks/usePageVisibility";
+import { useSmartInterval } from "../../hooks/useSmartInterval";
 import {
   MetricsTab,
   TopologyTab,
@@ -25,7 +27,10 @@ import {
   TerminalTab,
   LogsTab,
   ObservabilityTab,
+  FinOpsTab,
+  HealthTab,
 } from "./tabs";
+import { DollarOutlined, HeartOutlined } from "@ant-design/icons";
 import { TenantModals } from "./modals";
 import { TenantHeader } from "./TenantHeader";
 import { TenantIncidentAlert } from "./TenantIncidentAlert";
@@ -60,26 +65,29 @@ export const TenantShow: React.FC = () => {
   const [accountForm] = Form.useForm();
   const [cloneForm] = Form.useForm();
 
+  const isPageVisible = usePageVisibility();
   const [metricsIntervalSec, setMetricsIntervalSec] = useState(15);
   const [metricsCountdown, setMetricsCountdown] = useState(15);
 
   useEffect(() => {
-    if (metricsIntervalSec === 0) return;
+    if (metricsIntervalSec === 0 || !isPageVisible) return;
     const timer = setInterval(() => {
       setMetricsCountdown((prev) => (prev <= 1 ? (refetch(), metricsIntervalSec) : prev - 1));
     }, 1000);
     return () => clearInterval(timer);
-  }, [metricsIntervalSec, refetch]);
+  }, [metricsIntervalSec, isPageVisible, refetch]);
 
-  // Live auto-polling while tenant lifecycle operation is in progress
-  useEffect(() => {
-    const status = tenantData?.tenant?.status || tenantData?.status;
-    if (!["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING", "SEEDING", "UPGRADING"].includes(status)) return;
-    const pollTimer = setInterval(() => {
-      refetch();
-    }, 2500);
-    return () => clearInterval(pollTimer);
-  }, [tenantData, refetch]);
+  // Live smart auto-polling while tenant lifecycle operation is in progress
+  const status = tenantData?.tenant?.status || tenantData?.status;
+  const isTransitioning = ["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING", "SEEDING", "UPGRADING"].includes(status);
+  useSmartInterval(() => {
+    refetch();
+  }, isTransitioning ? 2500 : null, {
+    maxIdleSeconds: 60,
+    backoffFactor: 1.5,
+    maxDelay: 10000,
+    immediateOnVisible: true,
+  });
 
   if (isLoading || !tenantData) {
     return (
@@ -289,6 +297,16 @@ export const TenantShow: React.FC = () => {
             key: "observability",
             label: <span><BranchesOutlined /> Step Functions & X-Ray</span>,
             children: <ObservabilityTab tenantId={tenantId} />,
+          },
+          {
+            key: "finops",
+            label: <span><DollarOutlined style={{ color: "#52c41a" }} /> FinOps & Custom Domain</span>,
+            children: <FinOpsTab tenantId={tenantId} tenant={tenant} finops={tenantData.finops} />,
+          },
+          {
+            key: "health",
+            label: <span><HeartOutlined style={{ color: "#eb2f96" }} /> Health & Quota Limit</span>,
+            children: <HealthTab tenantId={tenantId} tenant={tenant} health={tenantData.health} />,
           },
         ]}
       />

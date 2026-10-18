@@ -37,6 +37,7 @@ describe("dataProvider", () => {
           Accept: "application/json",
           Authorization: "Bearer admin-token-xyz",
         },
+        credentials: "include",
         body: JSON.stringify({ action: "LIST" }),
       });
 
@@ -118,6 +119,7 @@ describe("dataProvider", () => {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           action: "GET_TENANT_DETAIL",
           tenant_id: "tenant-acme",
@@ -164,6 +166,7 @@ describe("dataProvider", () => {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           action: "PROVISION",
           tenant_id: "new-corp",
@@ -211,6 +214,7 @@ describe("dataProvider", () => {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           action: "SUSPEND",
           tenant_id: "corp-a",
@@ -241,6 +245,7 @@ describe("dataProvider", () => {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           action: "DELETE",
           tenant_id: "deleting-tenant",
@@ -256,7 +261,7 @@ describe("dataProvider", () => {
       global.fetch = vi.fn().mockResolvedValue({
         status: 200,
         ok: true,
-        json: async () => ({ exit_code: 0, output: "Nextcloud is healthy" }),
+        json: async () => ({ exit_code: 0, output: "Storix platform is healthy" }),
       } as Response);
 
       const result = await dataProvider.custom!({
@@ -267,7 +272,7 @@ describe("dataProvider", () => {
 
       expect(result.data).toEqual({
         exit_code: 0,
-        output: "Nextcloud is healthy",
+        output: "Storix platform is healthy",
       });
     });
 

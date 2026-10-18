@@ -176,7 +176,7 @@ export const TenantProgressCard: React.FC<TenantProgressCardProps> = ({
           {
             id: "HEALTH_CHECK",
             name: "Health Probe",
-            description: "Verify Nextcloud container health check probe",
+            description: "Verify Storix container health check probe",
             percent: 90,
             status: effectiveProgress > 90 ? "completed" : effectiveProgress >= 90 ? "active" : "pending",
           },

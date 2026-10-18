@@ -39,7 +39,7 @@ export const TopologyTab: React.FC<TopologyTabProps> = ({
             <Descriptions column={1} size="small" bordered>
               <Descriptions.Item label="ECS Fargate Cluster">
                 <code>
-                  {awsTopology.cluster_name || "prod-nextcloud-cluster"}
+                  {awsTopology.cluster_name || "prod-storix-cluster"}
                 </code>
               </Descriptions.Item>
               <Descriptions.Item label="Dedicated ECS Service">
@@ -49,7 +49,7 @@ export const TopologyTab: React.FC<TopologyTabProps> = ({
               </Descriptions.Item>
               <Descriptions.Item label="Task Definition Family">
                 <code>
-                  {awsTopology.task_family || `prod-nextcloud-${tenantId}`}
+                  {awsTopology.task_family || `prod-storix-${tenantId}`}
                 </code>
               </Descriptions.Item>
               <Descriptions.Item label="ALB Target Group">

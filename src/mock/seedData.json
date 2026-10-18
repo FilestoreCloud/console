@@ -88,10 +88,10 @@
         }
       ],
       "aws_topology": {
-        "cluster_name": "prod-nextcloud-cluster",
+        "cluster_name": "prod-storix-cluster",
         "service_name": "service-acme-corp",
         "launch_type": "FARGATE",
-        "task_family": "prod-nextcloud-acme-corp",
+        "task_family": "prod-storix-acme-corp",
         "alb_target_group_name": "tg-acme-corp",
         "alb_routing_rule": "HostHeader: acme-corp.png261.dev",
         "health_check_path": "/status.php",
@@ -101,8 +101,8 @@
         "efs_id": "fs-0b7465bf80b2333eb",
         "efs_access_point_id": "fsap-nc-acme_corp",
         "efs_mount_path": "/tenants/acme-corp/config",
-        "s3_vault_prefix": "s3://prod-nextcloud-vault-649519997247/tenants/acme-corp/",
-        "secrets_manager_path": "/nextcloud/prod/tenants/acme-corp/credentials",
+        "s3_vault_prefix": "s3://prod-storix-vault-649519997247/tenants/acme-corp/",
+        "secrets_manager_path": "/storix/prod/tenants/acme-corp/credentials",
         "vpc_id": "vpc-030257f65c0893745",
         "subnets": [
           "subnet-08096079734609710",
@@ -429,10 +429,10 @@
         }
       ],
       "aws_topology": {
-        "cluster_name": "prod-nextcloud-cluster",
+        "cluster_name": "prod-storix-cluster",
         "service_name": "service-fintech-zenith",
         "launch_type": "FARGATE",
-        "task_family": "prod-nextcloud-fintech-zenith",
+        "task_family": "prod-storix-fintech-zenith",
         "alb_target_group_name": "tg-fintech-zenith",
         "alb_routing_rule": "HostHeader: zenith.png261.dev",
         "health_check_path": "/status.php",
@@ -442,8 +442,8 @@
         "efs_id": "fs-0b7465bf80b2333eb",
         "efs_access_point_id": "fsap-nc-fintech_ze",
         "efs_mount_path": "/tenants/fintech-zenith/config",
-        "s3_vault_prefix": "s3://prod-nextcloud-vault-649519997247/tenants/fintech-zenith/",
-        "secrets_manager_path": "/nextcloud/prod/tenants/fintech-zenith/credentials",
+        "s3_vault_prefix": "s3://prod-storix-vault-649519997247/tenants/fintech-zenith/",
+        "secrets_manager_path": "/storix/prod/tenants/fintech-zenith/credentials",
         "vpc_id": "vpc-030257f65c0893745",
         "subnets": [
           "subnet-08096079734609710",
@@ -756,10 +756,10 @@
         }
       ],
       "aws_topology": {
-        "cluster_name": "prod-nextcloud-cluster",
+        "cluster_name": "prod-storix-cluster",
         "service_name": "service-meditech-health",
         "launch_type": "FARGATE",
-        "task_family": "prod-nextcloud-meditech-health",
+        "task_family": "prod-storix-meditech-health",
         "alb_target_group_name": "tg-meditech-health",
         "alb_routing_rule": "HostHeader: meditech.png261.dev",
         "health_check_path": "/status.php",
@@ -769,8 +769,8 @@
         "efs_id": "fs-0b7465bf80b2333eb",
         "efs_access_point_id": "fsap-nc-meditech_h",
         "efs_mount_path": "/tenants/meditech-health/config",
-        "s3_vault_prefix": "s3://prod-nextcloud-vault-649519997247/tenants/meditech-health/",
-        "secrets_manager_path": "/nextcloud/prod/tenants/meditech-health/credentials",
+        "s3_vault_prefix": "s3://prod-storix-vault-649519997247/tenants/meditech-health/",
+        "secrets_manager_path": "/storix/prod/tenants/meditech-health/credentials",
         "vpc_id": "vpc-030257f65c0893745",
         "subnets": [
           "subnet-08096079734609710",
@@ -989,7 +989,7 @@
         "severity": "HIGH",
         "status": "OPEN",
         "description": "Connection limit reached on dedicated database replica during bulk sync.",
-        "root_cause": "Nextcloud desktop clients holding idle connections above max_connections parameter.",
+        "root_cause": "Storix desktop clients holding idle connections above max_connections parameter.",
         "action_taken": "Automated script draining idle connections; tuning idle_in_transaction_session_timeout.",
         "reported_by": "System",
         "reported_at": "2026-10-14T16:25:41.701575+00:00",
@@ -1002,7 +1002,7 @@
           "severity": "HIGH",
           "status": "OPEN",
           "description": "Connection limit reached on dedicated database replica during bulk sync.",
-          "root_cause": "Nextcloud desktop clients holding idle connections above max_connections parameter.",
+          "root_cause": "Storix desktop clients holding idle connections above max_connections parameter.",
           "action_taken": "Automated script draining idle connections; tuning idle_in_transaction_session_timeout.",
           "reported_by": "System",
           "reported_at": "2026-10-14T16:25:41.701575+00:00",
@@ -1106,10 +1106,10 @@
         }
       ],
       "aws_topology": {
-        "cluster_name": "prod-nextcloud-cluster",
+        "cluster_name": "prod-storix-cluster",
         "service_name": "service-pixel-studios",
         "launch_type": "FARGATE",
-        "task_family": "prod-nextcloud-pixel-studios",
+        "task_family": "prod-storix-pixel-studios",
         "alb_target_group_name": "tg-pixel-studios",
         "alb_routing_rule": "HostHeader: pixel.png261.dev",
         "health_check_path": "/status.php",
@@ -1119,8 +1119,8 @@
         "efs_id": "fs-0b7465bf80b2333eb",
         "efs_access_point_id": "fsap-nc-pixel_stud",
         "efs_mount_path": "/tenants/pixel-studios/config",
-        "s3_vault_prefix": "s3://prod-nextcloud-vault-649519997247/tenants/pixel-studios/",
-        "secrets_manager_path": "/nextcloud/prod/tenants/pixel-studios/credentials",
+        "s3_vault_prefix": "s3://prod-storix-vault-649519997247/tenants/pixel-studios/",
+        "secrets_manager_path": "/storix/prod/tenants/pixel-studios/credentials",
         "vpc_id": "vpc-030257f65c0893745",
         "subnets": [
           "subnet-08096079734609710",
@@ -1405,10 +1405,10 @@
         }
       ],
       "aws_topology": {
-        "cluster_name": "prod-nextcloud-cluster",
+        "cluster_name": "prod-storix-cluster",
         "service_name": "service-sandbox-trial",
         "launch_type": "FARGATE",
-        "task_family": "prod-nextcloud-sandbox-trial",
+        "task_family": "prod-storix-sandbox-trial",
         "alb_target_group_name": "tg-sandbox-trial",
         "alb_routing_rule": "HostHeader: sandbox.png261.dev",
         "health_check_path": "/status.php",
@@ -1418,8 +1418,8 @@
         "efs_id": "fs-0b7465bf80b2333eb",
         "efs_access_point_id": "fsap-nc-sandbox_tr",
         "efs_mount_path": "/tenants/sandbox-trial/config",
-        "s3_vault_prefix": "s3://prod-nextcloud-vault-649519997247/tenants/sandbox-trial/",
-        "secrets_manager_path": "/nextcloud/prod/tenants/sandbox-trial/credentials",
+        "s3_vault_prefix": "s3://prod-storix-vault-649519997247/tenants/sandbox-trial/",
+        "secrets_manager_path": "/storix/prod/tenants/sandbox-trial/credentials",
         "vpc_id": "vpc-030257f65c0893745",
         "subnets": [
           "subnet-08096079734609710",
@@ -1690,10 +1690,10 @@
         }
       ],
       "aws_topology": {
-        "cluster_name": "prod-nextcloud-cluster",
+        "cluster_name": "prod-storix-cluster",
         "service_name": "service-honda-vn",
         "launch_type": "FARGATE",
-        "task_family": "prod-nextcloud-honda-vn",
+        "task_family": "prod-storix-honda-vn",
         "alb_target_group_name": "tg-honda-vn",
         "alb_routing_rule": "HostHeader: honda-vn.png261.dev",
         "health_check_path": "/status.php",
@@ -1703,8 +1703,8 @@
         "efs_id": "fs-0b7465bf80b2333eb",
         "efs_access_point_id": "fsap-nc-honda_vn",
         "efs_mount_path": "/tenants/honda-vn/config",
-        "s3_vault_prefix": "s3://prod-nextcloud-vault-649519997247/tenants/honda-vn/",
-        "secrets_manager_path": "/nextcloud/prod/tenants/honda-vn/credentials",
+        "s3_vault_prefix": "s3://prod-storix-vault-649519997247/tenants/honda-vn/",
+        "secrets_manager_path": "/storix/prod/tenants/honda-vn/credentials",
         "vpc_id": "vpc-030257f65c0893745",
         "subnets": [
           "subnet-08096079734609710",

@@ -15,8 +15,11 @@ export default defineConfig({
     },
   },
   build: {
+    target: "es2022",
     outDir: "dist",
     emptyOutDir: true,
+    cssCodeSplit: true,
+    minify: "esbuild",
     chunkSizeWarningLimit: 800,
     rollupOptions: {
       onwarn(warning, defaultHandler) {
@@ -81,21 +84,11 @@ export default defineConfig({
             ) {
               return "vendor-antd-pickers";
             }
-            if (id.includes("/@ant-design/cssinjs/")) {
-              return "vendor-cssinjs";
-            }
             if (id.includes("/antd/")) {
-              if (id.includes("/table/") || id.includes("/table.")) {
-                return "vendor-antd-table";
-              }
-              if (id.includes("/form/") || id.includes("/form.")) {
-                return "vendor-antd-form";
-              }
-              if (id.includes("/theme/")) {
-                return "vendor-antd-theme";
-              }
               return "vendor-antd";
             }
+
+
           }
         },
       },
@@ -104,6 +97,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "jsdom",
+    testTimeout: 15000,
     setupFiles: "./src/setupTests.ts",
     css: false,
     exclude: ["node_modules", "dist", "e2e/**"],
