@@ -24,23 +24,37 @@ export const AuditLogList: React.FC = () => {
       title: "Timestamp (UTC)",
       dataIndex: "timestamp",
       key: "timestamp",
-      render: (ts: string) => (
-        <Text style={{ fontFamily: "monospace", fontSize: 12 }}>
-          {ts ? ts.replace("T", " ").substring(0, 19) : "--"}
-        </Text>
-      ),
+      render: (ts: any) => {
+        if (!ts) return <Text style={{ fontFamily: "monospace", fontSize: 12 }}>--</Text>;
+        let str = String(ts);
+        if (typeof ts === "number" || (!str.includes("T") && !isNaN(Number(ts)))) {
+          try {
+            const num = Number(ts);
+            const date = new Date(num > 1e11 ? num : num * 1000);
+            str = date.toISOString();
+          } catch {
+            str = String(ts);
+          }
+        }
+        return (
+          <Text style={{ fontFamily: "monospace", fontSize: 12 }}>
+            {str.replace("T", " ").substring(0, 19)}
+          </Text>
+        );
+      },
     },
     {
       title: "Event Action",
       dataIndex: "action",
       key: "action",
-      render: (act: string) => {
+      render: (act: any) => {
+        const actionStr = String(act || "");
         let color = "default";
-        if (act?.includes("PROVISION")) color = "green";
-        else if (act?.includes("DELETE")) color = "red";
-        else if (act?.includes("SUSPEND")) color = "orange";
-        else if (act?.includes("RESUME")) color = "blue";
-        else if (act?.includes("LOGIN") || act?.includes("MFA"))
+        if (actionStr.includes("PROVISION")) color = "green";
+        else if (actionStr.includes("DELETE")) color = "red";
+        else if (actionStr.includes("SUSPEND")) color = "orange";
+        else if (actionStr.includes("RESUME")) color = "blue";
+        else if (actionStr.includes("LOGIN") || actionStr.includes("MFA"))
           color = "purple";
 
         return (
@@ -48,7 +62,7 @@ export const AuditLogList: React.FC = () => {
             color={color}
             style={{ fontFamily: "monospace", fontWeight: 600 }}
           >
-            {act}
+            {actionStr || "UNKNOWN"}
           </Tag>
         );
       },
