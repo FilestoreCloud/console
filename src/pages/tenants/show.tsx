@@ -26,8 +26,9 @@ import {
   LogsTab,
   ObservabilityTab,
   FinOpsTab,
+  HealthTab,
 } from "./tabs";
-import { DollarOutlined } from "@ant-design/icons";
+import { DollarOutlined, HeartOutlined } from "@ant-design/icons";
 import { TenantModals } from "./modals";
 import { TenantHeader } from "./TenantHeader";
 import { TenantIncidentAlert } from "./TenantIncidentAlert";
@@ -296,6 +297,11 @@ export const TenantShow: React.FC = () => {
             key: "finops",
             label: <span><DollarOutlined style={{ color: "#52c41a" }} /> FinOps & Custom Domain</span>,
             children: <FinOpsTab tenantId={tenantId} tenant={tenant} finops={tenantData.finops} />,
+          },
+          {
+            key: "health",
+            label: <span><HeartOutlined style={{ color: "#eb2f96" }} /> Health & Quota Limit</span>,
+            children: <HealthTab tenantId={tenantId} tenant={tenant} health={tenantData.health} />,
           },
         ]}
       />

@@ -8,3 +8,4 @@ export * from "./TerminalTab";
 export * from "./LogsTab";
 export * from "./ObservabilityTab";
 export * from "./FinOpsTab";
+export * from "./HealthTab";
