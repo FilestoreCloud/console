@@ -30,6 +30,7 @@ import {
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import { renderStatusTag } from "../helpers";
+import { TenantProgressModal } from "../modals/TenantProgressModal";
 
 const { Text } = Typography;
 
@@ -65,6 +66,7 @@ export const TenantTable: React.FC<TenantTableProps> = ({
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [batchActionType, setBatchActionType] = useState<"SUSPEND" | "RESUME" | "UPGRADE" | null>(null);
   const [batchExecuting, setBatchExecuting] = useState(false);
+  const [progressModalTenant, setProgressModalTenant] = useState<any>(null);
 
   const handleTriggerBatch = (type: "SUSPEND" | "RESUME" | "UPGRADE") => {
     setBatchActionType(type);
@@ -196,7 +198,8 @@ export const TenantTable: React.FC<TenantTableProps> = ({
       dataIndex: "status",
       key: "status",
       width: 180,
-      render: (st: string, record: any) => renderStatusTag(st, record),
+      render: (st: string, record: any) =>
+        renderStatusTag(st, record, (rec) => setProgressModalTenant(rec)),
     },
     {
       title: "Isolated Infrastructure",
@@ -232,7 +235,7 @@ export const TenantTable: React.FC<TenantTableProps> = ({
     {
       title: "Actions",
       key: "actions",
-      width: 290,
+      width: 320,
       align: "right" as const,
       render: (_: any, record: any) => {
         const isActive = record.status === "ACTIVE";
@@ -247,10 +250,23 @@ export const TenantTable: React.FC<TenantTableProps> = ({
         ].includes(record.status);
         return (
           <Space wrap size={4}>
+            {isInFlight && (
+              <Button
+                size="small"
+                type="primary"
+                ghost
+                icon={<ThunderboltOutlined style={{ color: "#1652f0" }} />}
+                style={{ borderColor: "#91caff" }}
+                onClick={() => setProgressModalTenant(record)}
+              >
+                Steps & Logs
+              </Button>
+            )}
+
             <Button
               size="small"
-              type="primary"
-              ghost
+              type={isInFlight ? "default" : "primary"}
+              ghost={!isInFlight}
               icon={<EyeOutlined />}
               onClick={() => onShowTenant(record.tenant_id)}
             >
@@ -313,7 +329,10 @@ export const TenantTable: React.FC<TenantTableProps> = ({
               <Popconfirm
                 title="Permanently Delete Tenant?"
                 description={`Delete tenant "${record.tenant_id}" and tear down dedicated ECS service & target group?`}
-                onConfirm={() => onDeleteTenant(record.tenant_id)}
+                onConfirm={() => {
+                  setProgressModalTenant({ ...record, status: "DEPROVISIONING" });
+                  onDeleteTenant(record.tenant_id);
+                }}
                 okText="Delete"
                 cancelText="Cancel"
                 okButtonProps={{ danger: true }}
@@ -378,6 +397,18 @@ export const TenantTable: React.FC<TenantTableProps> = ({
                   .join(", ")}
                 ). Real-time progress is auto-polling every 2.5s.
               </span>
+              {inFlightTenants.length > 0 && (
+                <Button
+                  size="small"
+                  type="primary"
+                  ghost
+                  icon={<ThunderboltOutlined />}
+                  onClick={() => setProgressModalTenant(inFlightTenants[0])}
+                  style={{ marginLeft: 8 }}
+                >
+                  View Steps & Logs ({inFlightTenants[0].tenant_id})
+                </Button>
+              )}
             </div>
           }
           type="info"
@@ -461,6 +492,13 @@ export const TenantTable: React.FC<TenantTableProps> = ({
           showIcon
         />
       </Modal>
+
+      <TenantProgressModal
+        visible={!!progressModalTenant}
+        onClose={() => setProgressModalTenant(null)}
+        tenantId={progressModalTenant?.tenant_id || progressModalTenant?.id}
+        initialStatus={progressModalTenant?.status}
+      />
     </Card>
   );
 };

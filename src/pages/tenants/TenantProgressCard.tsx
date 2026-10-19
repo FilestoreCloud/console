@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Card, Typography, Progress, Space, Row, Col, Tag, Steps, Tooltip } from "antd";
+import { Card, Typography, Progress, Space, Row, Col, Tag, Steps, Tooltip, Button } from "antd";
 import {
   SyncOutlined,
   CheckCircleFilled,
@@ -10,6 +10,7 @@ import {
   InfoCircleOutlined,
 } from "@ant-design/icons";
 import { dataProvider } from "../../providers/dataProvider";
+import { TenantProgressModal } from "./modals/TenantProgressModal";
 
 const { Text } = Typography;
 
@@ -53,6 +54,7 @@ export const TenantProgressCard: React.FC<TenantProgressCardProps> = ({
     milestones: MilestoneItem[];
     executionArn?: string;
   } | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const fetchLiveStream = useCallback(async () => {
     if (!dataProvider.custom) return;
@@ -266,15 +268,35 @@ export const TenantProgressCard: React.FC<TenantProgressCardProps> = ({
                 </Text>
               </Tooltip>
             )}
+            <Button
+              type="primary"
+              ghost
+              size="small"
+              icon={<ThunderboltOutlined />}
+              onClick={() => setModalOpen(true)}
+              style={{ marginTop: 4, fontWeight: 600 }}
+            >
+              View Live Steps & Logs
+            </Button>
           </Space>
         </Col>
       </Row>
 
       {/* Real-time State Machine Milestone Stepper */}
       <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px dashed #d9d9d9" }}>
-        <Text strong style={{ fontSize: 12, color: "#475569", display: "block", marginBottom: 10 }}>
-          Execution Milestones:
-        </Text>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <Text strong style={{ fontSize: 12, color: "#475569" }}>
+            Execution Milestones:
+          </Text>
+          <Button
+            type="link"
+            size="small"
+            style={{ padding: 0, fontSize: 11 }}
+            onClick={() => setModalOpen(true)}
+          >
+            Click step to inspect live execution logs &rarr;
+          </Button>
+        </div>
         <Row gutter={[8, 8]}>
           {displayMilestones.map((m) => {
             const isDone = m.status === "completed";
@@ -301,8 +323,9 @@ export const TenantProgressCard: React.FC<TenantProgressCardProps> = ({
 
             return (
               <Col xs={12} sm={8} md={4} key={m.id}>
-                <Tooltip title={m.description}>
+                <Tooltip title={`${m.description} (Click to inspect live steps & logs)`}>
                   <div
+                    onClick={() => setModalOpen(true)}
                     style={{
                       background: badgeBg,
                       border: `1px solid ${badgeBorder}`,
@@ -310,7 +333,7 @@ export const TenantProgressCard: React.FC<TenantProgressCardProps> = ({
                       padding: "6px 8px",
                       textAlign: "center",
                       transition: "all 0.3s ease",
-                      cursor: "default",
+                      cursor: "pointer",
                     }}
                   >
                     <div style={{ fontSize: 12, fontWeight: isActive ? 600 : 500, color: badgeColor }}>
@@ -327,6 +350,13 @@ export const TenantProgressCard: React.FC<TenantProgressCardProps> = ({
           })}
         </Row>
       </div>
+
+      <TenantProgressModal
+        visible={modalOpen}
+        onClose={() => setModalOpen(false)}
+        tenantId={tenantId || null}
+        initialStatus={currentStatus}
+      />
     </Card>
   );
 };

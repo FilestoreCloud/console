@@ -9,153 +9,174 @@ import {
   CloseCircleOutlined,
 } from "@ant-design/icons";
 
-export const renderStatusTag = (status: string, record?: any): React.ReactNode => {
+export const renderStatusTag = (
+  status: string,
+  record?: any,
+  onProgressClick?: (record: any) => void
+): React.ReactNode => {
+  const isClickable = !!onProgressClick;
+  const wrapClickable = (node: React.ReactNode, tooltipTitle: string) => {
+    return (
+      <Tooltip title={tooltipTitle}>
+        <div
+          onClick={(e) => {
+            if (onProgressClick && record) {
+              e.stopPropagation();
+              onProgressClick(record);
+            }
+          }}
+          style={{
+            cursor: isClickable ? "pointer" : "default",
+            display: "inline-block",
+            width: "100%",
+          }}
+        >
+          {node}
+        </div>
+      </Tooltip>
+    );
+  };
+
   switch (status) {
     case "ACTIVE":
       return <Tag color="success" icon={<CheckCircleOutlined />}>ACTIVE</Tag>;
     case "PROVISIONING": {
       const progress = Number(record?.progress || 20);
       const step = record?.current_step || "Provisioning AWS resources...";
-      return (
-        <Tooltip title={`Step: ${step}`}>
-          <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
-            <Tag color="processing" icon={<SyncOutlined spin />}>
-              PROVISIONING ({progress}%)
-            </Tag>
-            <Progress
-              percent={progress}
-              size="small"
-              status="active"
-              showInfo={false}
-              strokeColor={{ "0%": "#108ee9", "100%": "#52c41a" }}
-              style={{ margin: 0 }}
-            />
-            <Typography.Text type="secondary" ellipsis style={{ fontSize: 11, maxWidth: 180 }}>
-              {step}
-            </Typography.Text>
-          </Space>
-        </Tooltip>
+      return wrapClickable(
+        <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
+          <Tag color="processing" icon={<SyncOutlined spin />}>
+            PROVISIONING ({progress}%)
+          </Tag>
+          <Progress
+            percent={progress}
+            size="small"
+            status="active"
+            showInfo={false}
+            strokeColor={{ "0%": "#108ee9", "100%": "#52c41a" }}
+            style={{ margin: 0 }}
+          />
+          <Typography.Text type="secondary" ellipsis style={{ fontSize: 11, maxWidth: 180 }}>
+            {step}
+          </Typography.Text>
+        </Space>,
+        `Click to view live steps & execution logs (${step})`
       );
     }
     case "DELETING":
     case "DEPROVISIONING": {
       const progress = Number(record?.progress || 15);
       const step = record?.current_step || "Tearing down dedicated AWS resources...";
-      return (
-        <Tooltip title={`Step: ${step}`}>
-          <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
-            <Tag color="error" icon={<SyncOutlined spin />}>
-              DELETING ({progress}%)
-            </Tag>
-            <Progress
-              percent={progress}
-              size="small"
-              status="exception"
-              showInfo={false}
-              strokeColor={{ "0%": "#faad14", "100%": "#ff4d4f" }}
-              style={{ margin: 0 }}
-            />
-            <Typography.Text ellipsis style={{ fontSize: 11, maxWidth: 180, color: "#ff4d4f" }}>
-              {step}
-            </Typography.Text>
-          </Space>
-        </Tooltip>
+      return wrapClickable(
+        <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
+          <Tag color="error" icon={<SyncOutlined spin />}>
+            DELETING ({progress}%)
+          </Tag>
+          <Progress
+            percent={progress}
+            size="small"
+            status="exception"
+            showInfo={false}
+            strokeColor={{ "0%": "#faad14", "100%": "#ff4d4f" }}
+            style={{ margin: 0 }}
+          />
+          <Typography.Text ellipsis style={{ fontSize: 11, maxWidth: 180, color: "#ff4d4f" }}>
+            {step}
+          </Typography.Text>
+        </Space>,
+        `Click to view live steps & execution logs (${step})`
       );
     }
     case "SUSPENDING": {
       const progress = Number(record?.progress || 30);
       const step = record?.current_step || "Scaling tasks to 0 & draining traffic...";
-      return (
-        <Tooltip title={`Step: ${step}`}>
-          <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
-            <Tag color="warning" icon={<SyncOutlined spin />}>
-              SUSPENDING ({progress}%)
-            </Tag>
-            <Progress
-              percent={progress}
-              size="small"
-              status="active"
-              showInfo={false}
-              strokeColor="#fa8c16"
-              style={{ margin: 0 }}
-            />
-            <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#d46b08" }} ellipsis>
-              {step}
-            </Typography.Text>
-          </Space>
-        </Tooltip>
+      return wrapClickable(
+        <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
+          <Tag color="warning" icon={<SyncOutlined spin />}>
+            SUSPENDING ({progress}%)
+          </Tag>
+          <Progress
+            percent={progress}
+            size="small"
+            status="active"
+            showInfo={false}
+            strokeColor="#fa8c16"
+            style={{ margin: 0 }}
+          />
+          <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#d46b08" }} ellipsis>
+            {step}
+          </Typography.Text>
+        </Space>,
+        `Click to view live steps & execution logs (${step})`
       );
     }
     case "RESUMING": {
       const progress = Number(record?.progress || 25);
       const step = record?.current_step || "Scaling tasks to 1 & verifying container health...";
-      return (
-        <Tooltip title={`Step: ${step}`}>
-          <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
-            <Tag color="cyan" icon={<SyncOutlined spin />}>
-              RESUMING ({progress}%)
-            </Tag>
-            <Progress
-              percent={progress}
-              size="small"
-              status="active"
-              showInfo={false}
-              strokeColor="#13c2c8"
-              style={{ margin: 0 }}
-            />
-            <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#08979c" }} ellipsis>
-              {step}
-            </Typography.Text>
-          </Space>
-        </Tooltip>
+      return wrapClickable(
+        <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
+          <Tag color="cyan" icon={<SyncOutlined spin />}>
+            RESUMING ({progress}%)
+          </Tag>
+          <Progress
+            percent={progress}
+            size="small"
+            status="active"
+            showInfo={false}
+            strokeColor="#13c2c8"
+            style={{ margin: 0 }}
+          />
+          <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#08979c" }} ellipsis>
+            {step}
+          </Typography.Text>
+        </Space>,
+        `Click to view live steps & execution logs (${step})`
       );
     }
     case "SEEDING": {
       const progress = Number(record?.progress || 20);
       const step = record?.current_step || "Seeding demo accounts and files...";
-      return (
-        <Tooltip title={`Step: ${step}`}>
-          <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
-            <Tag color="purple" icon={<SyncOutlined spin />}>
-              SEEDING ({progress}%)
-            </Tag>
-            <Progress
-              percent={progress}
-              size="small"
-              status="active"
-              showInfo={false}
-              strokeColor="#722ed1"
-              style={{ margin: 0 }}
-            />
-            <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#531dab" }} ellipsis>
-              {step}
-            </Typography.Text>
-          </Space>
-        </Tooltip>
+      return wrapClickable(
+        <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
+          <Tag color="purple" icon={<SyncOutlined spin />}>
+            SEEDING ({progress}%)
+          </Tag>
+          <Progress
+            percent={progress}
+            size="small"
+            status="active"
+            showInfo={false}
+            strokeColor="#722ed1"
+            style={{ margin: 0 }}
+          />
+          <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#531dab" }} ellipsis>
+            {step}
+          </Typography.Text>
+        </Space>,
+        `Click to view live steps & execution logs (${step})`
       );
     }
     case "UPGRADING": {
       const progress = Number(record?.progress || 25);
       const step = record?.current_step || "Rolling ECS container image upgrade in progress...";
-      return (
-        <Tooltip title={`Step: ${step}`}>
-          <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
-            <Tag color="geekblue" icon={<SyncOutlined spin />}>
-              UPGRADING ({progress}%)
-            </Tag>
-            <Progress
-              percent={progress}
-              size="small"
-              status="active"
-              showInfo={false}
-              strokeColor="#2f54eb"
-              style={{ margin: 0 }}
-            />
-            <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#1d39c4" }} ellipsis>
-              {step}
-            </Typography.Text>
-          </Space>
-        </Tooltip>
+      return wrapClickable(
+        <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
+          <Tag color="geekblue" icon={<SyncOutlined spin />}>
+            UPGRADING ({progress}%)
+          </Tag>
+          <Progress
+            percent={progress}
+            size="small"
+            status="active"
+            showInfo={false}
+            strokeColor="#2f54eb"
+            style={{ margin: 0 }}
+          />
+          <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#1d39c4" }} ellipsis>
+            {step}
+          </Typography.Text>
+        </Space>,
+        `Click to view live steps & execution logs (${step})`
       );
     }
     case "FAILED":
