@@ -8,14 +8,26 @@
 # Storix Super Admin Console
 
 <p align="center">
-  <a href="#test-status--frontend-quality-scorecard"><img src="https://img.shields.io/badge/CI%2FCD-Quality%20Gate%20Passing-brightgreen?style=flat-square&logo=githubactions" alt="CI Quality Gate"></a>
-  <a href="#test-status--frontend-quality-scorecard"><img src="https://img.shields.io/badge/Vitest-64%2F64%20Passed%20(14%20Suites)-brightgreen?style=flat-square&logo=vitest" alt="Vitest Passed"></a>
-  <a href="#test-status--frontend-quality-scorecard"><img src="https://img.shields.io/badge/Coverage-94.8%25%20Lines%20%7C%20100%25%20Funcs-brightgreen?style=flat-square&logo=v8" alt="V8 Coverage"></a>
-  <a href="#test-status--frontend-quality-scorecard"><img src="https://img.shields.io/badge/Passkeys-WebAuthn%20%2B%20FIDO2-blue?style=flat-square&logo=fido" alt="WebAuthn Passkeys"></a>
-  <a href="#test-status--frontend-quality-scorecard"><img src="https://img.shields.io/badge/Smart%20Polling-Page%20Visibility%20API-blue?style=flat-square" alt="Smart Polling"></a>
-  <a href="#test-status--frontend-quality-scorecard"><img src="https://img.shields.io/badge/Async%20OCC-Streaming%20Terminal-purple?style=flat-square" alt="Async OCC"></a>
-  <a href="#test-status--frontend-quality-scorecard"><img src="https://img.shields.io/badge/Bundle%20Budget-%3C%20500%20KB%20Chunk-blue?style=flat-square&logo=vite" alt="Bundle Budget"></a>
+  <a href="#-test-status--frontend-quality-scorecard"><img src="https://img.shields.io/badge/CI%2FCD-Quality%20Gate%20Passing-brightgreen?style=flat-square&logo=githubactions" alt="CI Quality Gate"></a>
+  <a href="#-test-status--frontend-quality-scorecard"><img src="https://img.shields.io/badge/Vitest-68%2F68%20Passed%20(15%20Suites)-brightgreen?style=flat-square&logo=vitest" alt="Vitest Passed"></a>
+  <a href="#-test-status--frontend-quality-scorecard"><img src="https://img.shields.io/badge/Coverage-94.8%25%20Lines%20%7C%20100%25%20Funcs-brightgreen?style=flat-square&logo=v8" alt="V8 Coverage"></a>
+  <a href="#-test-status--frontend-quality-scorecard"><img src="https://img.shields.io/badge/Passkeys-WebAuthn%20%2B%20FIDO2-blue?style=flat-square&logo=fido" alt="WebAuthn Passkeys"></a>
+  <a href="#-test-status--frontend-quality-scorecard"><img src="https://img.shields.io/badge/Responsive-Mobile%20%2B%20Tablet%20Ready-brightgreen?style=flat-square" alt="Responsive Design"></a>
+  <a href="#-test-status--frontend-quality-scorecard"><img src="https://img.shields.io/badge/Smart%20Polling-Page%20Visibility%20API-blue?style=flat-square" alt="Smart Polling"></a>
+  <a href="#-test-status--frontend-quality-scorecard"><img src="https://img.shields.io/badge/Async%20OCC-Streaming%20Terminal-purple?style=flat-square" alt="Async OCC"></a>
+  <a href="#-test-status--frontend-quality-scorecard"><img src="https://img.shields.io/badge/Bundle%20Budget-%3C%20500%20KB%20Chunk-blue?style=flat-square&logo=vite" alt="Bundle Budget"></a>
 </p>
+
+<p align="center">
+  <a href="#-architecture-overview"><strong>Architecture</strong></a> ·
+  <a href="#-key-features"><strong>Key Features</strong></a> ·
+  <a href="#-responsive-design--mobile-experience"><strong>Responsive Design</strong></a> ·
+  <a href="#-test-status--frontend-quality-scorecard"><strong>Quality Scorecard</strong></a> ·
+  <a href="#-getting-started"><strong>Quickstart</strong></a> ·
+  <a href="https://github.com/FilestoreCloud/docs"><strong>Documentation</strong></a>
+</p>
+
+---
 
 Enterprise Super Admin Web Console for multi-tenant Nextcloud on AWS, built with **React 18**, **Refine v4**, **Ant Design 5**, **TypeScript 5**, and **Vite**.
 
@@ -30,14 +42,15 @@ Enterprise Super Admin Web Console for multi-tenant Nextcloud on AWS, built with
 | **Smart Polling & Page Visibility** | `vitest` | **4** | `usePageVisibility`, `useSmartInterval` tab hide auto-pause, 2-minute user inactivity backoff | ![Passing](https://img.shields.io/badge/4%20passed-brightgreen?style=flat-square) |
 | **Property-Based Fuzzing** | `fast-check` | **2** | 50 iterations each: Arbitrary query parameters, pagination boundary conditions | ![Passing](https://img.shields.io/badge/50%20runs%20passed-brightgreen?style=flat-square) |
 | **Accessibility (A11y)** | `axe-core` | **2** | **WCAG 2.1 AA Compliant**: Zero critical/serious violations on Header & Login controls | ![Passing](https://img.shields.io/badge/WCAG%202.1%20AA-brightgreen?style=flat-square) |
+| **Responsive Layout & CSS Audit** | `vitest` / RTL | **3** | Mobile drawer toggle button accessibility, table touch scrolling container, responsive breakpoints | ![Passing](https://img.shields.io/badge/3%20passed-brightgreen?style=flat-square) |
 | **Runtime Data Schemas** | `zod` | **5** | Type-safe tenant state, schema parsing, negative quota rejection, enum guards | ![Passing](https://img.shields.io/badge/5%20passed-brightgreen?style=flat-square) |
 | **Access Control Matrix** | `vitest` | **5** | Dynamic resource permission resolution, role hierarchy enforcement | ![Passing](https://img.shields.io/badge/5%20passed-brightgreen?style=flat-square) |
 | **Tenant Fleet Operations** | `vitest` / RTL | **6** | TenantListPage (4), TenantShowPage deep multi-tab operational controls (2) | ![Passing](https://img.shields.io/badge/6%20passed-brightgreen?style=flat-square) |
 | **Admin Login & Passkey Flow** | `vitest` / RTL | **5** | Empty field guards, transition to Step 2 MFA on `MFA_REQUIRED`, WebAuthn Passkeys button | ![Passing](https://img.shields.io/badge/5%20passed-brightgreen?style=flat-square) |
 | **Audit Logs & Webhooks** | `vitest` / RTL | **2** | AuditLogListPage table rendering, WebhooksSettingsPage management | ![Passing](https://img.shields.io/badge/2%20passed-brightgreen?style=flat-square) |
-| **UI Header & Navigation** | `vitest` / RTL | **5** | Cluster environment badge, dark/light theme toggle, tenant breadcrumb | ![Passing](https://img.shields.io/badge/5%20passed-brightgreen?style=flat-square) |
+| **UI Header & Navigation** | `vitest` / RTL | **6** | Cluster environment badge, dark/light theme toggle, tenant breadcrumb, mobile sider toggle | ![Passing](https://img.shields.io/badge/6%20passed-brightgreen?style=flat-square) |
 | **Bundle Budget Enforcement** | `rollup` / `vitest` | **1** | Automated build assertion: Every code-split vendor chunk strictly **< 500 KB** | ![Passing](https://img.shields.io/badge/%3C%20500KB%20Chunk-brightgreen?style=flat-square) |
-| **Total Console Tests** | **Full Vitest Suite** | **64 / 64 (100%)** | **94.8% Line Coverage (Core Providers & Schemas)** | ![Passing](https://img.shields.io/badge/100%25%20Passing-brightgreen?style=flat-square) |
+| **Total Console Tests** | **Full Vitest Suite** | **68 / 68 (100%)** | **94.8% Line Coverage (Core Providers & Schemas) · 15 Test Suites** | ![Passing](https://img.shields.io/badge/100%25%20Passing-brightgreen?style=flat-square) |
 
 ---
 
@@ -53,6 +66,21 @@ The Super Admin Console provides a decoupled, secure control plane for managing 
 - **Async OCC Command Job Engine:** Execute heavy administrative OCC operations (`files:scan`, `db:add-missing-indices`) asynchronously without API Gateway timeout constraints.
 - **Fleet Telemetry & Operational Control:** Real-time metrics visualization via Apache ECharts, live Amazon CloudWatch log streaming (`/ecs/nextcloud`), and automated incident management.
 - **Tenant Lifecycle Orchestration:** Step Functions SAGAs and dedicated container-per-tenant lifecycle provisioning.
+
+---
+
+## 📱 Responsive Design & Mobile Experience
+
+The console features a comprehensive mobile and tablet responsive layout system (`src/responsive.css`):
+
+1. **Collapsible Mobile Sider Drawer:**
+   - Under `992px` viewport width, the fixed desktop sidebar transforms into an accessible slide-over Drawer toggled via the Header menu button.
+2. **Horizontal Touch Scrolling on Data Tables:**
+   - All high-density fleet tables (`TenantTable`, `AuditLog`, `Telemetry`, `FinOps`) are wrapped with `-webkit-overflow-scrolling: touch` and fixed column widths, preventing outer viewport overflow.
+3. **Responsive Cards & Metric Displays:**
+   - Card headers automatically wrap (`flex-wrap: wrap`) on screens `< 768px`, ensuring action buttons, filters, and refresh toggles remain accessible without truncation.
+4. **Adaptive Modal Sizing:**
+   - Modals (`TenantForkModal`, `CreateModal`, `CloneModal`, `IncidentModal`) dynamically adapt to `95vw` on mobile screens with responsive action buttons.
 
 ---
 
@@ -92,14 +120,14 @@ npm run dev
 
 ```bash
 npm run build
-# Generates optimized production assets in dist/
+# Runs type checking (tsc --noEmit) and generates optimized production assets in dist/
 ```
 
 ### Automated Testing
 
 ```bash
 npm test
-# Runs 64/64 Vitest tests across 14 suites
+# Runs 68/68 Vitest tests across 15 suites with code coverage and a11y verification
 ```
 
 ---
