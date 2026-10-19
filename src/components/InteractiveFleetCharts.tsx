@@ -133,7 +133,19 @@ export const InteractiveFleetEcsChart: React.FC<{
     chart.setOption(option);
     const handleResize = () => chart.resize();
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined" && chartRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        chart.resize();
+      });
+      resizeObserver.observe(chartRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      resizeObserver?.disconnect();
+    };
   }, [data]);
 
   useEffect(() => {
@@ -251,7 +263,19 @@ export const InteractiveFleetAlbChart: React.FC<{
     chart.setOption(option);
     const handleResize = () => chart.resize();
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined" && chartRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        chart.resize();
+      });
+      resizeObserver.observe(chartRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      resizeObserver?.disconnect();
+    };
   }, [data]);
 
   useEffect(() => {
@@ -367,7 +391,19 @@ export const InteractiveFleetLifecycleChart: React.FC<{
     chart.setOption(option);
     const handleResize = () => chart.resize();
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined" && chartRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        chart.resize();
+      });
+      resizeObserver.observe(chartRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      resizeObserver?.disconnect();
+    };
   }, []);
 
   useEffect(() => {

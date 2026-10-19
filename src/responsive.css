@@ -1,0 +1,134 @@
+/* Responsive styling and mobile optimizations for Storix Super Admin Console */
+
+/* Header responsive visibility */
+.mobile-sider-toggle {
+  display: none !important;
+}
+
+@media (max-width: 991px) {
+  .mobile-sider-toggle {
+    display: inline-flex !important;
+  }
+
+  .header-cw-text {
+    display: none !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .header-region-tag {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-role-text {
+    display: none !important;
+  }
+
+  /* Responsive card headers and padding */
+  .ant-card-head-wrapper {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    row-gap: 8px !important;
+  }
+
+  .ant-card-head {
+    min-height: 48px !important;
+    padding: 10px 14px !important;
+  }
+
+  .ant-card-head-title {
+    white-space: normal !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  .ant-card-extra {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+
+  .ant-card-body {
+    padding: 14px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .header-online-text {
+    display: none !important;
+  }
+
+  .header-theme-text {
+    display: none !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .header-cmd-btn {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-user-name {
+    display: none !important;
+  }
+
+  .ant-card-body {
+    padding: 12px 10px !important;
+  }
+
+  .ant-table-wrapper .ant-table-cell {
+    padding: 8px 8px !important;
+  }
+}
+
+/* Ensure table container never forces outer viewport horizontal scroll */
+.ant-table-wrapper {
+  max-width: 100%;
+}
+
+.ant-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive modal sizing for mobile */
+@media (max-width: 600px) {
+  .ant-modal {
+    max-width: 95vw !important;
+    margin: 16px auto !important;
+    top: 20px !important;
+  }
+}
+
+/* Smooth horizontal scroll for tab bars on tablet and mobile */
+.ant-tabs-nav-wrap {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* Stacking for compact webhook input groups on mobile */
+@media (max-width: 576px) {
+  .webhook-compact-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .webhook-compact-group > * {
+    border-radius: 6px !important;
+    width: 100% !important;
+  }
+}
+
+/* Align tenant progress card meta to left on mobile */
+@media (max-width: 768px) {
+  .tenant-progress-aside {
+    text-align: left !important;
+  }
+  .tenant-progress-aside .ant-space {
+    align-items: flex-start !important;
+  }
+}
+

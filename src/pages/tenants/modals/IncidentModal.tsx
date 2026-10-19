@@ -58,7 +58,7 @@ export const IncidentModal: React.FC<IncidentModalProps> = ({
         </Form.Item>
 
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={12}>
             <Form.Item
               name="severity"
               label="Severity Level"
@@ -72,7 +72,7 @@ export const IncidentModal: React.FC<IncidentModalProps> = ({
               </Select>
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col xs={24} sm={12}>
             <Form.Item
               name="incident_state"
               label="Resolution State"

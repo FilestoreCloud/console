@@ -159,9 +159,9 @@ export const WebhooksSettings: React.FC = () => {
       <Card
         style={{ marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
       >
-        <Row justify="space-between" align="middle">
-          <Col>
-            <Space align="center" size={12}>
+        <Row justify="space-between" align="middle" gutter={[16, 16]}>
+          <Col xs={24} lg={16}>
+            <Space align="center" size={12} wrap>
               <div
                 style={{
                   width: 44,
@@ -171,6 +171,7 @@ export const WebhooksSettings: React.FC = () => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  flexShrink: 0,
                 }}
               >
                 <BellOutlined style={{ fontSize: 24, color: "#d97706" }} />
@@ -186,8 +187,8 @@ export const WebhooksSettings: React.FC = () => {
               </div>
             </Space>
           </Col>
-          <Col>
-            <Space>
+          <Col xs={24} lg={8}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-end" }}>
               <Button
                 icon={<SyncOutlined />}
                 onClick={loadConfig}
@@ -204,7 +205,7 @@ export const WebhooksSettings: React.FC = () => {
               >
                 Save Configuration
               </Button>
-            </Space>
+            </div>
           </Col>
         </Row>
       </Card>
@@ -282,7 +283,7 @@ export const WebhooksSettings: React.FC = () => {
                     </Tag>
                   )}
                 </div>
-                <Space.Compact style={{ width: "100%" }}>
+                <Space.Compact className="webhook-compact-group" style={{ width: "100%" }}>
                   <Form.Item
                     name="slack_url"
                     style={{ flex: 1, marginBottom: 0 }}
@@ -330,7 +331,7 @@ export const WebhooksSettings: React.FC = () => {
                     </Tag>
                   )}
                 </div>
-                <Space.Compact style={{ width: "100%" }}>
+                <Space.Compact className="webhook-compact-group" style={{ width: "100%" }}>
                   <Form.Item
                     name="discord_url"
                     style={{ flex: 1, marginBottom: 0 }}
@@ -380,7 +381,7 @@ export const WebhooksSettings: React.FC = () => {
                     </Tag>
                   )}
                 </div>
-                <Space.Compact style={{ width: "100%" }}>
+                <Space.Compact className="webhook-compact-group" style={{ width: "100%" }}>
                   <Form.Item
                     name="pagerduty_key"
                     style={{ flex: 1, marginBottom: 0 }}
@@ -430,7 +431,7 @@ export const WebhooksSettings: React.FC = () => {
                     </Tag>
                   )}
                 </div>
-                <Space.Compact style={{ width: "100%" }}>
+                <Space.Compact className="webhook-compact-group" style={{ width: "100%" }}>
                   <Form.Item
                     name="custom_url"
                     style={{ flex: 1, marginBottom: 0 }}

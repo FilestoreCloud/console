@@ -102,7 +102,7 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
         <Form.Item
           name="is_demo"
           label={
-            <Space>
+            <Space wrap>
               <ExperimentOutlined style={{ color: "#722ed1" }} />
               <span>Provision Mode: Demo Tenant (Auto-Seed Showcase Data)</span>
             </Space>

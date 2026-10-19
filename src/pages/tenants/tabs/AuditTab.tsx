@@ -23,6 +23,7 @@ export const AuditTab: React.FC<AuditTabProps> = ({
         rowKey="event_id"
         pagination={{ pageSize: 10 }}
         size="small"
+        scroll={{ x: 750 }}
         locale={{
           emptyText: "No audit events recorded yet for this tenant.",
         }}

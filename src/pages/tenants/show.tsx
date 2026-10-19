@@ -130,7 +130,7 @@ export const TenantShow: React.FC = () => {
       { resource: "tenants", id: tenantId, values: { action: "RESET_TENANT_ACCOUNT_PASSWORD", username } },
       {
         onSuccess: (res: any) => {
-          const tempPwd = res?.data?.temporary_password || "Tmp_Secret987!";
+          const tempPwd = res?.data?.temporary_password || res?.data?.password || "Tmp_Secret987!";
           setTempPasswordInfo({ username, password: tempPwd });
           setResetPasswordModalVisible(true);
           message.success(`Password reset generated for '${username}'`);
@@ -324,6 +324,7 @@ export const TenantShow: React.FC = () => {
         resetPasswordModalVisible={resetPasswordModalVisible}
         setResetPasswordModalVisible={setResetPasswordModalVisible}
         tempPasswordInfo={tempPasswordInfo}
+        setTempPasswordInfo={setTempPasswordInfo}
         cloneModalVisible={cloneModalVisible}
         setCloneModalVisible={setCloneModalVisible}
         cloneForm={cloneForm}

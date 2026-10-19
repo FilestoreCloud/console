@@ -223,6 +223,7 @@ export const FinOpsTab: React.FC<FinOpsTabProps> = ({
           dataSource={costBreakdownData}
           pagination={false}
           size="middle"
+          scroll={{ x: 650 }}
         />
       </Card>
 

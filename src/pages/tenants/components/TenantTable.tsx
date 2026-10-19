@@ -110,6 +110,7 @@ export const TenantTable: React.FC<TenantTableProps> = ({
       title: "Tenant Identifier",
       dataIndex: "tenant_id",
       key: "tenant_id",
+      width: 180,
       render: (tid: string, record: any) => (
         <div>
           <div style={{ display: "flex", alignItems: "center" }}>
@@ -148,6 +149,7 @@ export const TenantTable: React.FC<TenantTableProps> = ({
       title: "Dedicated Ingress",
       dataIndex: "domain",
       key: "domain",
+      width: 220,
       render: (domain: string, record: any) => {
         const fullDomain = domain || `${record.tenant_id}.png261.dev`;
         return (
@@ -177,6 +179,7 @@ export const TenantTable: React.FC<TenantTableProps> = ({
       title: "Admin Contact",
       dataIndex: "admin_email",
       key: "admin_email",
+      width: 170,
       render: (email: string) => (
         <Text style={{ fontSize: 13 }}>{email || "admin@acme.com"}</Text>
       ),
@@ -185,17 +188,20 @@ export const TenantTable: React.FC<TenantTableProps> = ({
       title: "Quota",
       dataIndex: "quota_gb",
       key: "quota_gb",
+      width: 100,
       render: (quota: any) => <Tag color="blue">{quota || 100} GB</Tag>,
     },
     {
       title: "Status & Progress",
       dataIndex: "status",
       key: "status",
+      width: 180,
       render: (st: string, record: any) => renderStatusTag(st, record),
     },
     {
       title: "Isolated Infrastructure",
       key: "infra",
+      width: 240,
       render: (_: any, record: any) => {
         const svc = record.service_name || `service-${record.tenant_id}`;
         const db =
@@ -226,6 +232,7 @@ export const TenantTable: React.FC<TenantTableProps> = ({
     {
       title: "Actions",
       key: "actions",
+      width: 290,
       align: "right" as const,
       render: (_: any, record: any) => {
         const isActive = record.status === "ACTIVE";
@@ -239,7 +246,7 @@ export const TenantTable: React.FC<TenantTableProps> = ({
           "UPGRADING",
         ].includes(record.status);
         return (
-          <Space>
+          <Space wrap size={4}>
             <Button
               size="small"
               type="primary"
@@ -341,7 +348,7 @@ export const TenantTable: React.FC<TenantTableProps> = ({
       {hasInFlightTenants && (
         <Alert
           message={
-            <Space>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
               <SyncOutlined spin style={{ color: "#1890ff" }} />
               <Text strong>AWS Step Functions Fleet Orchestration Active</Text>
               <span>
@@ -371,7 +378,7 @@ export const TenantTable: React.FC<TenantTableProps> = ({
                   .join(", ")}
                 ). Real-time progress is auto-polling every 2.5s.
               </span>
-            </Space>
+            </div>
           }
           type="info"
           showIcon={false}
@@ -387,11 +394,13 @@ export const TenantTable: React.FC<TenantTableProps> = ({
             border: "1px solid #adc6ff",
             borderRadius: 6,
             display: "flex",
+            flexWrap: "wrap",
             justifyContent: "space-between",
             alignItems: "center",
+            gap: 8,
           }}
         >
-          <Space>
+          <Space wrap>
             <Text strong>{selectedRowKeys.length} tenant(s) selected</Text>
             <Button
               size="small"
@@ -431,6 +440,7 @@ export const TenantTable: React.FC<TenantTableProps> = ({
         rowKey="id"
         loading={isLoading}
         pagination={{ pageSize: 10, showSizeChanger: true }}
+        scroll={{ x: 1200 }}
       />
 
       <Modal

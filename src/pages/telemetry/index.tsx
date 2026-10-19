@@ -90,14 +90,14 @@ export const TelemetryDashboard: React.FC = () => {
         style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
       >
         <Row justify="space-between" align="middle" gutter={[16, 16]}>
-          <Col>
-            <Space align="center" size="middle">
+          <Col xs={24} xl={12}>
+            <Space align="center" size="middle" wrap>
               <span style={{ fontSize: 22 }}>📡</span>
               <div>
                 <Text strong style={{ fontSize: 16, display: "block" }}>
                   Live CloudWatch Telemetry &amp; Metrics
                 </Text>
-                <Space>
+                <Space wrap>
                   <Tag color={intervalSec > 0 ? "processing" : "default"}>
                     {intervalSec > 0 ? `STREAMING (${countdown}s)` : "PAUSED"}
                   </Tag>
@@ -118,7 +118,7 @@ export const TelemetryDashboard: React.FC = () => {
             </Space>
           </Col>
 
-          <Col>
+          <Col xs={24} xl={12}>
             <Space wrap>
               {/* Tenant Filter */}
               <Select
@@ -170,8 +170,8 @@ export const TelemetryDashboard: React.FC = () => {
           <InteractiveMetricsChart
             tenantId={selectedTenant}
             clusterName="prod-storix-cluster"
-            history={tenantMetrics.history || []}
-            autoscalingTargetCpu={tenantMetrics.autoscaling_target_cpu || 70.0}
+            history={tenantMetrics.history || tenantMetrics.metrics?.history || []}
+            autoscalingTargetCpu={tenantMetrics.autoscaling_target_cpu || tenantMetrics.metrics?.autoscaling_target_cpu || 70.0}
             intervalSec={intervalSec}
             countdown={countdown}
             onRefresh={refreshAll}

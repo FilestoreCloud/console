@@ -146,16 +146,18 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
           <div
             style={{
               display: "flex",
+              flexWrap: "wrap",
               justifyContent: "space-between",
               alignItems: "center",
+              gap: 8,
             }}
           >
-            <Space>
+            <Space wrap>
               <CodeOutlined style={{ color: "#1652f0" }} />
               <span>Interactive Storix `occ` CLI Diagnostic Runner</span>
               <Tag color="geekblue">Container: service-{tenantId}</Tag>
             </Space>
-            <Space>
+            <Space wrap>
               <Space size={4}>
                 <Text type="secondary" style={{ fontSize: 12 }}>Async Mode</Text>
                 <Switch
@@ -334,8 +336,10 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
                 <div
                   style={{
                     display: "flex",
+                    flexWrap: "wrap",
                     justifyContent: "space-between",
                     alignItems: "center",
+                    gap: 6,
                   }}
                 >
                   <div>

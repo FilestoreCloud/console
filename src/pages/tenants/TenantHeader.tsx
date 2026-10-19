@@ -46,27 +46,29 @@ export const TenantHeader: React.FC<TenantHeaderProps> = ({
   return (
     <Card style={{ marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }} variant="borderless">
       <Row justify="space-between" align="middle" gutter={[16, 16]}>
-        <Col>
-          <Space align="center" size={12}>
+        <Col xs={24} xl={10}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
             <Button icon={<ArrowLeftOutlined />} onClick={onBack}>Fleet</Button>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ minWidth: 200, flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                 <Title level={4} style={{ margin: 0 }}>{tenantId}</Title>
                 {renderStatusTag(currentStatus, { progress, current_step: currentStep })}
               </div>
-              <div style={{ marginTop: 4 }}>
+              <div style={{ marginTop: 4, display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
                 <a href={`https://${domain}`} target="_blank" rel="noreferrer" style={{ fontWeight: 600, color: "#0284c7" }}>
                   https://{domain} <LinkOutlined style={{ fontSize: 11 }} />
                 </a>
-                <Text type="secondary" style={{ marginLeft: 12, fontSize: 12 }}>
-                  Admin: {adminEmail}
-                </Text>
+                {adminEmail && (
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    Admin: {adminEmail}
+                  </Text>
+                )}
               </div>
             </div>
-          </Space>
+          </div>
         </Col>
-        <Col>
-          <Space>
+        <Col xs={24} xl={14}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-start" }}>
             <Button icon={<ReloadOutlined />} onClick={onRefresh} loading={isLoading}>
               Refresh
             </Button>
@@ -111,7 +113,7 @@ export const TenantHeader: React.FC<TenantHeaderProps> = ({
                 </>
               );
             })()}
-          </Space>
+          </div>
         </Col>
       </Row>
     </Card>

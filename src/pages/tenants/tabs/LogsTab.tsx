@@ -78,7 +78,7 @@ export const LogsTab: React.FC<LogsTabProps> = ({
       <Card
         title={
           <Row justify="space-between" align="middle" gutter={[8, 8]}>
-            <Col>
+            <Col xs={24} lg={8}>
               <Space wrap>
                 <FileTextOutlined style={{ color: "#0284c7" }} />
                 <span>Container Log Stream</span>
@@ -88,7 +88,7 @@ export const LogsTab: React.FC<LogsTabProps> = ({
                 </Tag>
               </Space>
             </Col>
-            <Col>
+            <Col xs={24} lg={16}>
               <Space wrap>
                 <Select
                   size="small"
@@ -194,10 +194,12 @@ export const LogsTab: React.FC<LogsTabProps> = ({
                   key={idx}
                   style={{
                     display: "flex",
-                    gap: 10,
-                    padding: "4px 0",
+                    flexWrap: "wrap",
+                    rowGap: 4,
+                    columnGap: 10,
+                    padding: "6px 0",
                     borderBottom: "1px solid #111827",
-                    alignItems: "flex-start",
+                    alignItems: "center",
                   }}
                 >
                   <span
@@ -243,7 +245,7 @@ export const LogsTab: React.FC<LogsTabProps> = ({
                   </Tag>
                   <span
                     style={{
-                      flex: 1,
+                      flex: "1 1 240px",
                       whiteSpace: "pre-wrap",
                       wordBreak: "break-all",
                     }}

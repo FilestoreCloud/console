@@ -299,8 +299,8 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
           background: "#ffffff",
         }}
         title={
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Space>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+            <Space wrap>
               <ThunderboltOutlined style={{ color: "#1652f0" }} />
               <span style={{ fontWeight: 600 }}>State Machine Lifecycle Visualizer</span>
               {liveStream?.status === "RUNNING" ? (
@@ -314,7 +314,7 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
               )}
             </Space>
             {liveStream && (
-              <Space size={14}>
+              <Space wrap size={14}>
                 {liveStream.elapsedSeconds !== undefined && (
                   <Text type="secondary" style={{ fontSize: 12 }}>
                     <ClockCircleOutlined style={{ marginRight: 4 }} />
@@ -332,7 +332,7 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
         }
       >
         <Space direction="vertical" style={{ width: "100%" }} size={12}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
             <div>
               <Text strong style={{ fontSize: 14 }}>
                 Current Active Step:{" "}
@@ -431,8 +431,8 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
       {/* 2. Step Functions Workflow Executions Table */}
       <Card
         title={
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Space>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+            <Space wrap>
               <ApartmentOutlined style={{ color: "#1652f0" }} />
               <span>Step Functions Workflow Executions ({executions.length})</span>
             </Space>
@@ -461,6 +461,7 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
           dataSource={executions}
           rowKey="executionArn"
           size="small"
+          scroll={{ x: 750 }}
           pagination={{ pageSize: 5 }}
           rowClassName={(record) =>
             record.executionArn === selectedExecutionArn ? "ant-table-row-selected" : ""
@@ -677,12 +678,12 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
       {/* 4. Live CloudWatch Execution Logs */}
       <Card
         title={
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Space>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+            <Space wrap>
               <FileTextOutlined style={{ color: "#1652f0" }} />
               <span>Step Functions CloudWatch Structured Logs ({logs.length})</span>
             </Space>
-            <Space>
+            <Space wrap>
               <Input
                 placeholder="Search logs..."
                 prefix={<SearchOutlined />}
@@ -771,6 +772,7 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
           dataSource={obsData.traces || []}
           rowKey="id"
           size="small"
+          scroll={{ x: 650 }}
           pagination={{ pageSize: 5 }}
           columns={[
             {

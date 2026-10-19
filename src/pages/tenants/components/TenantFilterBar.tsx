@@ -32,21 +32,21 @@ export const TenantFilterBar: React.FC<TenantFilterBarProps> = ({
       variant="borderless"
       style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
     >
-      <Row justify="space-between" align="middle" gutter={[16, 16]}>
-        <Col xs={24} md={12}>
-          <Space style={{ width: "100%" }}>
+      <Row justify="space-between" align="middle" gutter={[12, 12]}>
+        <Col xs={24} lg={14}>
+          <Space wrap style={{ width: "100%" }}>
             <Input
               placeholder="Search Tenant ID, domain, email..."
               prefix={<SearchOutlined />}
               value={searchText}
               onChange={(e) => onSearchChange(e.target.value)}
-              style={{ width: 260 }}
+              style={{ minWidth: 200, maxWidth: 320 }}
               allowClear
             />
             <Select
               value={statusFilter}
               onChange={onStatusFilterChange}
-              style={{ width: 170 }}
+              style={{ width: 160 }}
               options={[
                 { value: "ALL", label: "All Statuses" },
                 { value: "ACTIVE", label: "Active Only" },
@@ -61,8 +61,8 @@ export const TenantFilterBar: React.FC<TenantFilterBarProps> = ({
           </Space>
         </Col>
 
-        <Col xs={24} md={12} style={{ textAlign: "right" }}>
-          <Space>
+        <Col xs={24} lg={10}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-end" }}>
             <Button
               icon={<ReloadOutlined />}
               onClick={onRefresh}
@@ -80,7 +80,7 @@ export const TenantFilterBar: React.FC<TenantFilterBarProps> = ({
                 Provision Dedicated Tenant
               </Button>
             )}
-          </Space>
+          </div>
         </Col>
       </Row>
     </Card>

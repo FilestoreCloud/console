@@ -83,7 +83,7 @@ export const TenantList: React.FC = () => {
       {
         onSuccess: () => {
           message.success(
-            `Tenant ${tenantId} ${action === "SUSPEND" ? "suspended" : "resumed"} successfully!`,
+            `Tenant ${tenantId} ${action === "SUSPEND" ? "suspension initiated" : "resumption initiated"}!`,
           );
           refetch();
         },
@@ -110,7 +110,7 @@ export const TenantList: React.FC = () => {
       { resource: "tenants", id: tenantId },
       {
         onSuccess: () => {
-          message.success(`Tenant ${tenantId} deleted successfully!`);
+          message.success(`Tenant ${tenantId} deprovisioning initiated!`);
           refetch();
         },
         onError: (err: any) => message.error(err?.message || "Deletion failed"),
@@ -133,7 +133,7 @@ export const TenantList: React.FC = () => {
       {
         onSuccess: () => {
           message.success(
-            `Tenant ${values.tenant_id} successfully provisioned!`,
+            `Tenant ${values.tenant_id} provisioning workflow initiated!`,
           );
           setModalVisible(false);
           refetch();
