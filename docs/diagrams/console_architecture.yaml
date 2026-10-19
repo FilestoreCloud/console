@@ -22,7 +22,7 @@ Diagram:
     SuperAdminActor:
       Type: AWS::Diagram::Resource
       Preset: "User"
-      Title: "Super Admin"
+      Title: "SaaS Super Admin\n(Role: SuperAdmin · Passkeys / MFA)\nFull Lifecycle, OCC & FinOps"
 
     # ─────────────────────────────────────────────────────────────
     # AWS CLOUD ENVIRONMENT
@@ -46,20 +46,20 @@ Diagram:
 
     Route53DNS:
       Type: AWS::Route53
-      Title: "Amazon Route 53"
+      Title: "Amazon Route 53\n(admin.png261.dev DNS)"
 
     ACMCert:
       Type: AWS::Diagram::Resource
       Preset: "AWS Certificate Manager (ACM)"
-      Title: "AWS Certificate Manager"
+      Title: "AWS ACM\n(Wildcard TLS 1.3 Certificate)"
 
     WAFProtection:
       Type: AWS::WAFv2
-      Title: "AWS WAF"
+      Title: "AWS WAFv2\n(WebACL Rate Limit & OWASP)"
 
     CloudFrontDist:
       Type: AWS::CloudFront
-      Title: "Amazon CloudFront"
+      Title: "Amazon CloudFront\n(admin.png261.dev CDN Edge)\nSPA Fallback & /api* Routing"
 
     # Region with Console Services & Managed SaaS Fleet
     ConsoleCoreRegion:
@@ -88,15 +88,15 @@ Diagram:
 
     AdminWebS3Bucket:
       Type: AWS::S3::Bucket
-      Title: "Amazon S3"
+      Title: "Amazon S3 Admin Web\n(React 18 SPA + Smart Polling)\nPage Visibility API Auto-Pause"
 
     CognitoUserPool:
       Type: AWS::Cognito::UserPool
-      Title: "Amazon Cognito"
+      Title: "Cognito & WebAuthn Passkeys\n(Biometric FIDO2 & TOTP MFA)\nSecure Session Auth"
 
     AdminUsersTable:
       Type: AWS::DynamoDB::Table
-      Title: "Amazon DynamoDB"
+      Title: "DynamoDB Admin Users\n(PBKDF2 Hashes & Passkey Credentials)"
 
     OrchestrationRow:
       Type: AWS::Diagram::HorizontalStack
@@ -108,21 +108,21 @@ Diagram:
 
     StepFunctionsMicroWorkflows:
       Type: AWS::StepFunctions::StateMachine
-      Title: "AWS Step Functions"
+      Title: "Step Functions Workflows\n(Provision, Suspend, Resume,\nDeprovision with Saga Rollback)"
 
     StepFunctionsExecutionRole:
       Type: AWS::IAM::Role
-      Title: "AWS IAM"
+      Title: "Step Functions IAM Role\n(Least Privilege Micro-Workflows)"
 
     BackendApiHandler:
       Type: AWS::Diagram::Resource
       Preset: "Application Load Balancer"
-      Title: "Application Load Balancer"
+      Title: "Control Plane API Origin\n(HttpOnly saas_admin_session\n& Modular Lambda Routers)"
 
     AsyncOccJobEngine:
       Type: AWS::Diagram::Resource
       Preset: "Amazon EventBridge"
-      Title: "Amazon EventBridge"
+      Title: "Async OCC Job Engine\n(Non-Blocking Commands\n& Real-Time Execution Polling)"
 
     StateAndComplianceRow:
       Type: AWS::Diagram::HorizontalStack
@@ -133,16 +133,16 @@ Diagram:
 
     TenantRegistryTable:
       Type: AWS::DynamoDB::Table
-      Title: "Amazon DynamoDB"
+      Title: "DynamoDB Tenant Registry\n(Lifecycle State, Quotas & Domains)"
 
     AuditLogsTable:
       Type: AWS::DynamoDB::Table
-      Title: "Amazon DynamoDB"
+      Title: "DynamoDB Audit Logs\n(Immutable 1-Year TTL Ledger)"
 
     AuditLogGroup:
       Type: AWS::Diagram::Resource
       Preset: "Logs"
-      Title: "Amazon CloudWatch Logs"
+      Title: "CloudWatch Audit Log Group\n(/aws/audit/control-plane 365d)"
 
     TelemetryRow:
       Type: AWS::Diagram::HorizontalStack
@@ -153,16 +153,16 @@ Diagram:
 
     CloudWatchDashboard:
       Type: AWS::CloudWatch
-      Title: "Amazon CloudWatch"
+      Title: "CloudWatch Dashboard & EMF\n(Real-Time Tenant Telemetry)"
 
     SyntheticsCanaryMonitor:
       Type: AWS::Diagram::Resource
       Preset: "Synthetics"
-      Title: "Amazon CloudWatch Synthetics"
+      Title: "Synthetics Canary Monitor\n(24/7 Endpoint Probes & SLA)"
 
     SSMParams:
       Type: AWS::SSM::Parameter
-      Title: "AWS Systems Manager"
+      Title: "SSM Parameter Store\n(/nextcloud/prod/control-plane/*)"
 
     # Managed Nextcloud Fleet (Target Infrastructure Managed by Console)
     ManagedFleetStack:
@@ -180,11 +180,11 @@ Diagram:
     ECSFleet:
       Type: AWS::Diagram::Resource
       Preset: "AWS Fargate"
-      Title: "Amazon ECS"
+      Title: "Amazon ECS Fargate Fleet\n(AWS Graviton ARM64 · SOCI Start)\ndesiredCount: 0 (Suspend) / 1 (Active)"
 
     RDSFleet:
       Type: AWS::RDS::DBInstance
-      Title: "Amazon RDS"
+      Title: "Amazon RDS PostgreSQL 16\n(RDS Proxy Pooled Connections)\nDedicated Catalogs: nc_acme, nc_marvel"
 
     FleetStorageRow:
       Type: AWS::Diagram::HorizontalStack
@@ -194,12 +194,12 @@ Diagram:
 
     S3VaultFleet:
       Type: AWS::S3::Bucket
-      Title: "Amazon S3"
+      Title: "Amazon S3 Vault Bucket\n(Intelligent-Tiering · 180d Glacier)\nQuota Enforcement & Lifecycle"
 
     EFSConfigFleet:
       Type: AWS::Diagram::Resource
       Preset: "Amazon Elastic File System (Amazon EFS)"
-      Title: "Amazon EFS"
+      Title: "Amazon EFS Config Store\n(30d IA · 90d Archive Lifecycle)\nDedicated Access Points"
 
   # ─────────────────────────────────────────────────────────────
   # RELATIONSHIPS & OPERATIONAL INTERACTIONS
