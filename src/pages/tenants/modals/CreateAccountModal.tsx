@@ -62,6 +62,14 @@ export const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
           <Input placeholder="e.g. john@tenant.com" />
         </Form.Item>
 
+        <Form.Item
+          name="password"
+          label="Account Password"
+          extra="Leave blank to auto-generate a secure temporary password"
+        >
+          <Input.Password placeholder="Enter password or leave blank to auto-generate" />
+        </Form.Item>
+
         <Form.Item name="role" label="Account Role" initialValue="User">
           <Select>
             <Select.Option value="TenantAdmin">

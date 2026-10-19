@@ -20,6 +20,7 @@ export interface TenantModalsProps {
   resetPasswordModalVisible: boolean;
   setResetPasswordModalVisible: (v: boolean) => void;
   tempPasswordInfo: { username: string; password: string } | null;
+  setTempPasswordInfo: (v: { username: string; password: string } | null) => void;
   cloneModalVisible: boolean;
   setCloneModalVisible: (v: boolean) => void;
   cloneForm: any;
@@ -40,6 +41,7 @@ export const TenantModals: React.FC<TenantModalsProps> = ({
   resetPasswordModalVisible,
   setResetPasswordModalVisible,
   tempPasswordInfo,
+  setTempPasswordInfo,
   cloneModalVisible,
   setCloneModalVisible,
   cloneForm,
@@ -75,10 +77,18 @@ export const TenantModals: React.FC<TenantModalsProps> = ({
         values: { action: "CREATE_TENANT_ACCOUNT", ...values },
       },
       {
-        onSuccess: () => {
+        onSuccess: (res: any) => {
           message.success(`Account '${values.username}' created successfully!`);
           setCreateAccountModalVisible(false);
           accountForm.resetFields();
+          const pwd =
+            res?.data?.temporary_password ||
+            res?.data?.password ||
+            values.password;
+          if (pwd) {
+            setTempPasswordInfo({ username: values.username, password: pwd });
+            setResetPasswordModalVisible(true);
+          }
           refetch();
         },
         onError: (err: any) => message.error(err?.message || "Failed to create account"),
@@ -134,6 +144,7 @@ export const TenantModals: React.FC<TenantModalsProps> = ({
         open={resetPasswordModalVisible}
         onClose={() => setResetPasswordModalVisible(false)}
         tempPasswordInfo={tempPasswordInfo}
+        domain={domain}
       />
       <CloneModal
         open={cloneModalVisible}

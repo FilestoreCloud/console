@@ -126,10 +126,12 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
               <Space>
                 <Button
                   size="small"
+                  type={record.role === "TenantAdmin" ? "primary" : "default"}
+                  ghost={record.role === "TenantAdmin"}
                   icon={<KeyOutlined />}
                   onClick={() => onResetPassword(record.username)}
                 >
-                  Reset Password
+                  {record.role === "TenantAdmin" ? "Set / Reset Password" : "Reset Password"}
                 </Button>
                 <Button
                   size="small"
