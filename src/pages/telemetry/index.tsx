@@ -170,8 +170,8 @@ export const TelemetryDashboard: React.FC = () => {
           <InteractiveMetricsChart
             tenantId={selectedTenant}
             clusterName="prod-storix-cluster"
-            history={tenantMetrics.history || []}
-            autoscalingTargetCpu={tenantMetrics.autoscaling_target_cpu || 70.0}
+            history={tenantMetrics.history || tenantMetrics.metrics?.history || []}
+            autoscalingTargetCpu={tenantMetrics.autoscaling_target_cpu || tenantMetrics.metrics?.autoscaling_target_cpu || 70.0}
             intervalSec={intervalSec}
             countdown={countdown}
             onRefresh={refreshAll}
