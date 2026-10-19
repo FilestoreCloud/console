@@ -143,6 +143,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         <div
           style={{
             display: "flex",
+            flexWrap: "wrap",
+            gap: 6,
             justifyContent: "space-between",
             fontSize: 12,
             color: "#8c8c8c",

@@ -344,6 +344,7 @@ export const MetricsTab: React.FC<MetricsTabProps> = ({
           rowKey="timestamp"
           pagination={false}
           size="small"
+          scroll={{ x: 700 }}
           columns={[
             {
               title: "Timestamp",

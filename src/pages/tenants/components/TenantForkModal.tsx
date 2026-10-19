@@ -76,7 +76,7 @@ export const TenantForkModal: React.FC<TenantForkModalProps> = ({
         </Form.Item>
 
         <Form.Item style={{ marginBottom: 0, textAlign: "right" }}>
-          <Space>
+          <Space wrap>
             <Button onClick={onCancel}>Cancel</Button>
             <Button
               type="primary"

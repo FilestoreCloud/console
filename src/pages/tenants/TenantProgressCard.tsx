@@ -246,7 +246,7 @@ export const TenantProgressCard: React.FC<TenantProgressCardProps> = ({
           </Space>
         </Col>
 
-        <Col xs={24} md={8} style={{ textAlign: "right" }}>
+        <Col xs={24} md={8} className="tenant-progress-aside" style={{ textAlign: "right" }}>
           <Space direction="vertical" align="end" size={6}>
             <Tag
               color={isDeleting ? "error" : isSuspending ? "warning" : "processing"}

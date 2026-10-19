@@ -308,8 +308,17 @@ export const InteractiveMetricsChart: React.FC<
     const handleResize = () => chart.resize();
     window.addEventListener("resize", handleResize);
 
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined" && chartRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        chart.resize();
+      });
+      resizeObserver.observe(chartRef.current);
+    }
+
     return () => {
       window.removeEventListener("resize", handleResize);
+      resizeObserver?.disconnect();
     };
   }, [
     sortedHistory,
@@ -350,7 +359,7 @@ export const InteractiveMetricsChart: React.FC<
   return (
     <Card
       title={
-        <Space>
+        <Space wrap>
           <LineChartOutlined style={{ color: "#1652f0" }} />
           <span>Interactive Live Telemetry Stream</span>
           <Tag color={intervalSec > 0 ? "processing" : "default"}>
@@ -400,8 +409,10 @@ export const InteractiveMetricsChart: React.FC<
         <div
           style={{
             display: "flex",
+            flexWrap: "wrap",
             justifyContent: "space-between",
             alignItems: "center",
+            gap: 8,
             marginTop: 4,
             padding: "0 12px",
           }}

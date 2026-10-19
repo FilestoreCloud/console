@@ -29,7 +29,7 @@ export const TenantIncidentAlert: React.FC<TenantIncidentAlertProps> = ({
       showIcon
       style={{ marginBottom: 20 }}
       message={
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
           <div>
             <strong>ACTIVE INCIDENT: {incident?.title || `Tenant status is ${currentStatus}`}</strong>
             {incident?.severity && <span style={{ marginLeft: 8 }}>{renderSeverityTag(incident.severity)}</span>}

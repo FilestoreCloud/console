@@ -1,5 +1,6 @@
 import React from "react";
 import { useGetIdentity, useLogout } from "@refinedev/core";
+import { useThemedLayoutContext } from "@refinedev/antd";
 import {
   Layout,
   Space,
@@ -9,6 +10,7 @@ import {
   Typography,
   Avatar,
   MenuProps,
+  Tooltip,
 } from "antd";
 import {
   SafetyCertificateFilled,
@@ -20,6 +22,7 @@ import {
   LockFilled,
   BulbOutlined,
   BulbFilled,
+  MenuOutlined,
 } from "@ant-design/icons";
 
 const { Text } = Typography;
@@ -35,14 +38,17 @@ export const CustomHeader: React.FC<HeaderProps> = ({
 }) => {
   const { data: user } = useGetIdentity<any>();
   const { mutate: logout } = useLogout();
+  const { mobileSiderOpen, setMobileSiderOpen } = useThemedLayoutContext();
 
   const role = user?.role || "SuperAdmin";
 
   const getRoleBadge = () => {
     return (
-      <Tag color="error" icon={<SafetyCertificateFilled />}>
-        SuperAdmin (Full Control)
-      </Tag>
+      <Tooltip title={`Role: ${role}`}>
+        <Tag color="error" icon={<SafetyCertificateFilled />}>
+          <span className="header-role-text">SuperAdmin (Full Control)</span>
+        </Tag>
+      </Tooltip>
     );
   };
 
@@ -86,7 +92,7 @@ export const CustomHeader: React.FC<HeaderProps> = ({
     <Layout.Header
       style={{
         backgroundColor: "#071736",
-        padding: "0 24px",
+        padding: "0 clamp(10px, 3vw, 24px)",
         height: 64,
         lineHeight: "64px",
         display: "flex",
@@ -99,17 +105,36 @@ export const CustomHeader: React.FC<HeaderProps> = ({
         overflow: "hidden",
       }}
     >
-      <Space size="middle" align="center" wrap={false} style={{ flexShrink: 0 }}>
+      <Space size={8} align="center" wrap={false} style={{ flexShrink: 0 }}>
+        <Button
+          type="text"
+          aria-label="Toggle navigation menu"
+          className="mobile-sider-toggle"
+          icon={<MenuOutlined style={{ color: "#ffffff", fontSize: 18 }} />}
+          onClick={() => {
+            if (setMobileSiderOpen) {
+              setMobileSiderOpen(!mobileSiderOpen);
+            }
+          }}
+          style={{
+            color: "#ffffff",
+            padding: "0 6px",
+            display: "none",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        />
         <img
           src="/storix-icon.png"
           alt="Storix"
-          style={{ width: 26, height: 26, objectFit: "contain" }}
+          style={{ width: 26, height: 26, objectFit: "contain", flexShrink: 0 }}
         />
         <Text strong style={{ color: "#ffffff", fontSize: 15, whiteSpace: "nowrap" }}>
           Storix Console
         </Text>
         <Tag
           color="default"
+          className="header-region-tag"
           style={{
             backgroundColor: "#1e293b",
             color: "#cbd5e1",
@@ -127,13 +152,15 @@ export const CustomHeader: React.FC<HeaderProps> = ({
             whiteSpace: "nowrap",
           }}
         >
-          <CheckCircleFilled style={{ marginRight: 4 }} /> Online
+          <CheckCircleFilled style={{ marginRight: 4 }} />
+          <span className="header-online-text">Online</span>
         </Tag>
       </Space>
 
-      <Space size="middle" align="center" wrap={false} style={{ flexShrink: 0 }}>
+      <Space size={8} align="center" wrap={false} style={{ flexShrink: 0 }}>
         <Button
           size="small"
+          className="header-cmd-btn"
           onClick={() => {
             window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
           }}
@@ -148,35 +175,39 @@ export const CustomHeader: React.FC<HeaderProps> = ({
           ⌘K Palette
         </Button>
 
-        <Button
-          type="link"
-          href="https://ap-southeast-1.console.aws.amazon.com/cloudwatch/home?region=ap-southeast-1#dashboards/dashboard/prod-Storix-SaaS-Control-Plane"
-          target="_blank"
-          icon={<LineChartOutlined style={{ color: "#faad14" }} />}
-          style={{ color: "#f8fafc" }}
-        >
-          CloudWatch Dashboard ↗
-        </Button>
+        <Tooltip title="Open AWS CloudWatch Dashboard">
+          <Button
+            type="link"
+            href="https://ap-southeast-1.console.aws.amazon.com/cloudwatch/home?region=ap-southeast-1#dashboards/dashboard/prod-Storix-SaaS-Control-Plane"
+            target="_blank"
+            icon={<LineChartOutlined style={{ color: "#faad14" }} />}
+            style={{ color: "#f8fafc", padding: "0 8px" }}
+          >
+            <span className="header-cw-text">CloudWatch Dashboard ↗</span>
+          </Button>
+        </Tooltip>
 
         {onToggleTheme && (
-          <Button
-            size="small"
-            icon={
-              isDark ? (
-                <BulbFilled style={{ color: "#faad14" }} />
-              ) : (
-                <BulbOutlined style={{ color: "#ffffff" }} />
-              )
-            }
-            onClick={onToggleTheme}
-            style={{
-              backgroundColor: isDark ? "#1e293b" : "#334155",
-              borderColor: "#475569",
-              color: "#ffffff",
-            }}
-          >
-            {isDark ? "Dark" : "Light"}
-          </Button>
+          <Tooltip title={`Switch to ${isDark ? "Light" : "Dark"} Mode`}>
+            <Button
+              size="small"
+              icon={
+                isDark ? (
+                  <BulbFilled style={{ color: "#faad14" }} />
+                ) : (
+                  <BulbOutlined style={{ color: "#ffffff" }} />
+                )
+              }
+              onClick={onToggleTheme}
+              style={{
+                backgroundColor: isDark ? "#1e293b" : "#334155",
+                borderColor: "#475569",
+                color: "#ffffff",
+              }}
+            >
+              <span className="header-theme-text">{isDark ? "Dark" : "Light"}</span>
+            </Button>
+          </Tooltip>
         )}
 
         {getRoleBadge()}
@@ -188,11 +219,13 @@ export const CustomHeader: React.FC<HeaderProps> = ({
         >
           <Button
             type="text"
+            aria-label="User account menu"
             style={{
               color: "#ffffff",
               display: "flex",
               alignItems: "center",
-              gap: 8,
+              gap: 6,
+              padding: "0 6px",
             }}
           >
             <Avatar
@@ -200,7 +233,7 @@ export const CustomHeader: React.FC<HeaderProps> = ({
               icon={<UserOutlined />}
               style={{ backgroundColor: "#1652f0" }}
             />
-            <span>{user?.name || "ADMIN"}</span>
+            <span className="header-user-name">{user?.name || "ADMIN"}</span>
           </Button>
         </Dropdown>
       </Space>

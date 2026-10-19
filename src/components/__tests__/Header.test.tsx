@@ -62,4 +62,10 @@ describe("CustomHeader", () => {
     render(<CustomHeader isDark={true} onToggleTheme={handleToggle} />);
     expect(screen.getByText("Dark")).toBeInTheDocument();
   });
+
+  it("renders responsive mobile drawer toggle button with accessible aria-label", () => {
+    render(<CustomHeader />);
+    const toggleBtn = screen.getByLabelText("Toggle navigation menu");
+    expect(toggleBtn).toBeInTheDocument();
+  });
 });

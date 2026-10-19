@@ -28,8 +28,10 @@ export const IncidentsTab: React.FC<IncidentsTabProps> = ({
           <div
             style={{
               display: "flex",
+              flexWrap: "wrap",
               justifyContent: "space-between",
               alignItems: "center",
+              gap: 8,
             }}
           >
             <Space>
@@ -81,6 +83,7 @@ export const IncidentsTab: React.FC<IncidentsTabProps> = ({
           rowKey="incident_id"
           pagination={false}
           size="middle"
+          scroll={{ x: 800 }}
           locale={{
             emptyText: "Zero recorded incidents for this tenant.",
           }}

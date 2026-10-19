@@ -23,8 +23,10 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
         <div
           style={{
             display: "flex",
+            flexWrap: "wrap",
             justifyContent: "space-between",
             alignItems: "center",
+            gap: 8,
           }}
         >
           <Space>
@@ -49,6 +51,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
         rowKey="username"
         pagination={false}
         size="middle"
+        scroll={{ x: 920 }}
         columns={[
           {
             title: "Username",
@@ -123,7 +126,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
             key: "actions",
             align: "right" as const,
             render: (_: any, record: any) => (
-              <Space>
+              <Space wrap size={4}>
                 <Button
                   size="small"
                   type={record.role === "TenantAdmin" ? "primary" : "default"}

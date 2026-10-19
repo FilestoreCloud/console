@@ -137,9 +137,9 @@ export const AuditLogList: React.FC = () => {
         variant="borderless"
         style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
       >
-        <Row justify="space-between" align="middle">
-          <Col>
-            <Space align="center">
+        <Row justify="space-between" align="middle" gutter={[16, 16]}>
+          <Col xs={24} sm={16}>
+            <Space align="center" wrap>
               <span style={{ fontSize: 20 }}>📜</span>
               <div>
                 <Text strong style={{ fontSize: 16, display: "block" }}>
@@ -155,14 +155,16 @@ export const AuditLogList: React.FC = () => {
               </div>
             </Space>
           </Col>
-          <Col>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={() => refetch()}
-              loading={isLoading}
-            >
-              Refresh Logs
-            </Button>
+          <Col xs={24} sm={8}>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => refetch()}
+                loading={isLoading}
+              >
+                Refresh Logs
+              </Button>
+            </div>
           </Col>
         </Row>
       </Card>
@@ -176,6 +178,7 @@ export const AuditLogList: React.FC = () => {
           dataSource={logs}
           rowKey="id"
           loading={isLoading}
+          scroll={{ x: 800 }}
           pagination={{ pageSize: 15, showSizeChanger: true }}
         />
       </Card>

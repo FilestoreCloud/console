@@ -162,7 +162,7 @@ export const AgentTab: React.FC<AgentTabProps> = ({
             variant="borderless"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
           >
-            <Descriptions column={2} size="small">
+            <Descriptions column={{ xs: 1, sm: 2 }} size="small">
               <Descriptions.Item label="Image URI" span={2}>
                 <Paragraph
                   copyable
