@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import { TenantShow } from "../show";
 
@@ -91,6 +91,28 @@ describe("TenantShowPage — Deep Unified Single-Page Inspection", () => {
     renderComponent();
     expect(screen.getByRole("button", { name: /Suspend Tenant/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Delete Tenant/i })).toBeInTheDocument();
+  });
+
+  it("prompts confirmation dialog when clicking Suspend Tenant and executes only after confirm", () => {
+    renderComponent();
+    const suspendBtn = screen.getByRole("button", { name: /Suspend Tenant/i });
+    fireEvent.click(suspendBtn);
+
+    // Confirmation dialog should appear
+    expect(screen.getByText("Confirm Tenant Suspension")).toBeInTheDocument();
+    expect(mockUpdate).not.toHaveBeenCalled();
+
+    // Click confirm in the dialog
+    const confirmBtn = screen.getByRole("button", { name: "Confirm Suspend" });
+    fireEvent.click(confirmBtn);
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1);
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        values: { action: "SET_STATUS", status: "SUSPENDED" },
+      }),
+      expect.any(Object)
+    );
   });
 
   it("renders unified single-page sections without tabs", () => {

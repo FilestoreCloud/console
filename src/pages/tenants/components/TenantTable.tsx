@@ -47,6 +47,7 @@ import {
   RotateCw,
   Zap,
   MoreHorizontal,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { renderStatusTag } from "../helpers";
@@ -87,6 +88,7 @@ export const TenantTable: React.FC<TenantTableProps> = ({
   const [progressModalTenant, setProgressModalTenant] = useState<any>(null);
 
   const [confirmDeleteTenant, setConfirmDeleteTenant] = useState<any>(null);
+  const [confirmSuspendTenant, setConfirmSuspendTenant] = useState<any>(null);
   const [confirmSeedTenant, setConfirmSeedTenant] = useState<any>(null);
 
   const handleTriggerBatch = (type: "SUSPEND" | "RESUME" | "UPGRADE") => {
@@ -498,9 +500,13 @@ export const TenantTable: React.FC<TenantTableProps> = ({
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  onClick={() =>
-                                    onToggleStatus(record.tenant_id, record.status)
-                                  }
+                                  onClick={() => {
+                                    if (isActive) {
+                                      setConfirmSuspendTenant(record);
+                                    } else {
+                                      onToggleStatus(record.tenant_id, record.status);
+                                    }
+                                  }}
                                   disabled={isInFlight}
                                   className="cursor-pointer text-xs"
                                 >
@@ -621,6 +627,47 @@ export const TenantTable: React.FC<TenantTableProps> = ({
                 }}
               >
                 Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Suspend Confirmation Dialog */}
+        <Dialog
+          open={!!confirmSuspendTenant}
+          onOpenChange={(val) => !val && setConfirmSuspendTenant(null)}
+        >
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-base font-semibold text-amber-600 flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                Confirm Tenant Suspension
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-xs text-muted-foreground py-2">
+              Are you sure you want to suspend tenant{" "}
+              <strong className="text-foreground">{confirmSuspendTenant?.tenant_id}</strong>?
+              Traffic to this tenant will be blocked and compute tasks will be temporarily halted.
+            </p>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmSuspendTenant(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+                onClick={() => {
+                  const target = confirmSuspendTenant;
+                  setConfirmSuspendTenant(null);
+                  onToggleStatus(target.tenant_id, target.status);
+                }}
+              >
+                Confirm Suspend
               </Button>
             </DialogFooter>
           </DialogContent>

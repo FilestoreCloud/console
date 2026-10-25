@@ -45,6 +45,7 @@ export const TenantHeader: React.FC<TenantHeaderProps> = ({
   onDeleteTenant,
 }) => {
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmSuspend, setConfirmSuspend] = useState(false);
 
   const isInFlight = [
     "PROVISIONING",
@@ -108,7 +109,13 @@ export const TenantHeader: React.FC<TenantHeaderProps> = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={onToggleStatus}
+            onClick={() => {
+              if (isSuspended) {
+                onToggleStatus();
+              } else {
+                setConfirmSuspend(true);
+              }
+            }}
             disabled={isInFlight}
             className="h-8 text-xs flex items-center gap-1.5 font-medium"
           >
@@ -137,6 +144,42 @@ export const TenantHeader: React.FC<TenantHeaderProps> = ({
           </Button>
         </div>
       </CardContent>
+
+      {/* Suspend Confirmation Dialog */}
+      <Dialog open={confirmSuspend} onOpenChange={setConfirmSuspend}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <AlertTriangle className="h-5 w-5" />
+              Confirm Tenant Suspension
+            </DialogTitle>
+            <DialogDescription className="text-xs pt-2">
+              Are you sure you want to suspend tenant{" "}
+              <strong className="text-foreground">{tenantId}</strong>? Ingress routing will be temporarily disabled and isolated compute tasks will be paused until resumed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfirmSuspend(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={() => {
+                setConfirmSuspend(false);
+                onToggleStatus();
+              }}
+            >
+              Confirm Suspend
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
