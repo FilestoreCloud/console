@@ -13,9 +13,8 @@ import {
 } from "react-router-dom";
 import {
   Boxes,
+  LayoutDashboard,
   ShieldCheck,
-  Activity,
-  Bell,
   Loader2,
 } from "lucide-react";
 
@@ -32,22 +31,14 @@ import { Toaster } from "@/components/ui/sonner";
 const LoginPage = React.lazy(() =>
   import("./pages/login").then((m) => ({ default: m.LoginPage })),
 );
+const DashboardPage = React.lazy(() =>
+  import("./pages/dashboard").then((m) => ({ default: m.DashboardPage })),
+);
 const TenantList = React.lazy(() =>
   import("./pages/tenants/list").then((m) => ({ default: m.TenantList })),
 );
 const TenantShow = React.lazy(() =>
   import("./pages/tenants/show").then((m) => ({ default: m.TenantShow })),
-);
-const AuditLogList = React.lazy(() =>
-  import("./pages/audit-logs/list").then((m) => ({ default: m.AuditLogList })),
-);
-const TelemetryDashboard = React.lazy(() =>
-  import("./pages/telemetry").then((m) => ({ default: m.TelemetryDashboard })),
-);
-const WebhooksSettings = React.lazy(() =>
-  import("./pages/settings/webhooks").then((m) => ({
-    default: m.WebhooksSettings,
-  })),
 );
 
 const LoadingFallback: React.FC = () => (
@@ -95,6 +86,14 @@ const App: React.FC = () => {
           notificationProvider={notificationProvider}
           resources={[
             {
+              name: "dashboard",
+              list: "/dashboard",
+              meta: {
+                label: "Dashboard",
+                icon: <LayoutDashboard className="h-4 w-4" />,
+              },
+            },
+            {
               name: "tenants",
               list: "/tenants",
               show: "/tenants/:id",
@@ -109,22 +108,6 @@ const App: React.FC = () => {
               meta: {
                 label: "Cloud Audit Trail",
                 icon: <ShieldCheck className="h-4 w-4" />,
-              },
-            },
-            {
-              name: "telemetry",
-              list: "/telemetry",
-              meta: {
-                label: "Telemetry & Metrics",
-                icon: <Activity className="h-4 w-4" />,
-              },
-            },
-            {
-              name: "webhooks",
-              list: "/settings/webhooks",
-              meta: {
-                label: "Alerts & Webhooks",
-                icon: <Bell className="h-4 w-4" />,
               },
             },
           ]}
@@ -159,23 +142,22 @@ const App: React.FC = () => {
                   </Authenticated>
                 }
               >
-                <Route index element={<Navigate to="/tenants" replace />} />
+                {/* Default route for SuperAdmin is Dashboard */}
+                <Route index element={<DashboardPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/tenants" element={<TenantList />} />
                 <Route path="/tenants/:id" element={<TenantShow />} />
                 <Route path="/tenants/show/:id" element={<TenantShow />} />
-                <Route path="/audit-logs" element={<AuditLogList />} />
-                <Route path="/telemetry" element={<TelemetryDashboard />} />
-                <Route
-                  path="/settings/webhooks"
-                  element={<WebhooksSettings />}
-                />
+                {/* Redirects */}
+                <Route path="/audit-logs" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/telemetry" element={<Navigate to="/dashboard" replace />} />
               </Route>
 
               {/* Login Route */}
               <Route path="/login" element={<LoginPage />} />
 
               {/* Fallback */}
-              <Route path="*" element={<Navigate to="/tenants" replace />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </Suspense>
           <CommandPalette isDark={isDark} onToggleTheme={handleToggleTheme} />

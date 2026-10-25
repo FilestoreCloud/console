@@ -39,6 +39,7 @@ const mockTenantData = {
 
 const mockRefetch = vi.fn();
 const mockUpdate = vi.fn();
+const mockDelete = vi.fn();
 const mockList = vi.fn();
 
 vi.mock("@refinedev/core", () => ({
@@ -50,6 +51,7 @@ vi.mock("@refinedev/core", () => ({
     },
   }),
   useUpdate: () => ({ mutate: mockUpdate, isLoading: false }),
+  useDelete: () => ({ mutate: mockDelete, isLoading: false }),
   useNavigation: () => ({ list: mockList }),
 }));
 
@@ -65,7 +67,7 @@ vi.mock("../../../components/InteractiveMetricsChart", () => ({
   InteractiveMetricsChart: () => <div data-testid="interactive-metrics-chart">Interactive Metrics Chart</div>,
 }));
 
-describe("TenantShowPage — Deep Multi-Tab Inspections", () => {
+describe("TenantShowPage — Deep Unified Single-Page Inspection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -80,21 +82,26 @@ describe("TenantShowPage — Deep Multi-Tab Inspections", () => {
 
   it("renders tenant title, domain, and status badges", () => {
     renderComponent();
-    expect(screen.getByText("tenant-alpha")).toBeInTheDocument();
-    expect(screen.getByText(/tenant-alpha\.png261\.dev/)).toBeInTheDocument();
+    expect(screen.getAllByText("tenant-alpha")[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/tenant-alpha\.png261\.dev/)[0]).toBeInTheDocument();
     expect(screen.getAllByText("ACTIVE")[0]).toBeInTheDocument();
   });
 
-  it("renders all 9 operational and telemetry tab options", () => {
+  it("renders exactly 2 header actions: Suspend Tenant and Delete Tenant", () => {
+    renderComponent();
+    expect(screen.getByRole("button", { name: /Suspend Tenant/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Delete Tenant/i })).toBeInTheDocument();
+  });
+
+  it("renders unified single-page sections without tabs", () => {
     renderComponent();
     expect(screen.getByText(/Live Metrics & Telemetry/)).toBeInTheDocument();
     expect(screen.getByText(/Dedicated Architecture & Topology/)).toBeInTheDocument();
     expect(screen.getByText(/Agent Detail & Container Monitor/)).toBeInTheDocument();
     expect(screen.getByText(/Tenant Accounts Management/)).toBeInTheDocument();
-    expect(screen.getByText(/Accidents & Incident History/)).toBeInTheDocument();
-    expect(screen.getByText(/Tenant Audit Trail/)).toBeInTheDocument();
-    expect(screen.getByText(/OCC Terminal & Diagnostics/)).toBeInTheDocument();
-    expect(screen.getByText(/Live Container Logs/)).toBeInTheDocument();
+    expect(screen.getByText(/FinOps & Custom Domain/)).toBeInTheDocument();
+    expect(screen.getByText(/Health & Quota Limit/)).toBeInTheDocument();
     expect(screen.getByText(/Step Functions & X-Ray/)).toBeInTheDocument();
+    expect(screen.getByText(/Tenant Audit Trail/)).toBeInTheDocument();
   });
 });

@@ -25,6 +25,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   GitBranch,
   ExternalLink,
   ShieldCheck,
@@ -39,6 +46,7 @@ import {
   Lock,
   RotateCw,
   Zap,
+  MoreHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 import { renderStatusTag } from "../helpers";
@@ -54,7 +62,6 @@ export interface TenantTableProps {
   onToggleStatus: (tenantId: string, currentStatus: string) => void;
   onSeedTenant: (tenantId: string) => void;
   onDeleteTenant: (tenantId: string) => void;
-  onOpenForkModal: (record: any) => void;
   onShowTenant: (tenantId: string) => void;
   onNavigate: (path: string) => void;
 }
@@ -69,7 +76,6 @@ export const TenantTable: React.FC<TenantTableProps> = ({
   onToggleStatus,
   onSeedTenant,
   onDeleteTenant,
-  onOpenForkModal,
   onShowTenant,
   onNavigate,
 }) => {
@@ -457,7 +463,7 @@ export const TenantTable: React.FC<TenantTableProps> = ({
 
                         {/* Actions */}
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1 flex-wrap">
+                          <div className="flex items-center justify-end gap-1.5">
                             {isInFlight && (
                               <Button
                                 variant="outline"
@@ -466,12 +472,12 @@ export const TenantTable: React.FC<TenantTableProps> = ({
                                 className="h-7 text-xs border-blue-300 text-blue-600 hover:bg-blue-50 flex items-center gap-1"
                               >
                                 <Zap className="h-3 w-3" />
-                                <span>Steps &amp; Logs</span>
+                                <span>Progress</span>
                               </Button>
                             )}
 
                             <Button
-                              variant={isInFlight ? "outline" : "default"}
+                              variant="outline"
                               size="sm"
                               onClick={() => onShowTenant(record.tenant_id)}
                               className="h-7 text-xs flex items-center gap-1"
@@ -480,97 +486,48 @@ export const TenantTable: React.FC<TenantTableProps> = ({
                               <span>Manage</span>
                             </Button>
 
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                onNavigate(
-                                  `/tenants/${record.tenant_id}?tab=metrics`
-                                )
-                              }
-                              className="h-7 text-xs flex items-center gap-1"
-                            >
-                              <LineChart className="h-3 w-3 text-blue-500" />
-                              <span>Metrics</span>
-                            </Button>
-
-                            {isActive && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={isInFlight}
-                                onClick={() => setConfirmSeedTenant(record)}
-                                className="h-7 text-xs text-purple-600 hover:text-purple-700 border-purple-200 hover:bg-purple-50 flex items-center gap-1"
-                              >
-                                <Sparkles className="h-3 w-3" />
-                                <span>Seed</span>
-                              </Button>
-                            )}
-
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={isInFlight}
-                              onClick={() => onOpenForkModal(record)}
-                              className="h-7 text-xs text-purple-600 hover:text-purple-700 border-purple-200 hover:bg-purple-50 flex items-center gap-1"
-                            >
-                              <GitBranch className="h-3 w-3" />
-                              <span>Fork</span>
-                            </Button>
-
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={isInFlight}
-                              onClick={() =>
-                                onToggleStatus(record.tenant_id, record.status)
-                              }
-                              className="h-7 text-xs flex items-center gap-1"
-                            >
-                              {isActive ? (
-                                <>
-                                  <Pause className="h-3 w-3" />
-                                  <span>Suspend</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Play className="h-3 w-3" />
-                                  <span>Resume</span>
-                                </>
-                              )}
-                            </Button>
-
-                            {canDelete?.can ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={isInFlight}
-                                onClick={() => setConfirmDeleteTenant(record)}
-                                className="h-7 w-7 p-0 text-red-500 hover:text-red-700 border-red-200 hover:bg-red-50"
-                                title="Delete Tenant"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            ) : (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled
-                                    className="h-7 w-7 p-0"
-                                  >
-                                    <Lock className="h-3.5 w-3.5" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>
-                                    {canDelete?.reason ||
-                                      "Restricted to SuperAdmin role"}
-                                  </p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                  aria-label="More actions"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-44">
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    onToggleStatus(record.tenant_id, record.status)
+                                  }
+                                  disabled={isInFlight}
+                                  className="cursor-pointer text-xs"
+                                >
+                                  {isActive ? (
+                                    <>
+                                      <Pause className="h-3.5 w-3.5 mr-2 text-amber-500" />
+                                      <span>Suspend Tenant</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Play className="h-3.5 w-3.5 mr-2 text-emerald-500" />
+                                      <span>Resume Tenant</span>
+                                    </>
+                                  )}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => setConfirmDeleteTenant(record)}
+                                  disabled={isInFlight || !canDelete?.can}
+                                  className="cursor-pointer text-xs text-destructive focus:text-destructive focus:bg-destructive/10"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                  <span>Delete Tenant</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </TableCell>
                       </TableRow>

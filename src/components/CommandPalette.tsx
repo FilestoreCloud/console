@@ -55,6 +55,17 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   const commands: CommandItem[] = [
     {
+      key: "nav-dashboard",
+      category: "Navigation",
+      title: "Control Plane Dashboard",
+      description: "Overview metrics, fleet telemetry, and Cloud Audit Trail",
+      icon: <Activity className="h-5 w-5 text-primary" />,
+      handler: () => {
+        navigate("/dashboard");
+        setOpen(false);
+      },
+    },
+    {
       key: "nav-tenants",
       category: "Navigation",
       title: "Fleet Tenants",
@@ -62,39 +73,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: <Boxes className="h-5 w-5 text-blue-500" />,
       handler: () => {
         navigate("/tenants");
-        setOpen(false);
-      },
-    },
-    {
-      key: "nav-audit",
-      category: "Navigation",
-      title: "Audit Logs",
-      description: "Inspect immutable security logs and operator activities",
-      icon: <ShieldCheck className="h-5 w-5 text-emerald-500" />,
-      handler: () => {
-        navigate("/audit-logs");
-        setOpen(false);
-      },
-    },
-    {
-      key: "nav-telemetry",
-      category: "Navigation",
-      title: "Telemetry & Telemetry Dashboard",
-      description: "CloudWatch metrics, ECS CPU/RAM, and WebDAV latency",
-      icon: <Activity className="h-5 w-5 text-amber-500" />,
-      handler: () => {
-        navigate("/telemetry");
-        setOpen(false);
-      },
-    },
-    {
-      key: "nav-webhooks",
-      category: "Navigation",
-      title: "Webhook Integrations",
-      description: "Configure HTTP notification webhooks and dispatch history",
-      icon: <Bell className="h-5 w-5 text-purple-500" />,
-      handler: () => {
-        navigate("/settings/webhooks");
         setOpen(false);
       },
     },

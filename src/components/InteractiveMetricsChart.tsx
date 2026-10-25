@@ -28,7 +28,7 @@ export interface TelemetryPoint {
 }
 
 interface InteractiveMetricsChartProps {
-  tenantId: string;
+  tenantId?: string;
   clusterName?: string;
   history?: TelemetryPoint[];
   autoscalingTargetCpu?: number;
@@ -40,7 +40,7 @@ interface InteractiveMetricsChartProps {
 export const InteractiveMetricsChart: React.FC<
   InteractiveMetricsChartProps
 > = ({
-  tenantId,
+  tenantId = "fleet",
   clusterName = "prod-storix-cluster",
   history = [],
   autoscalingTargetCpu = 70.0,

@@ -14,15 +14,11 @@ import { dataProvider } from "../../providers/dataProvider";
 import { TenantKpiCards } from "./components/TenantKpiCards";
 import { TenantFilterBar } from "./components/TenantFilterBar";
 import { TenantTable } from "./components/TenantTable";
-import { TenantForkModal } from "./components/TenantForkModal";
 
 export const TenantList: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [modalVisible, setModalVisible] = useState(false);
-  const [forkModalVisible, setForkModalVisible] = useState(false);
-  const [forkSourceTenant, setForkSourceTenant] = useState<any>(null);
-  const [forkLoading, setForkLoading] = useState(false);
 
   const { show } = useNavigation();
   const navigate = useNavigate();
@@ -147,40 +143,6 @@ export const TenantList: React.FC = () => {
     );
   };
 
-  const handleOpenForkModal = (record: any) => {
-    setForkSourceTenant(record);
-    setForkModalVisible(true);
-  };
-
-  const handleForkSubmit = async (values: any) => {
-    if (!dataProvider.custom) return;
-    setForkLoading(true);
-    try {
-      const targetId = values.target_tenant_id.toLowerCase().trim();
-      await dataProvider.custom({
-        url: dataProvider.getApiUrl(),
-        method: "post",
-        payload: {
-          action: "CLONE_TENANT",
-          source_tenant_id: forkSourceTenant?.tenant_id,
-          target_tenant_id: targetId,
-          target_domain: values.target_domain?.trim(),
-          admin_email: values.admin_email?.trim(),
-          quota_gb: values.quota_gb,
-        },
-      });
-      toast.success(
-        `Tenant '${forkSourceTenant?.tenant_id}' cloned to sandbox '${targetId}'!`
-      );
-      setForkModalVisible(false);
-      refetch();
-    } catch (err: any) {
-      toast.error(err?.message || "Failed to clone tenant");
-    } finally {
-      setForkLoading(false);
-    }
-  };
-
   return (
     <div className="space-y-4">
       <TenantKpiCards
@@ -209,7 +171,6 @@ export const TenantList: React.FC = () => {
         onToggleStatus={handleToggleStatus}
         onSeedTenant={handleSeedTenant}
         onDeleteTenant={handleDelete}
-        onOpenForkModal={handleOpenForkModal}
         onShowTenant={(tid) => show("tenants", tid)}
         onNavigate={(path) => navigate(path)}
       />
@@ -218,13 +179,6 @@ export const TenantList: React.FC = () => {
         onCancel={() => setModalVisible(false)}
         onSubmit={handleCreateSubmit}
         loading={isCreating}
-      />
-      <TenantForkModal
-        visible={forkModalVisible}
-        sourceTenant={forkSourceTenant}
-        loading={forkLoading}
-        onCancel={() => setForkModalVisible(false)}
-        onSubmit={handleForkSubmit}
       />
     </div>
   );

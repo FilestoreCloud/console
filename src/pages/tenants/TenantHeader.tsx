@@ -6,15 +6,16 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
   ArrowLeft,
-  RotateCw,
-  AlertTriangle,
-  Zap,
-  GitBranch,
+  Pause,
+  Play,
+  Trash2,
   ExternalLink,
+  AlertTriangle,
 } from "lucide-react";
 import { renderStatusTag } from "./helpers";
 
@@ -25,13 +26,11 @@ export interface TenantHeaderProps {
   currentStatus: string;
   progress?: number;
   currentStep?: string;
-  isLoading: boolean;
-  isUpdating: boolean;
+  isLoading?: boolean;
+  isUpdating?: boolean;
   onBack: () => void;
-  onRefresh: () => void;
-  onOpenIncidentModal: () => void;
-  onRestartAgent: () => void;
-  onOpenCloneModal: () => void;
+  onToggleStatus: () => void;
+  onDeleteTenant: () => void;
 }
 
 export const TenantHeader: React.FC<TenantHeaderProps> = ({
@@ -41,15 +40,11 @@ export const TenantHeader: React.FC<TenantHeaderProps> = ({
   currentStatus,
   progress,
   currentStep,
-  isLoading,
-  isUpdating,
   onBack,
-  onRefresh,
-  onOpenIncidentModal,
-  onRestartAgent,
-  onOpenCloneModal,
+  onToggleStatus,
+  onDeleteTenant,
 }) => {
-  const [confirmRestart, setConfirmRestart] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const isInFlight = [
     "PROVISIONING",
@@ -61,9 +56,11 @@ export const TenantHeader: React.FC<TenantHeaderProps> = ({
     "UPGRADING",
   ].includes(currentStatus);
 
+  const isSuspended = currentStatus === "SUSPENDED";
+
   return (
     <Card className="border-border shadow-sm mb-5">
-      <CardContent className="p-4 sm:p-6 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
+      <CardContent className="p-4 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         {/* Left: Back button + Title + Domain */}
         <div className="flex items-start gap-3 flex-wrap flex-1">
           <Button
@@ -94,7 +91,7 @@ export const TenantHeader: React.FC<TenantHeaderProps> = ({
                 href={`https://${domain}`}
                 target="_blank"
                 rel="noreferrer"
-                className="font-semibold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1"
+                className="font-semibold text-primary hover:underline flex items-center gap-1"
               >
                 <span>https://{domain}</span>
                 <ExternalLink className="h-3 w-3" />
@@ -106,86 +103,72 @@ export const TenantHeader: React.FC<TenantHeaderProps> = ({
           </div>
         </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-2 flex-wrap">
+        {/* Right: Exactly 2 Actions: Suspend and Delete */}
+        <div className="flex items-center gap-2.5">
           <Button
             variant="outline"
             size="sm"
-            onClick={onRefresh}
-            disabled={isLoading}
-            className="h-8 text-xs flex items-center gap-1.5"
+            onClick={onToggleStatus}
+            disabled={isInFlight}
+            className="h-8 text-xs flex items-center gap-1.5 font-medium"
           >
-            <RotateCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
-            <span>Refresh</span>
+            {isSuspended ? (
+              <>
+                <Play className="h-3.5 w-3.5 text-emerald-600" />
+                <span>Resume Tenant</span>
+              </>
+            ) : (
+              <>
+                <Pause className="h-3.5 w-3.5 text-amber-500" />
+                <span>Suspend Tenant</span>
+              </>
+            )}
           </Button>
 
           <Button
-            variant={
-              currentStatus === "INCIDENT" || currentStatus === "DEGRADED"
-                ? "destructive"
-                : "outline"
-            }
+            variant="destructive"
             size="sm"
-            onClick={onOpenIncidentModal}
+            onClick={() => setConfirmDelete(true)}
             disabled={isInFlight}
             className="h-8 text-xs flex items-center gap-1.5"
           >
-            <AlertTriangle className="h-3.5 w-3.5" />
-            <span>Incident / Status Circuit-Breaker</span>
-          </Button>
-
-          <Button
-            size="sm"
-            disabled={isInFlight}
-            onClick={() => setConfirmRestart(true)}
-            className="h-8 text-xs bg-[#1652f0] hover:bg-[#1652f0]/90 text-white flex items-center gap-1.5"
-          >
-            <Zap className={`h-3.5 w-3.5 ${isUpdating && isInFlight ? "animate-spin" : ""}`} />
-            <span>Restart Agent Task</span>
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={isInFlight}
-            onClick={onOpenCloneModal}
-            className="h-8 text-xs border-purple-300 text-purple-600 hover:bg-purple-50 flex items-center gap-1.5"
-          >
-            <GitBranch className="h-3.5 w-3.5" />
-            <span>Fork to Sandbox</span>
+            <Trash2 className="h-3.5 w-3.5" />
+            <span>Delete Tenant</span>
           </Button>
         </div>
       </CardContent>
 
-      {/* Restart Task Confirmation Dialog */}
-      <Dialog open={confirmRestart} onOpenChange={setConfirmRestart}>
-        <DialogContent className="max-w-md">
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold">
-              Trigger Rolling Restart of Agent Task?
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Confirm Tenant Deletion
             </DialogTitle>
+            <DialogDescription className="text-xs pt-2">
+              Are you sure you want to permanently decommission and delete tenant{" "}
+              <strong className="text-foreground">{tenantId}</strong>? This action initiates Step Functions
+              deprovisioning and destroys isolated databases and storage volumes.
+            </DialogDescription>
           </DialogHeader>
-          <p className="text-sm py-2">
-            This forces a new ECS task deployment for tenant &apos;{tenantId}&apos;
-            with zero downtime.
-          </p>
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setConfirmRestart(false)}
+              onClick={() => setConfirmDelete(false)}
             >
               Cancel
             </Button>
             <Button
+              variant="destructive"
               size="sm"
               onClick={() => {
-                setConfirmRestart(false);
-                onRestartAgent();
+                setConfirmDelete(false);
+                onDeleteTenant();
               }}
-              className="bg-[#1652f0] hover:bg-[#1652f0]/90 text-white"
             >
-              Restart Task
+              Confirm Delete
             </Button>
           </DialogFooter>
         </DialogContent>

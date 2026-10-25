@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useGetIdentity, useLogout } from "@refinedev/core";
 import { useLayout } from "./layout/LayoutContext";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -28,6 +36,7 @@ import {
   Sun,
   Moon,
   Menu,
+  AlertTriangle,
 } from "lucide-react";
 
 export interface HeaderProps {
@@ -42,61 +51,45 @@ export const CustomHeader: React.FC<HeaderProps> = ({
   const { data: user } = useGetIdentity<any>();
   const { mutate: logout } = useLogout();
   const { mobileSiderOpen, setMobileSiderOpen } = useLayout();
+  const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
 
   const role = user?.role || "SuperAdmin";
 
   return (
     <TooltipProvider>
-      <header
-        className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b-2 border-primary bg-[#071736] px-4 text-white shadow-md sm:px-6"
-        style={{
-          borderBottomColor: "#1652f0",
-        }}
-      >
-        {/* Left Section: Mobile Toggle, Brand & Status */}
-        <div className="flex items-center space-x-3 flex-shrink-0">
+      <header className="h-14 border-b bg-[#0f172a] text-white px-3 sm:px-4 flex items-center justify-between sticky top-0 z-30 select-none">
+        {/* Left Section: Mobile toggle, Brand Title, Region */}
+        <div className="flex items-center space-x-2 sm:space-x-3 overflow-hidden">
           <Button
-            type="button"
             variant="ghost"
             size="icon"
+            className="mobile-sider-toggle md:hidden h-8 w-8 text-slate-300 hover:text-white hover:bg-slate-800"
+            onClick={() => setMobileSiderOpen(!mobileSiderOpen)}
             aria-label="Toggle navigation menu"
-            className="mobile-sider-toggle text-white hover:bg-white/10 md:hidden"
-            onClick={() => {
-              if (setMobileSiderOpen) {
-                setMobileSiderOpen(!mobileSiderOpen);
-              }
-            }}
           >
-            <Menu className="h-5 w-5 text-white" />
+            <Menu className="h-5 w-5" />
           </Button>
 
-          <img
-            src="/storix-icon.png"
-            alt="Storix"
-            className="h-7 w-7 object-contain flex-shrink-0"
-          />
-          <span className="font-bold text-base tracking-tight text-white whitespace-nowrap">
-            Storix Console
-          </span>
+          <div className="flex items-center space-x-2">
+            <span className="font-bold text-sm sm:text-base tracking-tight text-white whitespace-nowrap">
+              Storix Console
+            </span>
+            <span className="hidden sm:inline-block text-[11px] font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
+              v2.0
+            </span>
+          </div>
 
-          <Badge
-            variant="outline"
-            className="header-region-tag hidden sm:inline-flex items-center gap-1 border-slate-700 bg-slate-800 text-slate-300 font-normal"
-          >
-            <Globe className="h-3 w-3 text-slate-400" />
-            <span>Region: ap-southeast-1</span>
-          </Badge>
-
-          <Badge
-            variant="outline"
-            className="hidden sm:inline-flex items-center gap-1 border-emerald-500/30 bg-emerald-500/15 text-emerald-400 font-medium"
-          >
-            <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-            <span className="header-online-text">Online</span>
-          </Badge>
+          <div className="hidden lg:flex items-center space-x-1.5 ml-2 border-l border-slate-700 pl-3 text-xs text-slate-300">
+            <Globe className="h-3.5 w-3.5 text-blue-400" />
+            <span className="header-region-text font-mono text-[11px]">
+              Region: ap-southeast-1
+            </span>
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse ml-1" />
+            <span className="text-[11px] text-emerald-400 font-medium">Online</span>
+          </div>
         </div>
 
-        {/* Right Section: Tools, CW link, Theme, Role, Profile */}
+        {/* Right Section: CloudWatch quick link, Theme Toggle, Role Badge, User Avatar */}
         <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
           <Button
             variant="outline"
@@ -217,7 +210,7 @@ export const CustomHeader: React.FC<HeaderProps> = ({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive cursor-pointer flex items-center gap-2"
-                onClick={() => logout()}
+                onClick={() => setConfirmLogoutOpen(true)}
               >
                 <LogOut className="h-4 w-4" />
                 <span>Sign Out</span>
@@ -225,6 +218,40 @@ export const CustomHeader: React.FC<HeaderProps> = ({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
+        {/* Logout Confirmation Dialog */}
+        <Dialog open={confirmLogoutOpen} onOpenChange={setConfirmLogoutOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-foreground">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                Confirm Sign Out
+              </DialogTitle>
+              <DialogDescription className="text-xs pt-1">
+                Are you sure you want to end your SuperAdmin control plane session?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmLogoutOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => {
+                  setConfirmLogoutOpen(false);
+                  logout();
+                }}
+              >
+                Sign Out
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </header>
     </TooltipProvider>
   );

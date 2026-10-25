@@ -4,9 +4,7 @@ import { useLayout } from "./LayoutContext";
 import { CustomHeader } from "../Header";
 import {
   Boxes,
-  ShieldCheck,
-  Activity,
-  Bell,
+  LayoutDashboard,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -23,28 +21,16 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
+    name: "dashboard",
+    label: "Dashboard",
+    path: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
     name: "tenants",
     label: "Tenant Operations",
     path: "/tenants",
     icon: Boxes,
-  },
-  {
-    name: "audit-logs",
-    label: "Cloud Audit Trail",
-    path: "/audit-logs",
-    icon: ShieldCheck,
-  },
-  {
-    name: "telemetry",
-    label: "Telemetry & Metrics",
-    path: "/telemetry",
-    icon: Activity,
-  },
-  {
-    name: "webhooks",
-    label: "Alerts & Webhooks",
-    path: "/settings/webhooks",
-    icon: Bell,
   },
 ];
 
@@ -68,6 +54,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   } = useLayout();
 
   const isRouteActive = (itemPath: string) => {
+    if (itemPath === "/dashboard") {
+      return (
+        location.pathname === "/" ||
+        location.pathname === "/dashboard"
+      );
+    }
     if (itemPath === "/tenants") {
       return (
         location.pathname === "/tenants" ||
@@ -126,7 +118,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         >
           {/* Logo / Brand Bar */}
           <div className="flex h-14 items-center justify-between border-b px-3.5">
-            <Link to="/tenants" className="flex items-center gap-2 overflow-hidden">
+            <Link to="/dashboard" className="flex items-center gap-2 overflow-hidden">
               {siderCollapsed ? (
                 <img
                   src="/storix-icon.png"
