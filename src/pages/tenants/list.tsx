@@ -7,23 +7,18 @@ import {
   useCan,
   useNavigation,
 } from "@refinedev/core";
-import { Form, message } from "antd";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { CreateTenantModal } from "./create-modal";
 import { dataProvider } from "../../providers/dataProvider";
 import { TenantKpiCards } from "./components/TenantKpiCards";
 import { TenantFilterBar } from "./components/TenantFilterBar";
 import { TenantTable } from "./components/TenantTable";
-import { TenantForkModal } from "./components/TenantForkModal";
 
 export const TenantList: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [modalVisible, setModalVisible] = useState(false);
-  const [forkModalVisible, setForkModalVisible] = useState(false);
-  const [forkSourceTenant, setForkSourceTenant] = useState<any>(null);
-  const [forkLoading, setForkLoading] = useState(false);
-  const [forkForm] = Form.useForm();
 
   const { show } = useNavigation();
   const navigate = useNavigate();
@@ -46,7 +41,7 @@ export const TenantList: React.FC = () => {
       "RESUMING",
       "SEEDING",
       "UPGRADING",
-    ].includes(t.status),
+    ].includes(t.status)
   );
 
   useEffect(() => {
@@ -58,11 +53,11 @@ export const TenantList: React.FC = () => {
   const totalTenants = tenants.length;
   const activeTenants = tenants.filter((t) => t.status === "ACTIVE").length;
   const suspendedTenants = tenants.filter(
-    (t) => t.status === "SUSPENDED",
+    (t) => t.status === "SUSPENDED"
   ).length;
   const totalQuota = tenants.reduce(
     (acc, t) => acc + (parseInt(t.quota_gb) || 0),
-    0,
+    0
   );
 
   const filteredTenants = tenants.filter((t) => {
@@ -82,13 +77,17 @@ export const TenantList: React.FC = () => {
       { resource: "tenants", id: tenantId, values: { action } },
       {
         onSuccess: () => {
-          message.success(
-            `Tenant ${tenantId} ${action === "SUSPEND" ? "suspension initiated" : "resumption initiated"}!`,
+          toast.success(
+            `Tenant ${tenantId} ${
+              action === "SUSPEND"
+                ? "suspension initiated"
+                : "resumption initiated"
+            }!`
           );
           refetch();
         },
-        onError: (err: any) => message.error(err?.message || "Action failed"),
-      },
+        onError: (err: any) => toast.error(err?.message || "Action failed"),
+      }
     );
   };
 
@@ -97,11 +96,11 @@ export const TenantList: React.FC = () => {
       { resource: "tenants", id: tenantId, values: { action: "SEED" } },
       {
         onSuccess: () => {
-          message.success(`Tenant ${tenantId} seeding workflow initiated!`);
+          toast.success(`Tenant ${tenantId} seeding workflow initiated!`);
           refetch();
         },
-        onError: (err: any) => message.error(err?.message || "Seeding failed"),
-      },
+        onError: (err: any) => toast.error(err?.message || "Seeding failed"),
+      }
     );
   };
 
@@ -110,11 +109,11 @@ export const TenantList: React.FC = () => {
       { resource: "tenants", id: tenantId },
       {
         onSuccess: () => {
-          message.success(`Tenant ${tenantId} deprovisioning initiated!`);
+          toast.success(`Tenant ${tenantId} deprovisioning initiated!`);
           refetch();
         },
-        onError: (err: any) => message.error(err?.message || "Deletion failed"),
-      },
+        onError: (err: any) => toast.error(err?.message || "Deletion failed"),
+      }
     );
   };
 
@@ -132,61 +131,20 @@ export const TenantList: React.FC = () => {
       },
       {
         onSuccess: () => {
-          message.success(
-            `Tenant ${values.tenant_id} provisioning workflow initiated!`,
+          toast.success(
+            `Tenant ${values.tenant_id} provisioning workflow initiated!`
           );
           setModalVisible(false);
           refetch();
         },
         onError: (err: any) =>
-          message.error(err?.message || "Provisioning failed"),
-      },
+          toast.error(err?.message || "Provisioning failed"),
+      }
     );
   };
 
-  const handleOpenForkModal = (record: any) => {
-    setForkSourceTenant(record);
-    forkForm.setFieldsValue({
-      target_tenant_id: `${record.tenant_id}-staging`,
-      target_domain: `${record.tenant_id}-staging.png261.dev`,
-      admin_email: record.admin_email || `admin@${record.tenant_id}.com`,
-      quota_gb: record.quota_gb || 50,
-    });
-    setForkModalVisible(true);
-  };
-
-  const handleForkSubmit = async (values: any) => {
-    if (!dataProvider.custom) return;
-    setForkLoading(true);
-    try {
-      const targetId = values.target_tenant_id.toLowerCase().trim();
-      await dataProvider.custom({
-        url: dataProvider.getApiUrl(),
-        method: "post",
-        payload: {
-          action: "CLONE_TENANT",
-          source_tenant_id: forkSourceTenant?.tenant_id,
-          target_tenant_id: targetId,
-          target_domain: values.target_domain?.trim(),
-          admin_email: values.admin_email?.trim(),
-          quota_gb: values.quota_gb,
-        },
-      });
-      message.success(
-        `Tenant '${forkSourceTenant?.tenant_id}' cloned to sandbox '${targetId}'!`,
-      );
-      setForkModalVisible(false);
-      forkForm.resetFields();
-      refetch();
-    } catch (err: any) {
-      message.error(err?.message || "Failed to clone tenant");
-    } finally {
-      setForkLoading(false);
-    }
-  };
-
   return (
-    <div>
+    <div className="space-y-4">
       <TenantKpiCards
         totalTenants={totalTenants}
         activeTenants={activeTenants}
@@ -213,7 +171,6 @@ export const TenantList: React.FC = () => {
         onToggleStatus={handleToggleStatus}
         onSeedTenant={handleSeedTenant}
         onDeleteTenant={handleDelete}
-        onOpenForkModal={handleOpenForkModal}
         onShowTenant={(tid) => show("tenants", tid)}
         onNavigate={(path) => navigate(path)}
       />
@@ -222,14 +179,6 @@ export const TenantList: React.FC = () => {
         onCancel={() => setModalVisible(false)}
         onSubmit={handleCreateSubmit}
         loading={isCreating}
-      />
-      <TenantForkModal
-        visible={forkModalVisible}
-        sourceTenant={forkSourceTenant}
-        loading={forkLoading}
-        form={forkForm}
-        onCancel={() => setForkModalVisible(false)}
-        onSubmit={handleForkSubmit}
       />
     </div>
   );

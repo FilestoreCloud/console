@@ -21,51 +21,57 @@ describe("CustomHeader", () => {
     };
   });
 
-  it("renders console title, AWS region and online status", () => {
+  it("renders console title in header", () => {
     render(<CustomHeader />);
 
     expect(screen.getByText("Storix Console")).toBeInTheDocument();
-    expect(screen.getByText(/Region: ap-southeast-1/i)).toBeInTheDocument();
-    expect(screen.getByText(/Online/i)).toBeInTheDocument();
-    expect(screen.getByText("CloudWatch Dashboard ↗")).toBeInTheDocument();
-  });
-
-  it("displays SuperAdmin role badge correctly", () => {
-    mockUserData = { email: "nhphuong.code@gmail.com", role: "SuperAdmin" };
-    render(<CustomHeader />);
-    expect(
-      screen.getByText(/SuperAdmin \(Full Control\)/i),
-    ).toBeInTheDocument();
-  });
-
-  it("defaults to SuperAdmin role badge when no role is specified", () => {
-    mockUserData = { email: "nhphuong.code@gmail.com" };
-    render(<CustomHeader />);
-    expect(
-      screen.getByText(/SuperAdmin \(Full Control\)/i),
-    ).toBeInTheDocument();
-  });
-
-  it("calls onToggleTheme when the theme toggle button is clicked", () => {
-    const handleToggle = vi.fn();
-    render(<CustomHeader isDark={false} onToggleTheme={handleToggle} />);
-
-    const themeBtn = screen.getByText("Light");
-    expect(themeBtn).toBeInTheDocument();
-
-    fireEvent.click(themeBtn);
-    expect(handleToggle).toHaveBeenCalledTimes(1);
-  });
-
-  it("renders Dark button label when isDark is true", () => {
-    const handleToggle = vi.fn();
-    render(<CustomHeader isDark={true} onToggleTheme={handleToggle} />);
-    expect(screen.getByText("Dark")).toBeInTheDocument();
   });
 
   it("renders responsive mobile drawer toggle button with accessible aria-label", () => {
     render(<CustomHeader />);
     const toggleBtn = screen.getByLabelText("Toggle navigation menu");
     expect(toggleBtn).toBeInTheDocument();
+  });
+
+  it("renders user avatar and name in the header", () => {
+    render(<CustomHeader />);
+    expect(screen.getByText("ADMIN")).toBeInTheDocument();
+    expect(screen.getByLabelText("User account menu")).toBeInTheDocument();
+  });
+
+  it("opens user menu and displays user identity", async () => {
+    render(<CustomHeader />);
+    const userMenuBtn = screen.getByLabelText("User account menu");
+    fireEvent.pointerDown(userMenuBtn, { pointerId: 1 });
+
+    expect(await screen.findByText("nhphuong.code@gmail.com")).toBeInTheDocument();
+  });
+
+  it("requires confirmation before executing logout", async () => {
+    render(<CustomHeader />);
+    const userMenuBtn = screen.getByLabelText("User account menu");
+    expect(userMenuBtn).toBeInTheDocument();
+
+    // Radix dropdown opens on pointerDown in jsdom
+    fireEvent.pointerDown(userMenuBtn, { pointerId: 1 });
+
+    const signOutItem = await screen.findByText("Sign Out");
+    expect(signOutItem).toBeInTheDocument();
+    fireEvent.click(signOutItem);
+
+    // Logout should not be called immediately
+    expect(mockLogout).not.toHaveBeenCalled();
+
+    // Confirmation dialog should appear
+    expect(screen.getByText("Confirm Sign Out")).toBeInTheDocument();
+    expect(
+      screen.getByText("Are you sure you want to end your SuperAdmin control plane session?")
+    ).toBeInTheDocument();
+
+    // Click confirm in the dialog
+    const confirmBtn = screen.getByRole("button", { name: "Sign Out" });
+    fireEvent.click(confirmBtn);
+
+    expect(mockLogout).toHaveBeenCalledTimes(1);
   });
 });

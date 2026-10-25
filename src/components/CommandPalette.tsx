@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Input, List, Typography, Space, Tag } from "antd";
-import {
-  SearchOutlined,
-  CompassOutlined,
-  ThunderboltOutlined,
-  BulbOutlined,
-  ClusterOutlined,
-  SafetyCertificateOutlined,
-  LineChartOutlined,
-  BellOutlined,
-} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-
-const { Text } = Typography;
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Search,
+  Boxes,
+  ShieldCheck,
+  Activity,
+  Bell,
+  Sun,
+  Moon,
+  Zap,
+} from "lucide-react";
 
 export interface CommandPaletteProps {
   isDark?: boolean;
@@ -50,46 +55,24 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   const commands: CommandItem[] = [
     {
+      key: "nav-dashboard",
+      category: "Navigation",
+      title: "Control Plane Dashboard",
+      description: "Overview metrics, fleet telemetry, and Cloud Audit Trail",
+      icon: <Activity className="h-5 w-5 text-primary" />,
+      handler: () => {
+        navigate("/dashboard");
+        setOpen(false);
+      },
+    },
+    {
       key: "nav-tenants",
       category: "Navigation",
       title: "Fleet Tenants",
       description: "Manage tenant instances, sandbox staging, and scaling",
-      icon: <ClusterOutlined style={{ color: "#1652f0" }} />,
+      icon: <Boxes className="h-5 w-5 text-blue-500" />,
       handler: () => {
         navigate("/tenants");
-        setOpen(false);
-      },
-    },
-    {
-      key: "nav-audit",
-      category: "Navigation",
-      title: "Audit Logs",
-      description: "Inspect immutable security logs and operator activities",
-      icon: <SafetyCertificateOutlined style={{ color: "#52c41a" }} />,
-      handler: () => {
-        navigate("/audit-logs");
-        setOpen(false);
-      },
-    },
-    {
-      key: "nav-telemetry",
-      category: "Navigation",
-      title: "Telemetry & Telemetry Dashboard",
-      description: "CloudWatch metrics, ECS CPU/RAM, and WebDAV latency",
-      icon: <LineChartOutlined style={{ color: "#faad14" }} />,
-      handler: () => {
-        navigate("/telemetry");
-        setOpen(false);
-      },
-    },
-    {
-      key: "nav-webhooks",
-      category: "Navigation",
-      title: "Webhook Integrations",
-      description: "Configure HTTP notification webhooks and dispatch history",
-      icon: <BellOutlined style={{ color: "#722ed1" }} />,
-      handler: () => {
-        navigate("/settings/webhooks");
         setOpen(false);
       },
     },
@@ -97,8 +80,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       key: "act-theme",
       category: "Quick Setting",
       title: `Switch to ${isDark ? "Light" : "Dark"} Mode`,
-      description: "Toggle dynamic Ant Design 5 light/dark color theme",
-      icon: <BulbOutlined style={{ color: "#fa8c16" }} />,
+      description: "Toggle dynamic light/dark color theme",
+      icon: isDark ? (
+        <Sun className="h-5 w-5 text-amber-500" />
+      ) : (
+        <Moon className="h-5 w-5 text-slate-500" />
+      ),
       handler: () => {
         if (onToggleTheme) onToggleTheme();
         setOpen(false);
@@ -109,7 +96,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: "Action",
       title: "Emergency Suspend: dev-tenant",
       description: "Scale ECS Fargate tasks to 0 for FinOps cost reduction",
-      icon: <ThunderboltOutlined style={{ color: "#ff4d4f" }} />,
+      icon: <Zap className="h-5 w-5 text-red-500" />,
       handler: () => {
         navigate("/tenants");
         setOpen(false);
@@ -120,7 +107,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: "Action",
       title: "Resume Fleet: dev-tenant",
       description: "Scale ECS Fargate tasks to 1 for active user traffic",
-      icon: <ThunderboltOutlined style={{ color: "#13c2c2" }} />,
+      icon: <Zap className="h-5 w-5 text-teal-500" />,
       handler: () => {
         navigate("/tenants");
         setOpen(false);
@@ -132,72 +119,71 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     (c) =>
       c.title.toLowerCase().includes(query.toLowerCase()) ||
       c.description.toLowerCase().includes(query.toLowerCase()) ||
-      c.category.toLowerCase().includes(query.toLowerCase()),
+      c.category.toLowerCase().includes(query.toLowerCase())
   );
 
   return (
-    <Modal
-      open={open}
-      onCancel={() => setOpen(false)}
-      footer={
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 6,
-            justifyContent: "space-between",
-            fontSize: 12,
-            color: "#8c8c8c",
-          }}
-        >
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-w-xl p-0 gap-0 overflow-hidden shadow-2xl">
+        <DialogHeader className="p-4 pb-2">
+          <DialogTitle className="sr-only">Command Palette</DialogTitle>
+          <div className="relative flex items-center">
+            <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Type a command or search (e.g. Tenants, Audit, Theme, Suspend)..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="pl-9 pr-4 h-11 text-base border-none shadow-none focus-visible:ring-0 bg-transparent"
+              autoFocus
+            />
+          </div>
+        </DialogHeader>
+
+        <div className="max-h-[360px] overflow-y-auto px-2 pb-2 divide-y divide-border/50">
+          {filtered.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              No matching commands found.
+            </div>
+          ) : (
+            filtered.map((item) => (
+              <div
+                key={item.key}
+                onClick={item.handler}
+                className="flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-accent/80 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-1 rounded bg-muted/60">{item.icon}</div>
+                  <div>
+                    <div className="font-medium text-sm text-foreground">
+                      {item.title}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {item.description}
+                    </div>
+                  </div>
+                </div>
+                <Badge
+                  variant={
+                    item.category === "Navigation"
+                      ? "info"
+                      : item.category === "Action"
+                      ? "destructive"
+                      : "warning"
+                  }
+                  className="text-[11px] font-normal"
+                >
+                  {item.category}
+                </Badge>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="border-t bg-muted/40 px-4 py-2 flex items-center justify-between text-xs text-muted-foreground">
           <span>Use <b>↑</b> <b>↓</b> to navigate, <b>ESC</b> to dismiss</span>
           <span>Storix Command Palette <b>Cmd + K</b></span>
         </div>
-      }
-      width={560}
-      destroyOnHidden
-      style={{ top: 120 }}
-    >
-      <Input
-        prefix={<SearchOutlined style={{ color: "#1652f0" }} />}
-        placeholder="Type a command or search (e.g. Tenants, Audit, Theme, Suspend)..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        autoFocus
-        allowClear
-        style={{ marginBottom: 16, fontSize: 16, padding: "8px 12px" }}
-      />
-      <List
-        dataSource={filtered}
-        renderItem={(item) => (
-          <List.Item
-            onClick={item.handler}
-            style={{
-              cursor: "pointer",
-              padding: "10px 14px",
-              borderRadius: 6,
-              transition: "background-color 0.2s",
-            }}
-            className="command-palette-item"
-          >
-            <Space align="center" style={{ width: "100%", justifyContent: "space-between" }}>
-              <Space>
-                {item.icon}
-                <div>
-                  <Text strong>{item.title}</Text>
-                  <br />
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    {item.description}
-                  </Text>
-                </div>
-              </Space>
-              <Tag color={item.category === "Navigation" ? "blue" : item.category === "Action" ? "red" : "orange"}>
-                {item.category}
-              </Tag>
-            </Space>
-          </List.Item>
-        )}
-      />
-    </Modal>
+      </DialogContent>
+    </Dialog>
   );
 };

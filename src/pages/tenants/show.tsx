@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { useShow, useUpdate, useNavigation } from "@refinedev/core";
-import { Card, Typography, Tabs, Form, message } from "antd";
-import {
-  SyncOutlined,
-  LineChartOutlined,
-  CloudServerOutlined,
-  RobotOutlined,
-  UserOutlined,
-  WarningOutlined,
-  AuditOutlined,
-  CodeOutlined,
-  FileTextOutlined,
-  BranchesOutlined,
-} from "@ant-design/icons";
+import { useShow, useUpdate, useDelete, useNavigation } from "@refinedev/core";
 import { useParams } from "react-router-dom";
+import { toast } from "sonner";
+import {
+  LineChart,
+  Server,
+  Bot,
+  Users,
+  ShieldCheck,
+  GitBranch,
+  DollarSign,
+  Heart,
+  Loader2,
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { dataProvider } from "../../providers/dataProvider";
 import { usePageVisibility } from "../../hooks/usePageVisibility";
 import { useSmartInterval } from "../../hooks/useSmartInterval";
@@ -22,22 +22,14 @@ import {
   TopologyTab,
   AgentTab,
   AccountsTab,
-  IncidentsTab,
   AuditTab,
-  TerminalTab,
-  LogsTab,
   ObservabilityTab,
   FinOpsTab,
   HealthTab,
 } from "./tabs";
-import { DollarOutlined, HeartOutlined } from "@ant-design/icons";
 import { TenantModals } from "./modals";
 import { TenantHeader } from "./TenantHeader";
-import { TenantIncidentAlert } from "./TenantIncidentAlert";
 import { TenantProgressCard } from "./TenantProgressCard";
-import { renderStatusTag, renderSeverityTag } from "./helpers";
-
-const { Text } = Typography;
 
 export const TenantShow: React.FC = () => {
   const { id: rawRouteId } = useParams<{ id: string }>();
@@ -53,20 +45,14 @@ export const TenantShow: React.FC = () => {
 
   const { list } = useNavigation();
   const { mutate: updateTenant, isLoading: isUpdating } = useUpdate();
+  const { mutate: deleteTenant, isLoading: isDeleting } = useDelete();
 
-  const [incidentModalVisible, setIncidentModalVisible] = useState(false);
   const [createAccountModalVisible, setCreateAccountModalVisible] = useState(false);
   const [resetPasswordModalVisible, setResetPasswordModalVisible] = useState(false);
   const [tempPasswordInfo, setTempPasswordInfo] = useState<{ username: string; password: string } | null>(null);
-  const [cloneModalVisible, setCloneModalVisible] = useState(false);
-  const [cloneLoading, setCloneLoading] = useState(false);
-
-  const [incidentForm] = Form.useForm();
-  const [accountForm] = Form.useForm();
-  const [cloneForm] = Form.useForm();
 
   const isPageVisible = usePageVisibility();
-  const [metricsIntervalSec, setMetricsIntervalSec] = useState(15);
+  const [metricsIntervalSec] = useState(15);
   const [metricsCountdown, setMetricsCountdown] = useState(15);
 
   useEffect(() => {
@@ -79,22 +65,36 @@ export const TenantShow: React.FC = () => {
 
   // Live smart auto-polling while tenant lifecycle operation is in progress
   const status = tenantData?.tenant?.status || tenantData?.status;
-  const isTransitioning = ["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING", "SEEDING", "UPGRADING"].includes(status);
-  useSmartInterval(() => {
-    refetch();
-  }, isTransitioning ? 2500 : null, {
-    maxIdleSeconds: 60,
-    backoffFactor: 1.5,
-    maxDelay: 10000,
-    immediateOnVisible: true,
-  });
+  const isTransitioning = [
+    "PROVISIONING",
+    "DELETING",
+    "DEPROVISIONING",
+    "SUSPENDING",
+    "RESUMING",
+    "SEEDING",
+    "UPGRADING",
+  ].includes(status);
+
+  useSmartInterval(
+    () => {
+      refetch();
+    },
+    isTransitioning ? 2500 : null,
+    {
+      maxIdleSeconds: 60,
+      backoffFactor: 1.5,
+      maxDelay: 10000,
+      immediateOnVisible: true,
+    }
+  );
 
   if (isLoading || !tenantData) {
     return (
-      <Card style={{ margin: 24, textAlign: "center" }} variant="borderless">
-        <SyncOutlined spin style={{ fontSize: 28, color: "#1652f0", marginBottom: 12 }} />
-        <br />
-        <Text type="secondary">Loading tenant configuration & agent telemetry...</Text>
+      <Card className="m-6 text-center border-dashed shadow-sm">
+        <CardContent className="py-12 flex flex-col items-center justify-center space-y-3">
+          <Loader2 className="h-8 w-8 text-primary animate-spin" />
+          <p className="text-sm text-muted-foreground">Loading tenant configuration & agent telemetry...</p>
+        </CardContent>
       </Card>
     );
   }
@@ -103,8 +103,6 @@ export const TenantShow: React.FC = () => {
   const awsTopology = tenantData.aws_topology || {};
   const agent = tenantData.agent || {};
   const accounts = tenantData.accounts || [];
-  const incident = tenantData.incident || null;
-  const incidentsHistory = tenantData.incidents_history || [];
   const auditLogs = tenantData.audit_logs || [];
   const metrics = tenantData.metrics || {};
 
@@ -112,16 +110,36 @@ export const TenantShow: React.FC = () => {
   const domain = tenant.domain || `${tenantId}.png261.dev`;
   const currentStatus = tenant.status || "ACTIVE";
 
-  const handleRestartAgent = () => {
+  const handleToggleStatus = () => {
+    const nextStatus = currentStatus === "SUSPENDED" ? "ACTIVE" : "SUSPENDED";
     updateTenant(
-      { resource: "tenants", id: tenantId, values: { action: "RESTART_AGENT" } },
+      {
+        resource: "tenants",
+        id: tenantId,
+        values: { action: "SET_STATUS", status: nextStatus },
+      },
       {
         onSuccess: () => {
-          message.success(`ECS Agent rolling deployment initiated for ${tenantId}!`);
+          toast.success(`Tenant '${tenantId}' status updated to ${nextStatus}`);
           refetch();
         },
-        onError: (err: any) => message.error(err?.message || "Failed to restart agent"),
-      },
+        onError: (err: any) =>
+          toast.error(err?.message || "Failed to update tenant status"),
+      }
+    );
+  };
+
+  const handleDeleteTenant = () => {
+    deleteTenant(
+      { resource: "tenants", id: tenantId },
+      {
+        onSuccess: () => {
+          toast.success(`Tenant '${tenantId}' deprovisioning initiated`);
+          list("tenants");
+        },
+        onError: (err: any) =>
+          toast.error(err?.message || "Failed to delete tenant"),
+      }
     );
   };
 
@@ -133,10 +151,10 @@ export const TenantShow: React.FC = () => {
           const tempPwd = res?.data?.temporary_password || res?.data?.password || "Tmp_Secret987!";
           setTempPasswordInfo({ username, password: tempPwd });
           setResetPasswordModalVisible(true);
-          message.success(`Password reset generated for '${username}'`);
+          toast.success(`Password reset generated for '${username}'`);
         },
-        onError: (err: any) => message.error(err?.message || "Failed to reset password"),
-      },
+        onError: (err: any) => toast.error(err?.message || "Failed to reset password"),
+      }
     );
   };
 
@@ -146,32 +164,19 @@ export const TenantShow: React.FC = () => {
       { resource: "tenants", id: tenantId, values: { action: "UPDATE_TENANT_ACCOUNT", username, status: nextStatus } },
       {
         onSuccess: () => {
-          message.success(`Account '${username}' status changed to ${nextStatus}`);
+          toast.success(`Account '${username}' status changed to ${nextStatus}`);
           refetch();
         },
-        onError: (err: any) => message.error(err?.message || "Failed to update account status"),
-      },
+        onError: (err: any) => toast.error(err?.message || "Failed to update account status"),
+      }
     );
   };
 
-  const openIncidentModal = () => {
-    incidentForm.setFieldsValue({
-      status: currentStatus,
-      severity: incident?.severity || "SEV-2",
-      title: incident?.title || "",
-      description: incident?.description || "",
-      root_cause: incident?.root_cause || "",
-      action_taken: incident?.action_taken || "",
-      incident_state: incident?.status || "INVESTIGATING",
-    });
-    setIncidentModalVisible(true);
-  };
-
-  // Dynamic API URL reference for verification suites
   const currentApiUrl = dataProvider.getApiUrl();
 
   return (
-    <div style={{ paddingBottom: 40 }} data-api-url={currentApiUrl}>
+    <div className="pb-16 space-y-8" data-api-url={currentApiUrl}>
+      {/* 1. Header with exactly 2 actions: Suspend & Delete */}
       <TenantHeader
         tenantId={tenantId}
         domain={domain}
@@ -180,22 +185,13 @@ export const TenantShow: React.FC = () => {
         progress={tenant.progress}
         currentStep={tenant.current_step}
         isLoading={isLoading}
-        isUpdating={isUpdating}
+        isUpdating={isUpdating || isDeleting}
         onBack={() => list("tenants")}
-        onRefresh={() => refetch()}
-        onOpenIncidentModal={openIncidentModal}
-        onRestartAgent={handleRestartAgent}
-        onOpenCloneModal={() => {
-          cloneForm.setFieldsValue({
-            target_tenant_id: `${tenantId}-staging`,
-            target_domain: `${tenantId}-staging.png261.dev`,
-            admin_email: tenant.admin_email || `admin@${tenantId}.com`,
-            quota_gb: tenant.quota_gb || 50,
-          });
-          setCloneModalVisible(true);
-        }}
+        onToggleStatus={handleToggleStatus}
+        onDeleteTenant={handleDeleteTenant}
       />
 
+      {/* 2. Lifecycle Progress Alert (when provisioning or migrating) */}
       <TenantProgressCard
         tenantId={tenantId}
         currentStatus={currentStatus}
@@ -203,133 +199,122 @@ export const TenantShow: React.FC = () => {
         currentStep={tenant.current_step}
       />
 
-      <TenantIncidentAlert
-        currentStatus={currentStatus}
-        incident={incident}
-        lastUpdated={tenant.last_updated}
-      />
+      {/* 3. Section: Live Metrics & Telemetry */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2 border-b pb-2">
+          <LineChart className="h-5 w-5 text-primary" />
+          <h2 className="text-base font-semibold text-foreground tracking-tight">
+            Live Metrics & Telemetry
+          </h2>
+        </div>
+        <MetricsTab
+          tenantId={tenantId}
+          metrics={metrics}
+          metricsIntervalSec={metricsIntervalSec}
+          metricsCountdown={metricsCountdown}
+          setMetricsCountdown={setMetricsCountdown}
+          refetch={refetch}
+        />
+      </section>
 
-      <Tabs
-        defaultActiveKey={(() => {
-          const searchTab = new URLSearchParams(window.location.search).get("tab");
-          if (searchTab) return searchTab;
-          if (decodedRouteParam.includes("tab=")) {
-            const m = decodedRouteParam.match(/tab=([^&]+)/);
-            if (m) return m[1];
-          }
-          return "metrics";
-        })()}
-        type="card"
-        items={[
-          {
-            key: "metrics",
-            label: <span><LineChartOutlined style={{ color: "#1652f0" }} /> Live Metrics & Telemetry</span>,
-            children: (
-              <MetricsTab
-                tenantId={tenantId}
-                metrics={metrics}
-                metricsIntervalSec={metricsIntervalSec}
-                metricsCountdown={metricsCountdown}
-                setMetricsCountdown={setMetricsCountdown}
-                refetch={refetch}
-              />
-            ),
-          },
-          {
-            key: "topology",
-            label: <span><CloudServerOutlined /> Dedicated Architecture & Topology</span>,
-            children: (
-              <TopologyTab
-                awsTopology={awsTopology}
-                tenantId={tenantId}
-                domain={domain}
-                quotaGb={tenant.quota_gb}
-              />
-            ),
-          },
-          {
-            key: "agent",
-            label: <span><RobotOutlined /> Agent Detail & Container Monitor</span>,
-            children: <AgentTab agent={agent} awsTopology={awsTopology} />,
-          },
-          {
-            key: "accounts",
-            label: <span><UserOutlined /> Tenant Accounts Management</span>,
-            children: (
-              <AccountsTab
-                accounts={accounts}
-                onAddAccount={() => setCreateAccountModalVisible(true)}
-                onResetPassword={handleResetPassword}
-                onToggleAccountStatus={handleToggleAccountStatus}
-              />
-            ),
-          },
-          {
-            key: "incidents",
-            label: <span><WarningOutlined /> Accidents & Incident History</span>,
-            children: (
-              <IncidentsTab
-                currentStatus={currentStatus}
-                incident={incident}
-                incidentsHistory={incidentsHistory}
-                renderStatusTag={renderStatusTag}
-                renderSeverityTag={renderSeverityTag}
-                onDeclareIncident={openIncidentModal}
-              />
-            ),
-          },
-          {
-            key: "audit",
-            label: <span><AuditOutlined /> Tenant Audit Trail</span>,
-            children: <AuditTab auditLogs={auditLogs} tenantId={tenantId} />,
-          },
-          {
-            key: "terminal",
-            label: <span><CodeOutlined /> OCC Terminal & Diagnostics</span>,
-            children: <TerminalTab tenantId={tenantId} />,
-          },
-          {
-            key: "logs",
-            label: <span><FileTextOutlined /> Live Container Logs</span>,
-            children: <LogsTab tenantId={tenantId} awsTopology={awsTopology} />,
-          },
-          {
-            key: "observability",
-            label: <span><BranchesOutlined /> Step Functions & X-Ray</span>,
-            children: <ObservabilityTab tenantId={tenantId} />,
-          },
-          {
-            key: "finops",
-            label: <span><DollarOutlined style={{ color: "#52c41a" }} /> FinOps & Custom Domain</span>,
-            children: <FinOpsTab tenantId={tenantId} tenant={tenant} finops={tenantData.finops} />,
-          },
-          {
-            key: "health",
-            label: <span><HeartOutlined style={{ color: "#eb2f96" }} /> Health & Quota Limit</span>,
-            children: <HealthTab tenantId={tenantId} tenant={tenant} health={tenantData.health} />,
-          },
-        ]}
-      />
+      {/* 4. Section: Dedicated Architecture & Topology */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2 border-b pb-2">
+          <Server className="h-5 w-5 text-primary" />
+          <h2 className="text-base font-semibold text-foreground tracking-tight">
+            Dedicated Architecture & Topology
+          </h2>
+        </div>
+        <TopologyTab
+          awsTopology={awsTopology}
+          tenantId={tenantId}
+          domain={domain}
+          quotaGb={tenant.quota_gb}
+        />
+      </section>
 
+      {/* 5. Section: Agent Detail & Container Monitor */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2 border-b pb-2">
+          <Bot className="h-5 w-5 text-primary" />
+          <h2 className="text-base font-semibold text-foreground tracking-tight">
+            Agent Detail & Container Monitor
+          </h2>
+        </div>
+        <AgentTab agent={agent} awsTopology={awsTopology} />
+      </section>
+
+      {/* 6. Section: Tenant Accounts Management */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2 border-b pb-2">
+          <Users className="h-5 w-5 text-primary" />
+          <h2 className="text-base font-semibold text-foreground tracking-tight">
+            Tenant Accounts Management
+          </h2>
+        </div>
+        <AccountsTab
+          accounts={accounts}
+          onAddAccount={() => setCreateAccountModalVisible(true)}
+          onResetPassword={handleResetPassword}
+          onToggleAccountStatus={handleToggleAccountStatus}
+        />
+      </section>
+
+      {/* 7. Section: FinOps & Custom Domain */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2 border-b pb-2">
+          <DollarSign className="h-5 w-5 text-emerald-600" />
+          <h2 className="text-base font-semibold text-foreground tracking-tight">
+            FinOps & Custom Domain
+          </h2>
+        </div>
+        <FinOpsTab tenantId={tenantId} tenant={tenant} finops={tenantData.finops} />
+      </section>
+
+      {/* 8. Section: Health & Quota Limit */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2 border-b pb-2">
+          <Heart className="h-5 w-5 text-rose-500" />
+          <h2 className="text-base font-semibold text-foreground tracking-tight">
+            Health & Quota Limit
+          </h2>
+        </div>
+        <HealthTab tenantId={tenantId} tenant={tenant} health={tenantData.health} />
+      </section>
+
+      {/* 9. Section: Step Functions & X-Ray Orchestration */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2 border-b pb-2">
+          <GitBranch className="h-5 w-5 text-primary" />
+          <h2 className="text-base font-semibold text-foreground tracking-tight">
+            Step Functions & X-Ray
+          </h2>
+        </div>
+        <ObservabilityTab tenantId={tenantId} />
+      </section>
+
+      {/* 10. Section: Tenant Audit Trail */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2 border-b pb-2">
+          <ShieldCheck className="h-5 w-5 text-primary" />
+          <h2 className="text-base font-semibold text-foreground tracking-tight">
+            Tenant Audit Trail
+          </h2>
+        </div>
+        <AuditTab auditLogs={auditLogs} tenantId={tenantId} />
+      </section>
+
+      {/* Modals for Account creation & password reset */}
       <TenantModals
         tenantId={tenantId}
         domain={domain}
         refetch={refetch}
-        incidentModalVisible={incidentModalVisible}
-        setIncidentModalVisible={setIncidentModalVisible}
-        incidentForm={incidentForm}
         createAccountModalVisible={createAccountModalVisible}
         setCreateAccountModalVisible={setCreateAccountModalVisible}
-        accountForm={accountForm}
         resetPasswordModalVisible={resetPasswordModalVisible}
         setResetPasswordModalVisible={setResetPasswordModalVisible}
         tempPasswordInfo={tempPasswordInfo}
         setTempPasswordInfo={setTempPasswordInfo}
-        cloneModalVisible={cloneModalVisible}
-        setCloneModalVisible={setCloneModalVisible}
-        cloneForm={cloneForm}
-        cloneLoading={cloneLoading}
-        setCloneLoading={setCloneLoading}
       />
     </div>
   );

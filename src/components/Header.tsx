@@ -1,242 +1,137 @@
-import React from "react";
+import React, { useState } from "react";
 import { useGetIdentity, useLogout } from "@refinedev/core";
-import { useThemedLayoutContext } from "@refinedev/antd";
+import { useLayout } from "./layout/LayoutContext";
+import { Button } from "@/components/ui/button";
 import {
-  Layout,
-  Space,
-  Tag,
-  Dropdown,
-  Button,
-  Typography,
-  Avatar,
-  MenuProps,
-  Tooltip,
-} from "antd";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
-  SafetyCertificateFilled,
-  LogoutOutlined,
-  GlobalOutlined,
-  CheckCircleFilled,
-  LineChartOutlined,
-  UserOutlined,
-  LockFilled,
-  BulbOutlined,
-  BulbFilled,
-  MenuOutlined,
-} from "@ant-design/icons";
-
-const { Text } = Typography;
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  TooltipProvider,
+} from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  LogOut,
+  User,
+  Menu,
+  AlertTriangle,
+} from "lucide-react";
 
 export interface HeaderProps {
   isDark?: boolean;
   onToggleTheme?: () => void;
 }
 
-export const CustomHeader: React.FC<HeaderProps> = ({
-  isDark,
-  onToggleTheme,
-}) => {
+export const CustomHeader: React.FC<HeaderProps> = () => {
   const { data: user } = useGetIdentity<any>();
   const { mutate: logout } = useLogout();
-  const { mobileSiderOpen, setMobileSiderOpen } = useThemedLayoutContext();
-
-  const role = user?.role || "SuperAdmin";
-
-  const getRoleBadge = () => {
-    return (
-      <Tooltip title={`Role: ${role}`}>
-        <Tag color="error" icon={<SafetyCertificateFilled />}>
-          <span className="header-role-text">SuperAdmin (Full Control)</span>
-        </Tag>
-      </Tooltip>
-    );
-  };
-
-  const menuItems: MenuProps["items"] = [
-    {
-      key: "user-info",
-      label: (
-        <div style={{ padding: "4px 8px" }}>
-          <Text strong>{user?.email || "SuperAdmin"}</Text>
-          <br />
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            Role: {role}
-          </Text>
-        </div>
-      ),
-    },
-    {
-      key: "mfa-status",
-      label: (
-        <Space style={{ padding: "2px 8px" }}>
-          <CheckCircleFilled style={{ color: "#52c41a" }} />
-          <Text style={{ fontSize: 12, color: "#52c41a" }}>
-            MFA: Verified
-          </Text>
-        </Space>
-      ),
-    },
-    {
-      type: "divider",
-    },
-    {
-      key: "logout",
-      icon: <LogoutOutlined style={{ color: "#ff4d4f" }} />,
-      danger: true,
-      label: "Sign Out",
-      onClick: () => logout(),
-    },
-  ];
+  const { mobileSiderOpen, setMobileSiderOpen } = useLayout();
+  const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
 
   return (
-    <Layout.Header
-      style={{
-        backgroundColor: "#071736",
-        padding: "0 clamp(10px, 3vw, 24px)",
-        height: 64,
-        lineHeight: "64px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        borderBottom: "2px solid #1652f0",
-        position: "sticky",
-        top: 0,
-        zIndex: 1000,
-        overflow: "hidden",
-      }}
-    >
-      <Space size={8} align="center" wrap={false} style={{ flexShrink: 0 }}>
-        <Button
-          type="text"
-          aria-label="Toggle navigation menu"
-          className="mobile-sider-toggle"
-          icon={<MenuOutlined style={{ color: "#ffffff", fontSize: 18 }} />}
-          onClick={() => {
-            if (setMobileSiderOpen) {
-              setMobileSiderOpen(!mobileSiderOpen);
-            }
-          }}
-          style={{
-            color: "#ffffff",
-            padding: "0 6px",
-            display: "none",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        />
-        <img
-          src="/storix-icon.png"
-          alt="Storix"
-          style={{ width: 26, height: 26, objectFit: "contain", flexShrink: 0 }}
-        />
-        <Text strong style={{ color: "#ffffff", fontSize: 15, whiteSpace: "nowrap" }}>
-          Storix Console
-        </Text>
-        <Tag
-          color="default"
-          className="header-region-tag"
-          style={{
-            backgroundColor: "#1e293b",
-            color: "#cbd5e1",
-            borderColor: "#334155",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <GlobalOutlined style={{ marginRight: 4 }} /> Region: ap-southeast-1
-        </Tag>
-        <Tag
-          color="success"
-          style={{
-            backgroundColor: "rgba(82, 196, 26, 0.15)",
-            borderColor: "#52c41a",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <CheckCircleFilled style={{ marginRight: 4 }} />
-          <span className="header-online-text">Online</span>
-        </Tag>
-      </Space>
-
-      <Space size={8} align="center" wrap={false} style={{ flexShrink: 0 }}>
-        <Button
-          size="small"
-          className="header-cmd-btn"
-          onClick={() => {
-            window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
-          }}
-          style={{
-            backgroundColor: isDark ? "#1e293b" : "#334155",
-            borderColor: "#475569",
-            color: "#e2e8f0",
-            fontSize: 12,
-            whiteSpace: "nowrap",
-          }}
-        >
-          ⌘K Palette
-        </Button>
-
-        <Tooltip title="Open AWS CloudWatch Dashboard">
+    <TooltipProvider>
+      <header className="h-14 border-b bg-card text-foreground px-3 sm:px-4 flex items-center justify-between sticky top-0 z-30 select-none shadow-sm">
+        {/* Left Section: Mobile toggle, Brand Title */}
+        <div className="flex items-center space-x-2 sm:space-x-3 overflow-hidden">
           <Button
-            type="link"
-            href="https://ap-southeast-1.console.aws.amazon.com/cloudwatch/home?region=ap-southeast-1#dashboards/dashboard/prod-Storix-SaaS-Control-Plane"
-            target="_blank"
-            icon={<LineChartOutlined style={{ color: "#faad14" }} />}
-            style={{ color: "#f8fafc", padding: "0 8px" }}
+            variant="ghost"
+            size="icon"
+            className="mobile-sider-toggle md:hidden h-8 w-8 text-muted-foreground hover:text-foreground"
+            onClick={() => setMobileSiderOpen(!mobileSiderOpen)}
+            aria-label="Toggle navigation menu"
           >
-            <span className="header-cw-text">CloudWatch Dashboard ↗</span>
+            <Menu className="h-5 w-5" />
           </Button>
-        </Tooltip>
 
-        {onToggleTheme && (
-          <Tooltip title={`Switch to ${isDark ? "Light" : "Dark"} Mode`}>
-            <Button
-              size="small"
-              icon={
-                isDark ? (
-                  <BulbFilled style={{ color: "#faad14" }} />
-                ) : (
-                  <BulbOutlined style={{ color: "#ffffff" }} />
-                )
-              }
-              onClick={onToggleTheme}
-              style={{
-                backgroundColor: isDark ? "#1e293b" : "#334155",
-                borderColor: "#475569",
-                color: "#ffffff",
-              }}
-            >
-              <span className="header-theme-text">{isDark ? "Dark" : "Light"}</span>
-            </Button>
-          </Tooltip>
-        )}
+          <span className="font-bold text-sm sm:text-base tracking-tight text-foreground whitespace-nowrap">
+            Storix Console
+          </span>
+        </div>
 
-        {getRoleBadge()}
+        {/* Right Section: Minimalist User Avatar Menu */}
+        <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label="User account menu"
+                className="h-9 px-2 hover:bg-muted flex items-center gap-2"
+              >
+                <Avatar className="h-7 w-7 border border-primary/20">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+                    <User className="h-3.5 w-3.5" />
+                  </AvatarFallback>
+                </Avatar>
+                <span className="header-user-name hidden sm:inline text-xs font-medium text-foreground">
+                  {user?.name || "ADMIN"}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel className="font-normal">
+                <p className="text-sm font-semibold leading-none text-foreground truncate">
+                  {user?.email || "SuperAdmin"}
+                </p>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive cursor-pointer flex items-center gap-2"
+                onClick={() => setConfirmLogoutOpen(true)}
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sign Out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
-        <Dropdown
-          menu={{ items: menuItems }}
-          placement="bottomRight"
-          trigger={["click"]}
-        >
-          <Button
-            type="text"
-            aria-label="User account menu"
-            style={{
-              color: "#ffffff",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "0 6px",
-            }}
-          >
-            <Avatar
-              size="small"
-              icon={<UserOutlined />}
-              style={{ backgroundColor: "#1652f0" }}
-            />
-            <span className="header-user-name">{user?.name || "ADMIN"}</span>
-          </Button>
-        </Dropdown>
-      </Space>
-    </Layout.Header>
+        {/* Logout Confirmation Dialog */}
+        <Dialog open={confirmLogoutOpen} onOpenChange={setConfirmLogoutOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-foreground">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                Confirm Sign Out
+              </DialogTitle>
+              <DialogDescription className="text-xs pt-1">
+                Are you sure you want to end your SuperAdmin control plane session?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmLogoutOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => {
+                  setConfirmLogoutOpen(false);
+                  logout();
+                }}
+              >
+                Sign Out
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </header>
+    </TooltipProvider>
   );
 };

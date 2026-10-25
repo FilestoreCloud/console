@@ -1,11 +1,5 @@
-import React, { useState, Suspense } from "react";
+import React, { useEffect, Suspense } from "react";
 import { Refine, Authenticated } from "@refinedev/core";
-import {
-  ThemedLayoutV2,
-  notificationProvider,
-  ThemedSiderV2,
-} from "@refinedev/antd";
-import { ConfigProvider, App as AntdApp, theme, Spin } from "antd";
 import routerBindings, {
   CatchAllNavigate,
   UnsavedChangesNotifier,
@@ -18,22 +12,26 @@ import {
   Navigate,
 } from "react-router-dom";
 import {
-  ClusterOutlined,
-  SafetyCertificateOutlined,
-  LineChartOutlined,
-  BellOutlined,
-} from "@ant-design/icons";
+  Boxes,
+  LayoutDashboard,
+  ShieldCheck,
+  Loader2,
+} from "lucide-react";
 
 import { authProvider } from "./providers/authProvider";
 import { dataProvider } from "./providers/dataProvider";
 import { accessControlProvider } from "./providers/accessControlProvider";
-
-import { CustomHeader } from "./components/Header";
-import { CommandPalette } from "./components/CommandPalette";
+import { notificationProvider } from "./providers/notificationProvider";
+import { LayoutProvider } from "./components/layout/LayoutContext";
+import { AppLayout } from "./components/layout/AppLayout";
+import { Toaster } from "@/components/ui/sonner";
 
 // Lazy-loaded routes for code splitting and instant initial page load
 const LoginPage = React.lazy(() =>
   import("./pages/login").then((m) => ({ default: m.LoginPage })),
+);
+const DashboardPage = React.lazy(() =>
+  import("./pages/dashboard").then((m) => ({ default: m.DashboardPage })),
 );
 const TenantList = React.lazy(() =>
   import("./pages/tenants/list").then((m) => ({ default: m.TenantList })),
@@ -41,202 +39,110 @@ const TenantList = React.lazy(() =>
 const TenantShow = React.lazy(() =>
   import("./pages/tenants/show").then((m) => ({ default: m.TenantShow })),
 );
-const AuditLogList = React.lazy(() =>
-  import("./pages/audit-logs/list").then((m) => ({ default: m.AuditLogList })),
-);
-const TelemetryDashboard = React.lazy(() =>
-  import("./pages/telemetry").then((m) => ({ default: m.TelemetryDashboard })),
-);
-const WebhooksSettings = React.lazy(() =>
-  import("./pages/settings/webhooks").then((m) => ({
-    default: m.WebhooksSettings,
-  })),
-);
 
 const LoadingFallback: React.FC = () => (
-  <div
-    style={{
-      minHeight: 360,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-    }}
-  >
-    <Spin size="large" />
+  <div className="min-h-[360px] flex items-center justify-center">
+    <Loader2 className="h-8 w-8 text-primary animate-spin" />
   </div>
 );
 
 const App: React.FC = () => {
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    const saved = localStorage.getItem("storix_theme") || localStorage.getItem("filestore_theme");
-    if (saved) return saved === "dark";
-    return typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
-
-  const handleToggleTheme = () => {
-    setIsDark((prev) => {
-      const next = !prev;
-      localStorage.setItem("storix_theme", next ? "dark" : "light");
-      localStorage.setItem("filestore_theme", next ? "dark" : "light");
-      return next;
-    });
-  };
+  useEffect(() => {
+    // Enforce pure light theme
+    document.documentElement.classList.remove("dark");
+    localStorage.setItem("storix_theme", "light");
+    localStorage.setItem("filestore_theme", "light");
+  }, []);
 
   return (
     <BrowserRouter>
-      <ConfigProvider
-        theme={{
-          algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
-          token: {
-            colorPrimary: "#1652f0",
-            colorInfo: "#0091ff",
-            borderRadius: 6,
-            fontFamily:
-              '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-          },
-        }}
-      >
-        <AntdApp>
-          <Refine
-            authProvider={authProvider}
-            dataProvider={dataProvider}
-            accessControlProvider={accessControlProvider}
-            routerProvider={routerBindings}
-            notificationProvider={notificationProvider}
-            resources={[
-              {
-                name: "tenants",
-                list: "/tenants",
-                show: "/tenants/:id",
-                meta: {
-                  label: "Tenant Operations",
-                  icon: <ClusterOutlined />,
-                },
+      <LayoutProvider>
+        <Refine
+          authProvider={authProvider}
+          dataProvider={dataProvider}
+          accessControlProvider={accessControlProvider}
+          routerProvider={routerBindings}
+          notificationProvider={notificationProvider}
+          resources={[
+            {
+              name: "dashboard",
+              list: "/dashboard",
+              meta: {
+                label: "Dashboard",
+                icon: <LayoutDashboard className="h-4 w-4" />,
               },
-              {
-                name: "audit-logs",
-                list: "/audit-logs",
-                meta: {
-                  label: "Cloud Audit Trail",
-                  icon: <SafetyCertificateOutlined />,
-                },
+            },
+            {
+              name: "tenants",
+              list: "/tenants",
+              show: "/tenants/:id",
+              meta: {
+                label: "Tenant Operations",
+                icon: <Boxes className="h-4 w-4" />,
               },
-              {
-                name: "telemetry",
-                list: "/telemetry",
-                meta: {
-                  label: "Telemetry & Metrics",
-                  icon: <LineChartOutlined />,
-                },
+            },
+            {
+              name: "audit-logs",
+              list: "/audit-logs",
+              meta: {
+                label: "Cloud Audit Trail",
+                icon: <ShieldCheck className="h-4 w-4" />,
               },
-              {
-                name: "webhooks",
-                list: "/settings/webhooks",
-                meta: {
-                  label: "Alerts & Webhooks",
-                  icon: <BellOutlined />,
-                },
-              },
-            ]}
-            options={{
-              syncWithLocation: true,
-              warnWhenUnsavedChanges: true,
-              reactQuery: {
-                clientConfig: {
-                  defaultOptions: {
-                    queries: {
-                      staleTime: 30000,
-                      cacheTime: 300000,
-                      refetchOnWindowFocus: false,
-                    },
+            },
+          ]}
+          options={{
+            syncWithLocation: true,
+            warnWhenUnsavedChanges: true,
+            reactQuery: {
+              clientConfig: {
+                defaultOptions: {
+                  queries: {
+                    staleTime: 30000,
+                    cacheTime: 300000,
+                    refetchOnWindowFocus: false,
                   },
                 },
               },
-            }}
-          >
-            <Suspense fallback={<LoadingFallback />}>
-              <Routes>
-                {/* Authenticated Layout */}
-                <Route
-                  element={
-                    <Authenticated
-                      key="authenticated-routes"
-                      fallback={<CatchAllNavigate to="/login" />}
-                    >
-                      <ThemedLayoutV2
-                        Header={() => (
-                          <CustomHeader
-                            isDark={isDark}
-                            onToggleTheme={handleToggleTheme}
-                          />
-                        )}
-                        Sider={(props) => (
-                          <ThemedSiderV2
-                            {...props}
-                            Title={({ collapsed }) => (
-                              <div
-                                style={{
-                                  padding: "12px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 8,
-                                }}
-                              >
-                                {collapsed ? (
-                                  <img
-                                    src="/storix-icon.png"
-                                    alt="Storix"
-                                    style={{
-                                      width: 28,
-                                      height: 28,
-                                      objectFit: "contain",
-                                    }}
-                                  />
-                                ) : (
-                                  <img
-                                    src={isDark ? "/storix-logo-white.png" : "/storix-logo.png"}
-                                    alt="Storix"
-                                    style={{
-                                      height: 32,
-                                      maxWidth: 140,
-                                      objectFit: "contain",
-                                    }}
-                                  />
-                                )}
-                              </div>
-                            )}
-                          />
-                        )}
-                      >
-                        <Outlet />
-                      </ThemedLayoutV2>
-                    </Authenticated>
-                  }
-                >
-                  <Route index element={<Navigate to="/tenants" replace />} />
-                  <Route path="/tenants" element={<TenantList />} />
-                  <Route path="/tenants/:id" element={<TenantShow />} />
-                  <Route path="/tenants/show/:id" element={<TenantShow />} />
-                  <Route path="/audit-logs" element={<AuditLogList />} />
-                  <Route path="/telemetry" element={<TelemetryDashboard />} />
-                  <Route
-                    path="/settings/webhooks"
-                    element={<WebhooksSettings />}
-                  />
-                </Route>
+            },
+          }}
+        >
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              {/* Authenticated Layout */}
+              <Route
+                element={
+                  <Authenticated
+                    key="authenticated-routes"
+                    fallback={<CatchAllNavigate to="/login" />}
+                  >
+                    <AppLayout>
+                      <Outlet />
+                    </AppLayout>
+                  </Authenticated>
+                }
+              >
+                {/* Default route for SuperAdmin is Dashboard */}
+                <Route index element={<DashboardPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/tenants" element={<TenantList />} />
+                <Route path="/tenants/:id" element={<TenantShow />} />
+                <Route path="/tenants/show/:id" element={<TenantShow />} />
+                {/* Redirects */}
+                <Route path="/audit-logs" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/telemetry" element={<Navigate to="/dashboard" replace />} />
+              </Route>
 
-                {/* Login Route */}
-                <Route path="/login" element={<LoginPage />} />
+              {/* Login Route */}
+              <Route path="/login" element={<LoginPage />} />
 
-                {/* Fallback */}
-                <Route path="*" element={<Navigate to="/tenants" replace />} />
-              </Routes>
-            </Suspense>
-            <CommandPalette isDark={isDark} onToggleTheme={handleToggleTheme} />
-            <UnsavedChangesNotifier />
-          </Refine>
-        </AntdApp>
-      </ConfigProvider>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </Suspense>
+          <UnsavedChangesNotifier />
+        </Refine>
+        <Toaster richColors position="top-right" />
+      </LayoutProvider>
     </BrowserRouter>
   );
 };

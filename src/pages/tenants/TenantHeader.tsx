@@ -1,16 +1,23 @@
-import React from "react";
-import { Card, Row, Col, Space, Button, Typography, Popconfirm } from "antd";
+import React, { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
-  ArrowLeftOutlined,
-  ReloadOutlined,
-  WarningOutlined,
-  ThunderboltOutlined,
-  BranchesOutlined,
-  LinkOutlined,
-} from "@ant-design/icons";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  ArrowLeft,
+  Pause,
+  Play,
+  Trash2,
+  ExternalLink,
+  AlertTriangle,
+} from "lucide-react";
 import { renderStatusTag } from "./helpers";
-
-const { Title, Text } = Typography;
 
 export interface TenantHeaderProps {
   tenantId: string;
@@ -19,13 +26,11 @@ export interface TenantHeaderProps {
   currentStatus: string;
   progress?: number;
   currentStep?: string;
-  isLoading: boolean;
-  isUpdating: boolean;
+  isLoading?: boolean;
+  isUpdating?: boolean;
   onBack: () => void;
-  onRefresh: () => void;
-  onOpenIncidentModal: () => void;
-  onRestartAgent: () => void;
-  onOpenCloneModal: () => void;
+  onToggleStatus: () => void;
+  onDeleteTenant: () => void;
 }
 
 export const TenantHeader: React.FC<TenantHeaderProps> = ({
@@ -35,87 +40,182 @@ export const TenantHeader: React.FC<TenantHeaderProps> = ({
   currentStatus,
   progress,
   currentStep,
-  isLoading,
-  isUpdating,
   onBack,
-  onRefresh,
-  onOpenIncidentModal,
-  onRestartAgent,
-  onOpenCloneModal,
+  onToggleStatus,
+  onDeleteTenant,
 }) => {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmSuspend, setConfirmSuspend] = useState(false);
+
+  const isInFlight = [
+    "PROVISIONING",
+    "DELETING",
+    "DEPROVISIONING",
+    "SUSPENDING",
+    "RESUMING",
+    "SEEDING",
+    "UPGRADING",
+  ].includes(currentStatus);
+
+  const isSuspended = currentStatus === "SUSPENDED";
+
   return (
-    <Card style={{ marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }} variant="borderless">
-      <Row justify="space-between" align="middle" gutter={[16, 16]}>
-        <Col xs={24} xl={10}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
-            <Button icon={<ArrowLeftOutlined />} onClick={onBack}>Fleet</Button>
-            <div style={{ minWidth: 200, flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                <Title level={4} style={{ margin: 0 }}>{tenantId}</Title>
-                {renderStatusTag(currentStatus, { progress, current_step: currentStep })}
-              </div>
-              <div style={{ marginTop: 4, display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
-                <a href={`https://${domain}`} target="_blank" rel="noreferrer" style={{ fontWeight: 600, color: "#0284c7" }}>
-                  https://{domain} <LinkOutlined style={{ fontSize: 11 }} />
-                </a>
-                {adminEmail && (
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    Admin: {adminEmail}
-                  </Text>
-                )}
+    <Card className="border-border shadow-sm mb-5">
+      <CardContent className="p-4 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        {/* Left: Back button + Title + Domain */}
+        <div className="flex items-start gap-3 flex-wrap flex-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onBack}
+            className="h-9 text-xs flex items-center gap-1.5"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Fleet</span>
+          </Button>
+
+          <div className="space-y-1">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-xl font-bold tracking-tight text-foreground">
+                {tenantId}
+              </h1>
+              <div>
+                {renderStatusTag(currentStatus, {
+                  progress,
+                  current_step: currentStep,
+                })}
               </div>
             </div>
+
+            <div className="flex items-center gap-3 flex-wrap text-xs">
+              <a
+                href={`https://${domain}`}
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-primary hover:underline flex items-center gap-1"
+              >
+                <span>https://{domain}</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+              {adminEmail && (
+                <span className="text-muted-foreground">Admin: {adminEmail}</span>
+              )}
+            </div>
           </div>
-        </Col>
-        <Col xs={24} xl={14}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-start" }}>
-            <Button icon={<ReloadOutlined />} onClick={onRefresh} loading={isLoading}>
-              Refresh
+        </div>
+
+        {/* Right: Exactly 2 Actions: Suspend and Delete */}
+        <div className="flex items-center gap-2.5">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (isSuspended) {
+                onToggleStatus();
+              } else {
+                setConfirmSuspend(true);
+              }
+            }}
+            disabled={isInFlight}
+            className="h-8 text-xs flex items-center gap-1.5 font-medium"
+          >
+            {isSuspended ? (
+              <>
+                <Play className="h-3.5 w-3.5 text-emerald-600" />
+                <span>Resume Tenant</span>
+              </>
+            ) : (
+              <>
+                <Pause className="h-3.5 w-3.5 text-amber-500" />
+                <span>Suspend Tenant</span>
+              </>
+            )}
+          </Button>
+
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setConfirmDelete(true)}
+            disabled={isInFlight}
+            className="h-8 text-xs flex items-center gap-1.5"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            <span>Delete Tenant</span>
+          </Button>
+        </div>
+      </CardContent>
+
+      {/* Suspend Confirmation Dialog */}
+      <Dialog open={confirmSuspend} onOpenChange={setConfirmSuspend}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <AlertTriangle className="h-5 w-5" />
+              Confirm Tenant Suspension
+            </DialogTitle>
+            <DialogDescription className="text-xs pt-2">
+              Are you sure you want to suspend tenant{" "}
+              <strong className="text-foreground">{tenantId}</strong>? Ingress routing will be temporarily disabled and isolated compute tasks will be paused until resumed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfirmSuspend(false)}
+            >
+              Cancel
             </Button>
-            {(() => {
-              const isInFlight = ["PROVISIONING", "DELETING", "DEPROVISIONING", "SUSPENDING", "RESUMING", "SEEDING", "UPGRADING"].includes(currentStatus);
-              return (
-                <>
-                  <Button
-                    icon={<WarningOutlined />}
-                    danger={currentStatus === "INCIDENT" || currentStatus === "DEGRADED"}
-                    onClick={onOpenIncidentModal}
-                    disabled={isInFlight}
-                  >
-                    Incident / Status Circuit-Breaker
-                  </Button>
-                  <Popconfirm
-                    title="Trigger Rolling Restart of Agent Task?"
-                    description={`This forces a new ECS task deployment for tenant '${tenantId}' with zero downtime.`}
-                    onConfirm={onRestartAgent}
-                    okText="Restart Task"
-                    cancelText="Cancel"
-                    disabled={isInFlight}
-                  >
-                    <Button
-                      type="primary"
-                      icon={<ThunderboltOutlined />}
-                      loading={isUpdating && isInFlight}
-                      disabled={isInFlight}
-                      style={{ background: "#1652f0", borderColor: "#1652f0" }}
-                    >
-                      Restart Agent Task
-                    </Button>
-                  </Popconfirm>
-                  <Button
-                    icon={<BranchesOutlined />}
-                    style={{ borderColor: "#8b5cf6", color: "#8b5cf6" }}
-                    onClick={onOpenCloneModal}
-                    disabled={isInFlight}
-                  >
-                    Fork to Sandbox
-                  </Button>
-                </>
-              );
-            })()}
-          </div>
-        </Col>
-      </Row>
+            <Button
+              variant="default"
+              size="sm"
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={() => {
+                setConfirmSuspend(false);
+                onToggleStatus();
+              }}
+            >
+              Confirm Suspend
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Confirm Tenant Deletion
+            </DialogTitle>
+            <DialogDescription className="text-xs pt-2">
+              Are you sure you want to permanently decommission and delete tenant{" "}
+              <strong className="text-foreground">{tenantId}</strong>? This action initiates Step Functions
+              deprovisioning and destroys isolated databases and storage volumes.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfirmDelete(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                setConfirmDelete(false);
+                onDeleteTenant();
+              }}
+            >
+              Confirm Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

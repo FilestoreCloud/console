@@ -1,10 +1,181 @@
 /// <reference types="vitest" />
-import { defineConfig } from "vite";
+import { defineConfig, Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import path from "path";
+import fs from "fs";
+
+function devMockPlugin(): Plugin {
+  return {
+    name: "dev-mock-api",
+    configureServer(server) {
+      const seedPath = path.resolve(__dirname, "./src/mock/seedData.json");
+      let seedData: any = {};
+      try {
+        seedData = JSON.parse(fs.readFileSync(seedPath, "utf-8"));
+      } catch {
+        seedData = { tenants: [], audit_logs: [] };
+      }
+
+      server.middlewares.use((req, res, next) => {
+        if (req.url === "/api" && req.method === "POST") {
+          let body = "";
+          req.on("data", (chunk) => {
+            body += chunk;
+          });
+          req.on("end", () => {
+            let payload: any = {};
+            try {
+              payload = JSON.parse(body || "{}");
+            } catch {
+              payload = {};
+            }
+
+            const action = payload.action;
+            res.setHeader("Content-Type", "application/json");
+
+            if (
+              action === "LOGIN" ||
+              action === "WEBAUTHN_LOGIN" ||
+              action === "VERIFY_MFA"
+            ) {
+              res.statusCode = 200;
+              return res.end(
+                JSON.stringify({
+                  token: "dev-superadmin-token-12345",
+                  user: payload.username || "admin@storix.io",
+                  role: "SuperAdmin",
+                })
+              );
+            }
+
+            if (action === "LIST") {
+              res.statusCode = 200;
+              return res.end(
+                JSON.stringify({
+                  tenants: seedData.tenants || [],
+                  total: (seedData.tenants || []).length,
+                })
+              );
+            }
+
+            if (action === "AUDIT_LOGS") {
+              res.statusCode = 200;
+              return res.end(
+                JSON.stringify({
+                  audit_logs: seedData.audit_logs || [],
+                })
+              );
+            }
+
+            if (action === "GET_TENANT_DETAIL") {
+              const tid = payload.tenant_id;
+              const tenant =
+                (seedData.tenants || []).find(
+                  (t: any) => t.tenant_id === tid || t.id === tid
+                ) || seedData.tenants?.[0];
+
+              res.statusCode = 200;
+              return res.end(
+                JSON.stringify({
+                  tenant,
+                  aws_topology: tenant?.aws_topology,
+                  agent: tenant?.agent,
+                  accounts: (tenant?.accounts || []).map((acc: any) => ({
+                    ...acc,
+                    password:
+                      acc.password ||
+                      acc.temporary_password ||
+                      `${acc.username.charAt(0).toUpperCase() + acc.username.slice(1)}@Storix2026!`,
+                  })),
+                  audit_logs: (seedData.audit_logs || []).filter(
+                    (a: any) => a.target === tid
+                  ),
+                  metrics: tenant?.metrics,
+                  finops: tenant?.finops,
+                  health: tenant?.health,
+                })
+              );
+            }
+
+            if (action === "METRICS") {
+              res.statusCode = 200;
+              return res.end(
+                JSON.stringify({
+                  metrics: {
+                    current_cpu_percent: 18.4,
+                    current_memory_mb: 512,
+                    memory_limit_mb: 2048,
+                    active_connections: 124,
+                    requests_per_minute: 142,
+                    storage_used_gb: 142.5,
+                    quota_gb: 500,
+                  },
+                })
+              );
+            }
+
+            if (action === "GET_SFN_OBSERVABILITY") {
+              res.statusCode = 200;
+              return res.end(
+                JSON.stringify({
+                  state_machines: [],
+                  executions: [
+                    {
+                      executionArn:
+                        "arn:aws:states:ap-southeast-1:123456789012:execution:prod-provision:exec-1",
+                      name: "exec-provision-tenant",
+                      stateMachineName: "prod-tenant-provisioning",
+                      workflowType: "PROVISION",
+                      status: "SUCCEEDED",
+                      durationSeconds: 42,
+                      startDate: new Date().toISOString(),
+                    },
+                  ],
+                  logs: [
+                    {
+                      timestamp: new Date().toISOString(),
+                      level: "INFO",
+                      message:
+                        "Step Functions execution completed successfully.",
+                    },
+                  ],
+                  traces: [],
+                  console_links: {},
+                })
+              );
+            }
+
+            if (action === "STREAM_SFN_PROGRESS") {
+              res.statusCode = 200;
+              return res.end(
+                JSON.stringify({
+                  progress: 100,
+                  status: "SUCCEEDED",
+                  currentStep: "Operational & Ready",
+                })
+              );
+            }
+
+            // Default fallback
+            res.statusCode = 200;
+            return res.end(JSON.stringify({ success: true }));
+          });
+        } else {
+          next();
+        }
+      });
+    },
+  };
+}
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), devMockPlugin()],
   base: "/",
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   server: {
     port: 5173,
     proxy: {
@@ -53,42 +224,12 @@ export default defineConfig({
             if (id.includes("/@tanstack/")) {
               return "vendor-tanstack";
             }
-            if (id.includes("/rc-") || id.includes("/@rc-component/")) {
-              return "vendor-rc";
+            if (id.includes("/@radix-ui/")) {
+              return "vendor-radix";
             }
-            if (id.includes("/@ant-design/pro-")) {
-              return "vendor-pro";
+            if (id.includes("/lucide-react/")) {
+              return "vendor-lucide";
             }
-            if (
-              id.includes("/@ant-design/icons") ||
-              id.includes("/@ant-design/colors") ||
-              id.includes("/@ant-design/fast-color")
-            ) {
-              return "vendor-icons";
-            }
-            if (
-              id.includes("/antd/es/table") ||
-              id.includes("/antd/es/form") ||
-              id.includes("/antd/es/select") ||
-              id.includes("/antd/es/input") ||
-              id.includes("/antd/es/modal")
-            ) {
-              return "vendor-antd-data";
-            }
-            if (
-              id.includes("/antd/es/date-picker") ||
-              id.includes("/antd/es/time-picker") ||
-              id.includes("/antd/es/calendar") ||
-              id.includes("/antd/es/color-picker") ||
-              id.includes("/@ant-design/cssinjs")
-            ) {
-              return "vendor-antd-pickers";
-            }
-            if (id.includes("/antd/")) {
-              return "vendor-antd";
-            }
-
-
           }
         },
       },
