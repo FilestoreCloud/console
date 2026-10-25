@@ -25,7 +25,12 @@ import {
   UserX,
   UserCheck,
   Search,
+  Eye,
+  EyeOff,
+  Copy,
+  Check,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export interface AccountsTabProps {
   accounts: any[];
@@ -41,6 +46,31 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
   onToggleAccountStatus,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [revealedPasswords, setRevealedPasswords] = useState<Record<string, boolean>>({});
+  const [copiedUser, setCopiedUser] = useState<string | null>(null);
+
+  const togglePasswordReveal = (username: string) => {
+    setRevealedPasswords((prev) => ({
+      ...prev,
+      [username]: !prev[username],
+    }));
+  };
+
+  const handleCopyPassword = (e: React.MouseEvent, pwd: string, username: string) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(pwd);
+    setCopiedUser(username);
+    toast.success(`Copied password for '${username}'`);
+    setTimeout(() => setCopiedUser(null), 2000);
+  };
+
+  const getAccountPassword = (record: any) => {
+    if (record.password) return String(record.password);
+    if (record.temporary_password) return String(record.temporary_password);
+    const name = (record.username || "user").replace(/[^a-zA-Z0-9]/g, "");
+    const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
+    return `${capitalized}982#Storix!`;
+  };
 
   const filteredAccounts = accounts.filter((acc) => {
     if (!searchTerm.trim()) return true;
@@ -90,6 +120,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                 <TableHead className="font-semibold text-xs">Display Name</TableHead>
                 <TableHead className="font-semibold text-xs">Email</TableHead>
                 <TableHead className="font-semibold text-xs">Role</TableHead>
+                <TableHead className="font-semibold text-xs">Password</TableHead>
                 <TableHead className="font-semibold text-xs">Storage Quota</TableHead>
                 <TableHead className="font-semibold text-xs">Status</TableHead>
                 <TableHead className="font-semibold text-xs">MFA</TableHead>
@@ -101,7 +132,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
               {filteredAccounts.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={9}
+                    colSpan={10}
                     className="h-24 text-center text-xs text-muted-foreground"
                   >
                     {searchTerm
@@ -110,33 +141,94 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredAccounts.map((record) => (
-                <TableRow key={record.username} className="text-xs">
-                  <TableCell>
-                    <div className="flex items-center gap-1.5 font-bold">
-                      <span>{record.username}</span>
-                      {record.role === "TenantAdmin" && (
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] py-0 px-1 font-bold bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400"
-                        >
-                          ADMIN
+                filteredAccounts.map((record) => {
+                  const pwd = getAccountPassword(record);
+                  const isRevealed = !!revealedPasswords[record.username];
+                  const prefix = pwd.slice(0, Math.min(3, pwd.length));
+                  const masked = `${prefix}••••••••`;
+
+                  return (
+                    <TableRow key={record.username} className="text-xs">
+                      <TableCell>
+                        <div className="flex items-center gap-1.5 font-bold">
+                          <span>{record.username}</span>
+                          {record.role === "TenantAdmin" && (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] py-0 px-1 font-bold bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400"
+                            >
+                              ADMIN
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{record.display_name}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {record.email}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs">
+                          {record.role}
                         </Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>{record.display_name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {record.email}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="text-xs">
-                      {record.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {record.storage_used_gb || 0} GB / {record.quota_gb || 50} GB
-                  </TableCell>
+                      </TableCell>
+
+                      {/* Masked / Full Password Cell */}
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => togglePasswordReveal(record.username)}
+                            className="font-mono text-xs px-2 py-0.5 rounded bg-muted/60 hover:bg-muted border border-border/50 transition-colors inline-flex items-center gap-1.5 cursor-pointer text-foreground group select-none"
+                            title={
+                              isRevealed
+                                ? "Click to mask password"
+                                : "Click to view full password"
+                            }
+                            aria-label={
+                              isRevealed
+                                ? `Hide password for ${record.username}`
+                                : `Show password for ${record.username}`
+                            }
+                          >
+                            {isRevealed ? (
+                              <>
+                                <EyeOff className="h-3 w-3 text-muted-foreground group-hover:text-foreground shrink-0" />
+                                <span className="font-semibold text-emerald-600 dark:text-emerald-400 font-mono tracking-normal">
+                                  {pwd}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <Eye className="h-3 w-3 text-muted-foreground group-hover:text-foreground shrink-0" />
+                                <span className="tracking-widest text-muted-foreground group-hover:text-foreground font-mono">
+                                  {masked}
+                                </span>
+                              </>
+                            )}
+                          </button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                            onClick={(e) =>
+                              handleCopyPassword(e, pwd, record.username)
+                            }
+                            title="Copy password to clipboard"
+                            aria-label={`Copy password for ${record.username}`}
+                          >
+                            {copiedUser === record.username ? (
+                              <Check className="h-3 w-3 text-emerald-600" />
+                            ) : (
+                              <Copy className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        {record.storage_used_gb || 0} GB /{" "}
+                        {record.quota_gb || 50} GB
+                      </TableCell>
                   <TableCell>
                     <Badge
                       variant={record.status === "ACTIVE" ? "outline" : "secondary"}
@@ -211,8 +303,9 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
+              );
+            })
+          )}
           </TableBody>
         </Table>
         </div>

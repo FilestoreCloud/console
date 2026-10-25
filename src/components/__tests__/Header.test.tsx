@@ -21,12 +21,10 @@ describe("CustomHeader", () => {
     };
   });
 
-  it("renders console title, AWS region and online status", () => {
+  it("renders console title in header", () => {
     render(<CustomHeader />);
 
     expect(screen.getByText("Storix Console")).toBeInTheDocument();
-    expect(screen.getByText(/Region: ap-southeast-1/i)).toBeInTheDocument();
-    expect(screen.getByText(/Online/i)).toBeInTheDocument();
   });
 
   it("renders responsive mobile drawer toggle button with accessible aria-label", () => {
@@ -41,14 +39,12 @@ describe("CustomHeader", () => {
     expect(screen.getByLabelText("User account menu")).toBeInTheDocument();
   });
 
-  it("opens user menu and displays email and role details", async () => {
+  it("opens user menu and displays user identity", async () => {
     render(<CustomHeader />);
     const userMenuBtn = screen.getByLabelText("User account menu");
     fireEvent.pointerDown(userMenuBtn, { pointerId: 1 });
 
     expect(await screen.findByText("nhphuong.code@gmail.com")).toBeInTheDocument();
-    expect(screen.getByText(/Role: SuperAdmin/i)).toBeInTheDocument();
-    expect(screen.getByText(/MFA: Verified/i)).toBeInTheDocument();
   });
 
   it("requires confirmation before executing logout", async () => {

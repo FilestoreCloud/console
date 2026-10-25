@@ -80,7 +80,13 @@ function devMockPlugin(): Plugin {
                   tenant,
                   aws_topology: tenant?.aws_topology,
                   agent: tenant?.agent,
-                  accounts: tenant?.accounts || [],
+                  accounts: (tenant?.accounts || []).map((acc: any) => ({
+                    ...acc,
+                    password:
+                      acc.password ||
+                      acc.temporary_password ||
+                      `${acc.username.charAt(0).toUpperCase() + acc.username.slice(1)}@Storix2026!`,
+                  })),
                   audit_logs: (seedData.audit_logs || []).filter(
                     (a: any) => a.target === tid
                   ),

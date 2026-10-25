@@ -24,8 +24,6 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   LogOut,
-  Globe,
-  CheckCircle2,
   User,
   Menu,
   AlertTriangle,
@@ -42,12 +40,10 @@ export const CustomHeader: React.FC<HeaderProps> = () => {
   const { mobileSiderOpen, setMobileSiderOpen } = useLayout();
   const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
 
-  const role = user?.role || "SuperAdmin";
-
   return (
     <TooltipProvider>
       <header className="h-14 border-b bg-card text-foreground px-3 sm:px-4 flex items-center justify-between sticky top-0 z-30 select-none shadow-sm">
-        {/* Left Section: Mobile toggle, Brand Title, Region */}
+        {/* Left Section: Mobile toggle, Brand Title */}
         <div className="flex items-center space-x-2 sm:space-x-3 overflow-hidden">
           <Button
             variant="ghost"
@@ -59,23 +55,9 @@ export const CustomHeader: React.FC<HeaderProps> = () => {
             <Menu className="h-5 w-5" />
           </Button>
 
-          <div className="flex items-center space-x-2">
-            <span className="font-bold text-sm sm:text-base tracking-tight text-foreground whitespace-nowrap">
-              Storix Console
-            </span>
-            <span className="hidden sm:inline-block text-[11px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded border">
-              v2.0
-            </span>
-          </div>
-
-          <div className="hidden lg:flex items-center space-x-1.5 ml-2 border-l pl-3 text-xs text-muted-foreground">
-            <Globe className="h-3.5 w-3.5 text-primary" />
-            <span className="header-region-text font-mono text-[11px]">
-              Region: ap-southeast-1
-            </span>
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse ml-1" />
-            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Online</span>
-          </div>
+          <span className="font-bold text-sm sm:text-base tracking-tight text-foreground whitespace-nowrap">
+            Storix Console
+          </span>
         </div>
 
         {/* Right Section: Minimalist User Avatar Menu */}
@@ -98,22 +80,12 @@ export const CustomHeader: React.FC<HeaderProps> = () => {
                 </span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-semibold leading-none text-foreground">
-                    {user?.email || "SuperAdmin"}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    Role: {role}
-                  </p>
-                </div>
+                <p className="text-sm font-semibold leading-none text-foreground truncate">
+                  {user?.email || "SuperAdmin"}
+                </p>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="px-2 py-1.5 text-xs flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                <span>MFA: Verified</span>
-              </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive cursor-pointer flex items-center gap-2"

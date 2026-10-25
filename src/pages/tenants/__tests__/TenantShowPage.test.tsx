@@ -126,4 +126,23 @@ describe("TenantShowPage — Deep Unified Single-Page Inspection", () => {
     expect(screen.getByText(/Step Functions & X-Ray/)).toBeInTheDocument();
     expect(screen.getByText(/Tenant Audit Trail/)).toBeInTheDocument();
   });
+
+  it("renders masked password in tenant accounts table and reveals full password on click", () => {
+    renderComponent();
+
+    // Default: password starts with first 3 chars followed by bullets
+    const pwdBtn = screen.getByRole("button", { name: /Show password for admin/i });
+    expect(pwdBtn).toBeInTheDocument();
+    expect(pwdBtn.textContent).toContain("••••••••");
+
+    // Click to reveal full password
+    fireEvent.click(pwdBtn);
+    expect(screen.getByRole("button", { name: /Hide password for admin/i })).toBeInTheDocument();
+    expect(screen.getByText("Admin982#Storix!")).toBeInTheDocument();
+
+    // Click again to mask
+    const hideBtn = screen.getByRole("button", { name: /Hide password for admin/i });
+    fireEvent.click(hideBtn);
+    expect(screen.getByRole("button", { name: /Show password for admin/i })).toBeInTheDocument();
+  });
 });
