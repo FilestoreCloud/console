@@ -1,18 +1,24 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Card, Typography, Progress, Space, Row, Col, Tag, Steps, Tooltip, Button } from "antd";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-  SyncOutlined,
-  CheckCircleFilled,
-  LoadingOutlined,
-  ClockCircleOutlined,
-  ThunderboltOutlined,
-  CheckCircleOutlined,
-  InfoCircleOutlined,
-} from "@ant-design/icons";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  RotateCw,
+  CheckCircle2,
+  Clock,
+  Zap,
+  Info,
+  Loader2,
+} from "lucide-react";
 import { dataProvider } from "../../providers/dataProvider";
 import { TenantProgressModal } from "./modals/TenantProgressModal";
-
-const { Text } = Typography;
 
 export interface MilestoneItem {
   id: string;
@@ -74,13 +80,15 @@ export const TenantProgressCard: React.FC<TenantProgressCardProps> = ({
           currentStep: res.data.currentStep || currentStep || "In progress",
           currentStepDescription: res.data.currentStepDescription,
           elapsedSeconds: Number(res.data.elapsedSeconds || 0),
-          estimatedRemainingSeconds: Number(res.data.estimatedRemainingSeconds || 0),
+          estimatedRemainingSeconds: Number(
+            res.data.estimatedRemainingSeconds || 0
+          ),
           milestones: res.data.milestones || [],
           executionArn: res.data.executionArn,
         });
       }
     } catch {
-      // Fallback gracefully to prop-provided status
+      // Fallback gracefully
     }
   }, [tenantId, currentStatus, progress, currentStep]);
 
@@ -96,7 +104,10 @@ export const TenantProgressCard: React.FC<TenantProgressCardProps> = ({
   }
 
   const effectiveProgress = liveData ? liveData.progress : Number(progress);
-  const effectiveStep = liveData ? liveData.currentStep : currentStep || "Step Functions Workflow in progress...";
+  const effectiveStep =
+    liveData?.currentStep ||
+    currentStep ||
+    "Step Functions Workflow in progress...";
 
   const isDeleting = ["DELETING", "DEPROVISIONING"].includes(currentStatus);
   const isSuspending = currentStatus === "SUSPENDING";
@@ -104,45 +115,19 @@ export const TenantProgressCard: React.FC<TenantProgressCardProps> = ({
   const isSeeding = currentStatus === "SEEDING";
   const isUpgrading = currentStatus === "UPGRADING";
 
-  let cardBg = "#f0f7ff";
-  let cardBorder = "#91caff";
-  let iconColor = "#1652f0";
-  let strokeColor: any = { "0%": "#1652f0", "100%": "#52c41a" };
   let title = `Tenant Provisioning in Progress (${effectiveProgress}%)`;
-
   if (isDeleting) {
-    cardBg = "#fff1f0";
-    cardBorder = "#ffa39e";
-    iconColor = "#ff4d4f";
-    strokeColor = { "0%": "#faad14", "100%": "#ff4d4f" };
     title = `Tenant Teardown & Deprovisioning in Progress (${effectiveProgress}%)`;
   } else if (isSuspending) {
-    cardBg = "#fffbe6";
-    cardBorder = "#ffe58f";
-    iconColor = "#fa8c16";
-    strokeColor = "#fa8c16";
     title = `Tenant Suspension (FinOps Scale-to-Zero) in Progress (${effectiveProgress}%)`;
   } else if (isResuming) {
-    cardBg = "#e6fffb";
-    cardBorder = "#87e8de";
-    iconColor = "#13c2c8";
-    strokeColor = "#13c2c8";
     title = `Tenant Resumption & Container Rehydration in Progress (${effectiveProgress}%)`;
   } else if (isSeeding) {
-    cardBg = "#f9f0ff";
-    cardBorder = "#d3adf7";
-    iconColor = "#722ed1";
-    strokeColor = "#722ed1";
     title = `Tenant Demo Data Seeding in Progress (${effectiveProgress}%)`;
   } else if (isUpgrading) {
-    cardBg = "#f0f5ff";
-    cardBorder = "#adc6ff";
-    iconColor = "#2f54eb";
-    strokeColor = "#2f54eb";
     title = `Rolling Container Image Upgrade in Progress (${effectiveProgress}%)`;
   }
 
-  // Fallback default milestones if not streamed from backend
   const displayMilestones: MilestoneItem[] =
     liveData?.milestones && liveData.milestones.length > 0
       ? liveData.milestones
@@ -150,7 +135,8 @@ export const TenantProgressCard: React.FC<TenantProgressCardProps> = ({
           {
             id: "VALIDATE",
             name: "Validation & Registry",
-            description: "Validate tenant parameters & initialize DynamoDB registry record",
+            description:
+              "Validate tenant parameters & initialize DynamoDB registry record",
             percent: 15,
             status: effectiveProgress >= 15 ? "completed" : "active",
           },
@@ -159,28 +145,48 @@ export const TenantProgressCard: React.FC<TenantProgressCardProps> = ({
             name: "Postgres Isolation",
             description: "Create isolated database schema and credentials",
             percent: 35,
-            status: effectiveProgress > 35 ? "completed" : effectiveProgress >= 35 ? "active" : "pending",
+            status:
+              effectiveProgress > 35
+                ? "completed"
+                : effectiveProgress >= 35
+                ? "active"
+                : "pending",
           },
           {
             id: "STORAGE",
             name: "EFS Storage",
             description: "Provision dedicated EFS access point & permissions",
             percent: 55,
-            status: effectiveProgress > 55 ? "completed" : effectiveProgress >= 55 ? "active" : "pending",
+            status:
+              effectiveProgress > 55
+                ? "completed"
+                : effectiveProgress >= 55
+                ? "active"
+                : "pending",
           },
           {
             id: "COMPUTE",
             name: "ECS Task",
             description: "Register container task definition & service",
             percent: 75,
-            status: effectiveProgress > 75 ? "completed" : effectiveProgress >= 75 ? "active" : "pending",
+            status:
+              effectiveProgress > 75
+                ? "completed"
+                : effectiveProgress >= 75
+                ? "active"
+                : "pending",
           },
           {
             id: "HEALTH_CHECK",
             name: "Health Probe",
             description: "Verify Storix container health check probe",
             percent: 90,
-            status: effectiveProgress > 90 ? "completed" : effectiveProgress >= 90 ? "active" : "pending",
+            status:
+              effectiveProgress > 90
+                ? "completed"
+                : effectiveProgress >= 90
+                ? "active"
+                : "pending",
           },
           {
             id: "ACTIVE",
@@ -192,171 +198,155 @@ export const TenantProgressCard: React.FC<TenantProgressCardProps> = ({
         ];
 
   return (
-    <Card
-      style={{
-        marginBottom: 20,
-        borderColor: cardBorder,
-        backgroundColor: cardBg,
-        boxShadow: "0 2px 8px rgba(22, 82, 240, 0.08)",
-      }}
-      variant="borderless"
-    >
-      <Row align="middle" gutter={[16, 16]}>
-        <Col xs={24} md={16}>
-          <Space direction="vertical" style={{ width: "100%" }}>
-            <Space align="center" wrap>
-              <SyncOutlined spin style={{ color: iconColor, fontSize: 18 }} />
-              <Text strong style={{ fontSize: 16 }}>
-                {title}
-              </Text>
-              {liveData && (
-                <Tag color="cyan" style={{ fontSize: 11, borderRadius: 12 }}>
-                  <ThunderboltOutlined /> Real-Time Live Streaming
-                </Tag>
+    <TooltipProvider>
+      <Card
+        className={`border shadow-sm mb-5 ${
+          isDeleting
+            ? "border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20"
+            : isSuspending
+            ? "border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/20"
+            : "border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/20"
+        }`}
+      >
+        <CardContent className="p-5">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="space-y-2 flex-1 w-full">
+              <div className="flex items-center gap-2 flex-wrap">
+                <RotateCw className="h-4 w-4 animate-spin text-primary" />
+                <h3 className="font-bold text-sm text-foreground">{title}</h3>
+                {liveData && (
+                  <Badge variant="info" className="text-[10px] py-0 px-1.5">
+                    <Zap className="h-2.5 w-2.5 mr-0.5" /> Real-Time Live Streaming
+                  </Badge>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3 flex-wrap text-xs text-muted-foreground">
+                <span>
+                  Current Step: <b>{effectiveStep}</b>
+                </span>
+                {liveData && liveData.elapsedSeconds > 0 && (
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Elapsed: <b>{liveData.elapsedSeconds}s</b>
+                    {liveData.estimatedRemainingSeconds > 0 && (
+                      <span>
+                        (est. ~{liveData.estimatedRemainingSeconds}s remaining)
+                      </span>
+                    )}
+                  </span>
+                )}
+              </div>
+
+              {liveData?.currentStepDescription && (
+                <p className="text-xs text-muted-foreground italic flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  {liveData.currentStepDescription}
+                </p>
               )}
-            </Space>
 
-            <Space wrap size={[16, 4]}>
-              <Text type="secondary">
-                Current Step: <Text strong>{effectiveStep}</Text>
-              </Text>
-              {liveData && liveData.elapsedSeconds > 0 && (
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  <ClockCircleOutlined style={{ marginRight: 4 }} />
-                  Elapsed: <Text strong>{liveData.elapsedSeconds}s</Text>
-                  {liveData.estimatedRemainingSeconds > 0 && (
-                    <span style={{ marginLeft: 6 }}>
-                      (est. ~{liveData.estimatedRemainingSeconds}s remaining)
-                    </span>
-                  )}
-                </Text>
-              )}
-            </Space>
+              <Progress
+                value={effectiveProgress}
+                className={`h-2 ${isDeleting ? "bg-red-200 dark:bg-red-950" : ""}`}
+              />
+            </div>
 
-            {liveData?.currentStepDescription && (
-              <Text type="secondary" style={{ fontSize: 12, fontStyle: "italic" }}>
-                <InfoCircleOutlined style={{ marginRight: 4 }} />
-                {liveData.currentStepDescription}
-              </Text>
-            )}
-
-            <Progress
-              percent={effectiveProgress}
-              status={isDeleting ? "exception" : "active"}
-              strokeColor={strokeColor}
-            />
-          </Space>
-        </Col>
-
-        <Col xs={24} md={8} className="tenant-progress-aside" style={{ textAlign: "right" }}>
-          <Space direction="vertical" align="end" size={6}>
-            <Tag
-              color={isDeleting ? "error" : isSuspending ? "warning" : "processing"}
-              style={{ fontSize: 12, padding: "4px 10px", margin: 0 }}
-            >
-              AWS Step Functions Orchestrated
-            </Tag>
-            {liveData?.executionArn && (
-              <Tooltip title={liveData.executionArn}>
-                <Text
-                  copyable={{ text: liveData.executionArn }}
-                  code
-                  style={{ fontSize: 10, maxWidth: 220 }}
-                  ellipsis
-                >
+            <div className="tenant-progress-aside flex flex-col items-end gap-1.5 w-full md:w-auto">
+              <Badge
+                variant={
+                  isDeleting
+                    ? "destructive"
+                    : isSuspending
+                    ? "warning"
+                    : "info"
+                }
+                className="text-xs"
+              >
+                AWS Step Functions Orchestrated
+              </Badge>
+              {liveData?.executionArn && (
+                <code className="text-[10px] text-muted-foreground truncate max-w-[200px]">
                   {liveData.executionArn.split(":").pop()}
-                </Text>
-              </Tooltip>
-            )}
-            <Button
-              type="primary"
-              ghost
-              size="small"
-              icon={<ThunderboltOutlined />}
-              onClick={() => setModalOpen(true)}
-              style={{ marginTop: 4, fontWeight: 600 }}
-            >
-              View Live Steps & Logs
-            </Button>
-          </Space>
-        </Col>
-      </Row>
+                </code>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setModalOpen(true)}
+                className="h-7 text-xs border-blue-400 text-blue-600 hover:bg-blue-50 mt-1"
+              >
+                <Zap className="h-3 w-3 mr-1" />
+                <span>View Live Steps &amp; Logs</span>
+              </Button>
+            </div>
+          </div>
 
-      {/* Real-time State Machine Milestone Stepper */}
-      <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px dashed #d9d9d9" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <Text strong style={{ fontSize: 12, color: "#475569" }}>
-            Execution Milestones:
-          </Text>
-          <Button
-            type="link"
-            size="small"
-            style={{ padding: 0, fontSize: 11 }}
-            onClick={() => setModalOpen(true)}
-          >
-            Click step to inspect live execution logs &rarr;
-          </Button>
-        </div>
-        <Row gutter={[8, 8]}>
-          {displayMilestones.map((m) => {
-            const isDone = m.status === "completed";
-            const isActive = m.status === "active";
-            const isError = m.status === "error";
+          {/* Stepper Milestones */}
+          <div className="mt-4 pt-3 border-t border-border/60">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-muted-foreground">
+                Execution Milestones:
+              </span>
+              <button
+                type="button"
+                onClick={() => setModalOpen(true)}
+                className="text-xs text-[#1652f0] hover:underline"
+              >
+                Click step to inspect live execution logs &rarr;
+              </button>
+            </div>
 
-            let badgeBg = "#f8fafc";
-            let badgeBorder = "#e2e8f0";
-            let badgeColor = "#64748b";
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+              {displayMilestones.map((m) => {
+                const isDone = m.status === "completed";
+                const isActive = m.status === "active";
+                const isError = m.status === "error";
 
-            if (isDone) {
-              badgeBg = "#f6ffed";
-              badgeBorder = "#b7eb8f";
-              badgeColor = "#389e0d";
-            } else if (isActive) {
-              badgeBg = "#e6f4ff";
-              badgeBorder = "#91caff";
-              badgeColor = "#0958d9";
-            } else if (isError) {
-              badgeBg = "#fff1f0";
-              badgeBorder = "#ffa39e";
-              badgeColor = "#cf1322";
-            }
+                return (
+                  <Tooltip key={m.id}>
+                    <TooltipTrigger asChild>
+                      <div
+                        onClick={() => setModalOpen(true)}
+                        className={`rounded-lg border p-2 text-center cursor-pointer transition-colors ${
+                          isDone
+                            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                            : isActive
+                            ? "border-blue-500 bg-blue-500/15 text-blue-700 dark:text-blue-300 font-semibold"
+                            : isError
+                            ? "border-red-500 bg-red-500/15 text-red-700 dark:text-red-400"
+                            : "border-border bg-card text-muted-foreground"
+                        }`}
+                      >
+                        <div className="flex items-center justify-center gap-1 text-xs truncate">
+                          {isDone && <CheckCircle2 className="h-3 w-3 text-emerald-600" />}
+                          {isActive && <Loader2 className="h-3 w-3 animate-spin text-blue-600" />}
+                          {isError && <Info className="h-3 w-3 text-red-600" />}
+                          <span className="truncate">{m.name}</span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5 font-mono">
+                          {m.percent}%
+                        </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        {m.description} (Click to inspect live steps &amp; logs)
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
+          </div>
+        </CardContent>
 
-            return (
-              <Col xs={12} sm={8} md={4} key={m.id}>
-                <Tooltip title={`${m.description} (Click to inspect live steps & logs)`}>
-                  <div
-                    onClick={() => setModalOpen(true)}
-                    style={{
-                      background: badgeBg,
-                      border: `1px solid ${badgeBorder}`,
-                      borderRadius: 6,
-                      padding: "6px 8px",
-                      textAlign: "center",
-                      transition: "all 0.3s ease",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <div style={{ fontSize: 12, fontWeight: isActive ? 600 : 500, color: badgeColor }}>
-                      {isDone && <CheckCircleFilled style={{ marginRight: 4, color: "#52c41a" }} />}
-                      {isActive && <LoadingOutlined style={{ marginRight: 4, color: "#1652f0" }} />}
-                      {isError && <InfoCircleOutlined style={{ marginRight: 4, color: "#ff4d4f" }} />}
-                      {m.name}
-                    </div>
-                    <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 2 }}>{m.percent}%</div>
-                  </div>
-                </Tooltip>
-              </Col>
-            );
-          })}
-        </Row>
-      </div>
-
-      <TenantProgressModal
-        visible={modalOpen}
-        onClose={() => setModalOpen(false)}
-        tenantId={tenantId || null}
-        initialStatus={currentStatus}
-      />
-    </Card>
+        <TenantProgressModal
+          visible={modalOpen}
+          onClose={() => setModalOpen(false)}
+          tenantId={tenantId || null}
+          initialStatus={currentStatus}
+        />
+      </Card>
+    </TooltipProvider>
   );
 };

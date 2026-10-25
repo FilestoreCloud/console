@@ -1,8 +1,21 @@
 import React from "react";
-import { Card, Table, Tag, Typography, Button, Space, Descriptions } from "antd";
-import { WarningOutlined, AlertOutlined } from "@ant-design/icons";
-
-const { Text } = Typography;
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "lucide-react";
 
 export interface IncidentsTabProps {
   currentStatus: string;
@@ -22,132 +35,123 @@ export const IncidentsTab: React.FC<IncidentsTabProps> = ({
   onDeclareIncident,
 }) => {
   return (
-    <div>
-      <Card
-        title={
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 8,
-            }}
+    <div className="space-y-4">
+      {/* Active Circuit State Card */}
+      <Card className="border-border shadow-sm">
+        <CardHeader className="py-4 px-5 border-b flex flex-row items-center justify-between">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-red-500" />
+            <span>Incident Circuit Breaker &amp; Accident Log</span>
+          </CardTitle>
+          <Button
+            size="sm"
+            onClick={onDeclareIncident}
+            className="h-8 text-xs bg-red-600 hover:bg-red-700 text-white flex items-center gap-1.5"
           >
-            <Space>
-              <AlertOutlined style={{ color: "#ef4444" }} />
-              <span>Incident Circuit Breaker & Accident Log</span>
-            </Space>
-            <Button
-              type="primary"
-              danger
-              size="small"
-              icon={<WarningOutlined />}
-              onClick={onDeclareIncident}
-            >
-              Declare Incident / Change State
-            </Button>
+            <AlertTriangle className="h-3.5 w-3.5" />
+            <span>Declare Incident / Change State</span>
+          </Button>
+        </CardHeader>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 rounded-lg border p-3 text-xs divide-y md:divide-y-0 md:divide-x">
+            <div className="flex flex-col gap-1 pb-2 md:pb-0">
+              <span className="text-muted-foreground">Current Circuit State:</span>
+              <div>{renderStatusTag(currentStatus)}</div>
+            </div>
+            <div className="flex flex-col gap-1 py-2 md:py-0 md:px-3">
+              <span className="text-muted-foreground">Active Incident ID:</span>
+              <code className="font-mono font-bold text-foreground">
+                {incident?.incident_id || "None"}
+              </code>
+            </div>
+            <div className="flex flex-col gap-1 pt-2 md:pt-0 md:px-3">
+              <span className="text-muted-foreground">Active Severity:</span>
+              <div>
+                {incident?.severity ? (
+                  renderSeverityTag(incident.severity)
+                ) : (
+                  <Badge variant="success" className="text-xs">
+                    NORMAL
+                  </Badge>
+                )}
+              </div>
+            </div>
           </div>
-        }
-        variant="borderless"
-        style={{
-          marginBottom: 16,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-        }}
-      >
-        <Descriptions column={{ xs: 1, md: 3 }} size="small" bordered>
-          <Descriptions.Item label="Current Circuit State">
-            {renderStatusTag(currentStatus)}
-          </Descriptions.Item>
-          <Descriptions.Item label="Active Incident ID">
-            <code>{incident?.incident_id || "None"}</code>
-          </Descriptions.Item>
-          <Descriptions.Item label="Active Severity">
-            {incident?.severity ? (
-              renderSeverityTag(incident.severity)
-            ) : (
-              <Tag color="green">NORMAL</Tag>
-            )}
-          </Descriptions.Item>
-        </Descriptions>
+        </CardContent>
       </Card>
 
       {/* Incidents History Table */}
-      <Card
-        title="Historical Incident Records"
-        variant="borderless"
-        style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-      >
-        <Table
-          dataSource={incidentsHistory}
-          rowKey="incident_id"
-          pagination={false}
-          size="middle"
-          scroll={{ x: 800 }}
-          locale={{
-            emptyText: "Zero recorded incidents for this tenant.",
-          }}
-          columns={[
-            {
-              title: "Incident ID",
-              dataIndex: "incident_id",
-              key: "incident_id",
-              render: (id: string) => <code>{id}</code>,
-            },
-            {
-              title: "Severity",
-              dataIndex: "severity",
-              key: "severity",
-              render: (s: string) => renderSeverityTag(s),
-            },
-            {
-              title: "Title / Summary",
-              dataIndex: "title",
-              key: "title",
-              render: (t: string, rec: any) => (
-                <div>
-                  <Text strong>{t}</Text>
-                  {rec.root_cause && (
-                    <div style={{ fontSize: 11, color: "#64748b" }}>
-                      Root Cause: {rec.root_cause}
-                    </div>
-                  )}
-                </div>
-              ),
-            },
-            {
-              title: "Resolution State",
-              dataIndex: "status",
-              key: "status",
-              render: (st: string) => (
-                <Tag color={st === "RESOLVED" ? "green" : "volcano"}>
-                  {st}
-                </Tag>
-              ),
-            },
-            {
-              title: "Reported By",
-              dataIndex: "reported_by",
-              key: "reported_by",
-            },
-            {
-              title: "Reported At",
-              dataIndex: "reported_at",
-              key: "reported_at",
-              render: (ts: string) => (
-                <Text style={{ fontSize: 12 }}>{ts}</Text>
-              ),
-            },
-            {
-              title: "Resolved At",
-              dataIndex: "resolved_at",
-              key: "resolved_at",
-              render: (ts: string) => (
-                <Text style={{ fontSize: 12 }}>{ts || "-"}</Text>
-              ),
-            },
-          ]}
-        />
+      <Card className="border-border shadow-sm overflow-hidden">
+        <CardHeader className="py-3 px-5 border-b">
+          <CardTitle className="text-sm font-semibold">
+            Historical Incident Records
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader className="bg-muted/40">
+              <TableRow>
+                <TableHead className="font-semibold text-xs">Incident ID</TableHead>
+                <TableHead className="font-semibold text-xs">Severity</TableHead>
+                <TableHead className="font-semibold text-xs">Title / Summary</TableHead>
+                <TableHead className="font-semibold text-xs">Resolution State</TableHead>
+                <TableHead className="font-semibold text-xs">Reported By</TableHead>
+                <TableHead className="font-semibold text-xs">Reported At</TableHead>
+                <TableHead className="font-semibold text-xs">Resolved At</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {incidentsHistory.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="h-24 text-center text-xs text-muted-foreground"
+                  >
+                    Zero recorded incidents for this tenant.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                incidentsHistory.map((rec) => (
+                  <TableRow key={rec.incident_id} className="text-xs">
+                    <TableCell className="font-mono text-muted-foreground">
+                      {rec.incident_id}
+                    </TableCell>
+                    <TableCell>{renderSeverityTag(rec.severity)}</TableCell>
+                    <TableCell>
+                      <div>
+                        <span className="font-semibold">{rec.title}</span>
+                        {rec.root_cause && (
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            Root Cause: {rec.root_cause}
+                          </p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          rec.status === "RESOLVED"
+                            ? "success"
+                            : "destructive"
+                        }
+                        className="text-xs"
+                      >
+                        {rec.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{rec.reported_by}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {rec.reported_at}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {rec.resolved_at || "-"}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
       </Card>
     </div>
   );

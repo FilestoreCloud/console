@@ -1,24 +1,26 @@
 import React from "react";
 import {
   Card,
-  Row,
-  Col,
-  Typography,
-  Tag,
-  Progress,
-  Badge,
-  Descriptions,
-  Table,
-  Space,
-} from "antd";
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import {
-  ThunderboltOutlined,
-  ClockCircleOutlined,
-  CheckCircleOutlined,
-} from "@ant-design/icons";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Zap,
+  Clock,
+  CheckCircle2,
+} from "lucide-react";
 import { InteractiveMetricsChart } from "../../../components/InteractiveMetricsChart";
-
-const { Title, Text } = Typography;
 
 export interface MetricsTabProps {
   tenantId: string;
@@ -37,217 +39,144 @@ export const MetricsTab: React.FC<MetricsTabProps> = ({
   setMetricsCountdown,
   refetch,
 }) => {
+  const cpuPercent = metrics.current_cpu_percent ?? 1.2;
+  const memPercent = metrics.current_memory_percent ?? 10.1;
+  const avgLatency = metrics.avg_latency_ms ?? 44.2;
+  const storageUsed = metrics.storage_used_mb ?? 1420.5;
+  const storageQuota = metrics.storage_quota_gb ?? 100;
+  const storagePercent = metrics.storage_percent ?? 1.4;
+
   return (
-    <div>
+    <div className="space-y-4">
       {/* 1. Top KPI Summary Cards */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* CPU Utilization */}
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            size="small"
-            variant="borderless"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: 8,
-              }}
-            >
-              <Text type="secondary" style={{ fontSize: 13 }}>
-                CPU Utilization
-              </Text>
-              <Tag
-                color={
-                  (metrics.current_cpu_percent ?? 1.2) >= 70
-                    ? "error"
-                    : (metrics.current_cpu_percent ?? 1.2) >= 50
-                      ? "warning"
-                      : "success"
+        <Card className="border-border shadow-sm">
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>CPU Utilization</span>
+              <Badge
+                variant={
+                  cpuPercent >= 70
+                    ? "destructive"
+                    : cpuPercent >= 50
+                    ? "warning"
+                    : "success"
                 }
+                className="text-[10px] py-0 px-1.5"
               >
                 Fargate Task
-              </Tag>
+              </Badge>
             </div>
-            <Title level={2} style={{ margin: "0 0 8px 0" }}>
-              {metrics.current_cpu_percent ?? 1.2}%
-            </Title>
+            <div className="text-2xl font-bold tracking-tight text-foreground">
+              {cpuPercent}%
+            </div>
             <Progress
-              percent={metrics.current_cpu_percent ?? 1.2}
-              status={
-                (metrics.current_cpu_percent ?? 1.2) >= 70
-                  ? "exception"
-                  : "normal"
-              }
-              strokeColor={
-                (metrics.current_cpu_percent ?? 1.2) >= 70
-                  ? "#ef4444"
-                  : (metrics.current_cpu_percent ?? 1.2) >= 50
-                    ? "#f59e0b"
-                    : "#10b981"
-              }
-              showInfo={false}
+              value={cpuPercent}
+              className={`h-2 ${
+                cpuPercent >= 70
+                  ? "bg-red-100 dark:bg-red-950"
+                  : cpuPercent >= 50
+                  ? "bg-amber-100 dark:bg-amber-950"
+                  : ""
+              }`}
             />
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: 8,
-                fontSize: 11,
-              }}
-            >
-              <Text type="secondary">
-                Peak: <strong>{metrics.peak_cpu_percent ?? 2.8}%</strong>
-              </Text>
-              <Text type="secondary">
-                Target: <strong>70% (Autoscale)</strong>
-              </Text>
+            <div className="flex justify-between text-[11px] text-muted-foreground pt-1">
+              <span>
+                Peak: <b>{metrics.peak_cpu_percent ?? 2.8}%</b>
+              </span>
+              <span>
+                Target: <b>70% (Autoscale)</b>
+              </span>
             </div>
-          </Card>
-        </Col>
+          </CardContent>
+        </Card>
 
         {/* Memory Utilization */}
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            size="small"
-            variant="borderless"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: 8,
-              }}
-            >
-              <Text type="secondary" style={{ fontSize: 13 }}>
-                Memory Utilization
-              </Text>
-              <Tag color="processing">1024 MB Limit</Tag>
+        <Card className="border-border shadow-sm">
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Memory Utilization</span>
+              <Badge variant="info" className="text-[10px] py-0 px-1.5">
+                1024 MB Limit
+              </Badge>
             </div>
-            <Title level={2} style={{ margin: "0 0 8px 0" }}>
-              {metrics.current_memory_percent ?? 10.1}%
-            </Title>
-            <Progress
-              percent={metrics.current_memory_percent ?? 10.1}
-              strokeColor="#3b82f6"
-              showInfo={false}
-            />
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: 8,
-                fontSize: 11,
-              }}
-            >
-              <Text type="secondary">
-                Peak: <strong>{metrics.peak_memory_percent ?? 10.1}%</strong>
-              </Text>
-              <Text type="secondary">
-                Allocated: <strong>{metrics.allocated_memory_mb ?? 1024} MB</strong>
-              </Text>
+            <div className="text-2xl font-bold tracking-tight text-foreground">
+              {memPercent}%
             </div>
-          </Card>
-        </Col>
+            <Progress value={memPercent} className="h-2" />
+            <div className="flex justify-between text-[11px] text-muted-foreground pt-1">
+              <span>
+                Peak: <b>{metrics.peak_memory_percent ?? 10.1}%</b>
+              </span>
+              <span>
+                Allocated: <b>{metrics.allocated_memory_mb ?? 1024} MB</b>
+              </span>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Ingress & Traffic */}
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            size="small"
-            variant="borderless"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: 8,
-              }}
-            >
-              <Text type="secondary" style={{ fontSize: 13 }}>
-                Ingress & Latency
-              </Text>
-              <Tag color="cyan">ALB tg-{tenantId}</Tag>
+        {/* Ingress & Latency */}
+        <Card className="border-border shadow-sm">
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Ingress &amp; Latency</span>
+              <Badge variant="info" className="text-[10px] py-0 px-1.5 font-mono">
+                ALB tg-{tenantId}
+              </Badge>
             </div>
-            <Title level={2} style={{ margin: "0 0 8px 0" }}>
-              {metrics.avg_latency_ms ?? 44.2}{" "}
-              <span style={{ fontSize: 14, fontWeight: "normal" }}>ms</span>
-            </Title>
-            <div style={{ marginTop: 8 }}>
-              <Badge status="success" text="Target Health: HTTP 200 OK" />
+            <div className="text-2xl font-bold tracking-tight text-foreground">
+              {avgLatency}{" "}
+              <span className="text-sm font-normal text-muted-foreground">
+                ms
+              </span>
             </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: 12,
-                fontSize: 11,
-              }}
-            >
-              <Text type="secondary">
-                Requests (2h): <strong>{metrics.total_requests_2h ?? 15}</strong>
-              </Text>
-              <Text type="secondary">
-                5xx Errors: <strong style={{ color: "#10b981" }}>0</strong>
-              </Text>
+            <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              <span>Target Health: HTTP 200 OK</span>
             </div>
-          </Card>
-        </Col>
+            <div className="flex justify-between text-[11px] text-muted-foreground pt-1">
+              <span>
+                Requests (2h): <b>{metrics.total_requests_2h ?? 15}</b>
+              </span>
+              <span>
+                5xx Errors: <b className="text-emerald-600">0</b>
+              </span>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Storage Quota */}
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            size="small"
-            variant="borderless"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: 8,
-              }}
-            >
-              <Text type="secondary" style={{ fontSize: 13 }}>
-                Storage & Quota
-              </Text>
-              <Tag color="purple">S3 Vault + EFS</Tag>
+        <Card className="border-border shadow-sm">
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Storage &amp; Quota</span>
+              <Badge variant="secondary" className="text-[10px] py-0 px-1.5">
+                S3 Vault + EFS
+              </Badge>
             </div>
-            <Title level={2} style={{ margin: "0 0 8px 0" }}>
-              {((metrics.storage_used_mb ?? 1420.5) / 1024).toFixed(1)}{" "}
-              <span style={{ fontSize: 14, fontWeight: "normal" }}>
-                / {metrics.storage_quota_gb ?? 100} GB
+            <div className="text-2xl font-bold tracking-tight text-foreground">
+              {(storageUsed / 1024).toFixed(1)}{" "}
+              <span className="text-sm font-normal text-muted-foreground">
+                / {storageQuota} GB
               </span>
-            </Title>
-            <Progress
-              percent={metrics.storage_percent ?? 1.4}
-              strokeColor="#8b5cf6"
-              showInfo={false}
-            />
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: 8,
-                fontSize: 11,
-              }}
-            >
-              <Text type="secondary">
-                Used: <strong>{metrics.storage_used_mb ?? 1420.5} MB</strong>
-              </Text>
-              <Text type="secondary">
-                DB: <strong>nc_{tenantId}</strong>
-              </Text>
             </div>
-          </Card>
-        </Col>
-      </Row>
+            <Progress value={storagePercent} className="h-2" />
+            <div className="flex justify-between text-[11px] text-muted-foreground pt-1">
+              <span>
+                Used: <b>{storageUsed} MB</b>
+              </span>
+              <span>
+                DB: <b>nc_{tenantId}</b>
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* 2. Middle Row: CloudWatch Real-Time Graph + Auto-Scaling Details */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} lg={15}>
+      {/* 2. Middle Row: Graph + Auto-Scaling Details */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div className="lg:col-span-8">
           <InteractiveMetricsChart
             tenantId={tenantId}
             clusterName={metrics.cluster_name || "prod-storix-cluster"}
@@ -260,162 +189,150 @@ export const MetricsTab: React.FC<MetricsTabProps> = ({
               setMetricsCountdown(metricsIntervalSec);
             }}
           />
-        </Col>
+        </div>
 
-        <Col xs={24} lg={9}>
-          <Card
-            title={
-              <Space>
-                <ThunderboltOutlined style={{ color: "#3b82f6" }} />
-                <span>Auto-Scaling & Elastic Capacity</span>
-              </Space>
-            }
-            variant="borderless"
-            style={{
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-              height: "100%",
-            }}
-          >
-            <Descriptions column={1} size="small" bordered>
-              <Descriptions.Item label="ECS Service">
-                <code>service-{tenantId}</code>
-              </Descriptions.Item>
-              <Descriptions.Item label="Running / Desired Tasks">
-                <Space>
-                  <Tag color="success">
-                    <strong>{metrics.running_tasks ?? 1} Running</strong>
-                  </Tag>
-                  <Tag color="default">
+        <div className="lg:col-span-4">
+          <Card className="border-border shadow-sm h-full">
+            <CardHeader className="py-4 px-5 border-b">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Zap className="h-4 w-4 text-blue-500" />
+                <span>Auto-Scaling &amp; Elastic Capacity</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 space-y-3 text-xs">
+              <div className="flex justify-between py-1.5 border-b border-border/50">
+                <span className="text-muted-foreground">ECS Service:</span>
+                <code className="font-mono text-[11px] bg-muted px-1.5 py-0.5 rounded">
+                  service-{tenantId}
+                </code>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-border/50">
+                <span className="text-muted-foreground">Running / Desired:</span>
+                <div className="flex items-center gap-1">
+                  <Badge variant="success" className="text-[10px]">
+                    {metrics.running_tasks ?? 1} Running
+                  </Badge>
+                  <Badge variant="outline" className="text-[10px]">
                     {metrics.desired_tasks ?? 1} Desired
-                  </Tag>
-                </Space>
-              </Descriptions.Item>
-              <Descriptions.Item label="Capacity Bounds">
-                Min: <strong>{metrics.min_capacity ?? 1} task</strong> | Max:{" "}
-                <strong>{metrics.max_capacity ?? 4} tasks</strong>
-              </Descriptions.Item>
-              <Descriptions.Item label="Scaling Policy">
-                <Tag color="processing">TargetTrackingScaling</Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="Target Utilization">
-                <strong>
-                  {metrics.autoscaling_target_cpu ?? 70.0}% Average CPU
-                </strong>
-              </Descriptions.Item>
-              <Descriptions.Item label="Cooldown Periods">
-                Scale-Out: <strong>60s</strong> | Scale-In:{" "}
-                <strong>300s</strong>
-              </Descriptions.Item>
-              <Descriptions.Item label="CloudWatch Alarms">
-                <Badge
-                  status="processing"
-                  text="AlarmHigh (Scale-Out: CPU > 70%)"
-                />
-                <br />
-                <Badge
-                  status="default"
-                  text="AlarmLow (Scale-In: CPU < 70%)"
-                />
-              </Descriptions.Item>
-              <Descriptions.Item label="FinOps Zero Compute">
-                <Tag color="green">
+                  </Badge>
+                </div>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-border/50">
+                <span className="text-muted-foreground">Capacity Bounds:</span>
+                <span>
+                  Min: <b>{metrics.min_capacity ?? 1} task</b> | Max:{" "}
+                  <b>{metrics.max_capacity ?? 4} tasks</b>
+                </span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-border/50">
+                <span className="text-muted-foreground">Scaling Policy:</span>
+                <Badge variant="info" className="text-[10px]">
+                  TargetTrackingScaling
+                </Badge>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-border/50">
+                <span className="text-muted-foreground">Target CPU:</span>
+                <b>{metrics.autoscaling_target_cpu ?? 70.0}% Average CPU</b>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-border/50">
+                <span className="text-muted-foreground">Cooldown Periods:</span>
+                <span>
+                  Scale-Out: <b>60s</b> | Scale-In: <b>300s</b>
+                </span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-border/50">
+                <span className="text-muted-foreground">CloudWatch Alarms:</span>
+                <div className="text-right space-y-0.5">
+                  <p className="text-blue-600 dark:text-blue-400 font-medium text-[11px]">
+                    AlarmHigh (Scale-Out: CPU &gt; 70%)
+                  </p>
+                  <p className="text-muted-foreground text-[11px]">
+                    AlarmLow (Scale-In: CPU &lt; 70%)
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-between py-1.5">
+                <span className="text-muted-foreground">FinOps Zero Compute:</span>
+                <Badge variant="success" className="text-[10px]">
                   Supported (DesiredCount: 0 on Suspend)
-                </Tag>
-              </Descriptions.Item>
-            </Descriptions>
+                </Badge>
+              </div>
+            </CardContent>
           </Card>
-        </Col>
-      </Row>
+        </div>
+      </div>
 
-      {/* 3. Bottom Row: Live Metric Time-Slice History Table */}
-      <Card
-        title={
-          <Space>
-            <ClockCircleOutlined style={{ color: "#10b981" }} />
+      {/* 3. Bottom Row: History Table */}
+      <Card className="border-border shadow-sm overflow-hidden">
+        <CardHeader className="py-3 px-5 border-b">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Clock className="h-4 w-4 text-emerald-500" />
             <span>Telemetry History Time-Slices (Last 2 Hours)</span>
-          </Space>
-        }
-        size="small"
-        variant="borderless"
-        style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-      >
-        <Table
-          dataSource={metrics.history || []}
-          rowKey="timestamp"
-          pagination={false}
-          size="small"
-          scroll={{ x: 700 }}
-          columns={[
-            {
-              title: "Timestamp",
-              dataIndex: "timestamp",
-              key: "timestamp",
-              render: (val: string) => <code>{val}</code>,
-            },
-            {
-              title: "CPU Utilization",
-              dataIndex: "cpu_percent",
-              key: "cpu_percent",
-              render: (val: number) => (
-                <Space>
-                  <Progress
-                    percent={val}
-                    size="small"
-                    style={{ width: 100 }}
-                    strokeColor={
-                      val >= 70
-                        ? "#ef4444"
-                        : val >= 50
-                          ? "#f59e0b"
-                          : "#10b981"
-                    }
-                    showInfo={false}
-                  />
-                  <strong>{val}%</strong>
-                </Space>
-              ),
-            },
-            {
-              title: "Memory Utilization",
-              dataIndex: "memory_percent",
-              key: "memory_percent",
-              render: (val: number) => (
-                <Space>
-                  <Progress
-                    percent={val}
-                    size="small"
-                    style={{ width: 100 }}
-                    strokeColor="#3b82f6"
-                    showInfo={false}
-                  />
-                  <strong>{val}%</strong>
-                </Space>
-              ),
-            },
-            {
-              title: "HTTP Requests",
-              dataIndex: "requests",
-              key: "requests",
-              render: (val: number) => <Tag color="blue">{val} reqs</Tag>,
-            },
-            {
-              title: "Avg Latency",
-              dataIndex: "latency_ms",
-              key: "latency_ms",
-              render: (val: number) => <span>{val.toFixed(1)} ms</span>,
-            },
-            {
-              title: "Service Health",
-              dataIndex: "status",
-              key: "status",
-              render: (val: string) => (
-                <Tag color="success" icon={<CheckCircleOutlined />}>
-                  {val}
-                </Tag>
-              ),
-            },
-          ]}
-        />
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader className="bg-muted/40">
+              <TableRow>
+                <TableHead className="font-semibold text-xs">Timestamp</TableHead>
+                <TableHead className="font-semibold text-xs">CPU Utilization</TableHead>
+                <TableHead className="font-semibold text-xs">Memory Utilization</TableHead>
+                <TableHead className="font-semibold text-xs">HTTP Requests</TableHead>
+                <TableHead className="font-semibold text-xs">Avg Latency</TableHead>
+                <TableHead className="font-semibold text-xs">Service Health</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(metrics.history || []).length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="h-20 text-center text-xs text-muted-foreground"
+                  >
+                    No historical data available.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                (metrics.history || []).map((row: any, idx: number) => (
+                  <TableRow key={row.timestamp || idx} className="text-xs">
+                    <TableCell className="font-mono text-muted-foreground">
+                      {row.timestamp}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Progress value={row.cpu_percent} className="w-20 h-1.5" />
+                        <span className="font-bold">{row.cpu_percent}%</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Progress value={row.memory_percent} className="w-20 h-1.5" />
+                        <span className="font-bold">{row.memory_percent}%</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="info" className="text-xs">
+                        {row.requests} reqs
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {Number(row.latency_ms || 0).toFixed(1)} ms
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="success"
+                        className="flex items-center gap-1 w-fit"
+                      >
+                        <CheckCircle2 className="h-3 w-3" />
+                        <span>{row.status || "healthy"}</span>
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
       </Card>
     </div>
   );

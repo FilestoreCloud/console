@@ -1,6 +1,6 @@
 import React from "react";
-import { Form, message } from "antd";
 import { useUpdate } from "@refinedev/core";
+import { toast } from "sonner";
 import { dataProvider } from "../../../providers/dataProvider";
 import { IncidentModal } from "./IncidentModal";
 import { CreateAccountModal } from "./CreateAccountModal";
@@ -13,17 +13,17 @@ export interface TenantModalsProps {
   refetch: () => void;
   incidentModalVisible: boolean;
   setIncidentModalVisible: (v: boolean) => void;
-  incidentForm: any;
+  incidentForm?: any;
   createAccountModalVisible: boolean;
   setCreateAccountModalVisible: (v: boolean) => void;
-  accountForm: any;
+  accountForm?: any;
   resetPasswordModalVisible: boolean;
   setResetPasswordModalVisible: (v: boolean) => void;
   tempPasswordInfo: { username: string; password: string } | null;
   setTempPasswordInfo: (v: { username: string; password: string } | null) => void;
   cloneModalVisible: boolean;
   setCloneModalVisible: (v: boolean) => void;
-  cloneForm: any;
+  cloneForm?: any;
   cloneLoading: boolean;
   setCloneLoading: (v: boolean) => void;
 }
@@ -34,17 +34,14 @@ export const TenantModals: React.FC<TenantModalsProps> = ({
   refetch,
   incidentModalVisible,
   setIncidentModalVisible,
-  incidentForm,
   createAccountModalVisible,
   setCreateAccountModalVisible,
-  accountForm,
   resetPasswordModalVisible,
   setResetPasswordModalVisible,
   tempPasswordInfo,
   setTempPasswordInfo,
   cloneModalVisible,
   setCloneModalVisible,
-  cloneForm,
   cloneLoading,
   setCloneLoading,
 }) => {
@@ -59,13 +56,13 @@ export const TenantModals: React.FC<TenantModalsProps> = ({
       },
       {
         onSuccess: () => {
-          message.success(`Incident status updated for tenant ${tenantId}!`);
+          toast.success(`Incident status updated for tenant ${tenantId}!`);
           setIncidentModalVisible(false);
-          incidentForm.resetFields();
           refetch();
         },
-        onError: (err: any) => message.error(err?.message || "Failed to update incident"),
-      },
+        onError: (err: any) =>
+          toast.error(err?.message || "Failed to update incident"),
+      }
     );
   };
 
@@ -78,9 +75,8 @@ export const TenantModals: React.FC<TenantModalsProps> = ({
       },
       {
         onSuccess: (res: any) => {
-          message.success(`Account '${values.username}' created successfully!`);
+          toast.success(`Account '${values.username}' created successfully!`);
           setCreateAccountModalVisible(false);
-          accountForm.resetFields();
           const pwd =
             res?.data?.temporary_password ||
             res?.data?.password ||
@@ -91,8 +87,9 @@ export const TenantModals: React.FC<TenantModalsProps> = ({
           }
           refetch();
         },
-        onError: (err: any) => message.error(err?.message || "Failed to create account"),
-      },
+        onError: (err: any) =>
+          toast.error(err?.message || "Failed to create account"),
+      }
     );
   };
 
@@ -113,12 +110,13 @@ export const TenantModals: React.FC<TenantModalsProps> = ({
           quota_gb: values.quota_gb,
         },
       });
-      message.success(`Tenant '${tenantId}' cloned to staging sandbox '${targetId}'!`);
+      toast.success(
+        `Tenant '${tenantId}' cloned to staging sandbox '${targetId}'!`
+      );
       setCloneModalVisible(false);
-      cloneForm.resetFields();
       refetch();
     } catch (err: any) {
-      message.error(err?.message || "Failed to clone tenant");
+      toast.error(err?.message || "Failed to clone tenant");
     } finally {
       setCloneLoading(false);
     }
@@ -131,14 +129,12 @@ export const TenantModals: React.FC<TenantModalsProps> = ({
         onCancel={() => setIncidentModalVisible(false)}
         onSubmit={handleIncidentSubmit}
         confirmLoading={isUpdating}
-        form={incidentForm}
       />
       <CreateAccountModal
         open={createAccountModalVisible}
         onCancel={() => setCreateAccountModalVisible(false)}
         onSubmit={handleCreateAccount}
         confirmLoading={isUpdating}
-        form={accountForm}
       />
       <ResetPasswordModal
         open={resetPasswordModalVisible}
@@ -151,7 +147,6 @@ export const TenantModals: React.FC<TenantModalsProps> = ({
         onCancel={() => setCloneModalVisible(false)}
         onSubmit={handleCloneTenant}
         loading={cloneLoading}
-        form={cloneForm}
         tenantId={tenantId}
         domain={domain}
       />

@@ -1,8 +1,7 @@
 import React from "react";
-import { Alert, Typography } from "antd";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertOctagon, AlertTriangle } from "lucide-react";
 import { renderSeverityTag } from "./helpers";
-
-const { Text, Paragraph } = Typography;
 
 export interface TenantIncidentAlertProps {
   currentStatus: string;
@@ -23,41 +22,54 @@ export const TenantIncidentAlert: React.FC<TenantIncidentAlertProps> = ({
     return null;
   }
 
+  const isIncident = currentStatus === "INCIDENT";
+
   return (
     <Alert
-      type={currentStatus === "INCIDENT" ? "error" : "warning"}
-      showIcon
-      style={{ marginBottom: 20 }}
-      message={
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-          <div>
-            <strong>ACTIVE INCIDENT: {incident?.title || `Tenant status is ${currentStatus}`}</strong>
-            {incident?.severity && <span style={{ marginLeft: 8 }}>{renderSeverityTag(incident.severity)}</span>}
+      variant={isIncident ? "destructive" : "warning"}
+      className="mb-5 shadow-sm"
+    >
+      <div className="flex items-start gap-2.5">
+        {isIncident ? (
+          <AlertOctagon className="h-5 w-5 mt-0.5 text-red-600" />
+        ) : (
+          <AlertTriangle className="h-5 w-5 mt-0.5 text-amber-600" />
+        )}
+        <div className="flex-1 space-y-1">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <AlertTitle className="font-bold text-sm">
+                ACTIVE INCIDENT: {incident?.title || `Tenant status is ${currentStatus}`}
+              </AlertTitle>
+              {incident?.severity && (
+                <span>{renderSeverityTag(incident.severity)}</span>
+              )}
+            </div>
+            <span className="text-xs text-muted-foreground">
+              Reported by: {incident?.reported_by || "System"} at{" "}
+              {incident?.reported_at || lastUpdated}
+            </span>
           </div>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            Reported by: {incident?.reported_by || "System"} at {incident?.reported_at || lastUpdated}
-          </Text>
+
+          <AlertDescription className="text-xs space-y-1 pt-1 text-foreground">
+            {incident?.description && (
+              <p>
+                <strong>Description:</strong> {incident.description}
+              </p>
+            )}
+            {incident?.root_cause && (
+              <p>
+                <strong>Root Cause:</strong> {incident.root_cause}
+              </p>
+            )}
+            {incident?.action_taken && (
+              <p>
+                <strong>Remediation Taken:</strong> {incident.action_taken}
+              </p>
+            )}
+          </AlertDescription>
         </div>
-      }
-      description={
-        <div style={{ marginTop: 6 }}>
-          {incident?.description && (
-            <Paragraph style={{ marginBottom: 4 }}>
-              <strong>Description:</strong> {incident.description}
-            </Paragraph>
-          )}
-          {incident?.root_cause && (
-            <Paragraph style={{ marginBottom: 4 }}>
-              <strong>Root Cause:</strong> {incident.root_cause}
-            </Paragraph>
-          )}
-          {incident?.action_taken && (
-            <Paragraph style={{ marginBottom: 0 }}>
-              <strong>Remediation Taken:</strong> {incident.action_taken}
-            </Paragraph>
-          )}
-        </div>
-      }
-    />
+      </div>
+    </Alert>
   );
 };

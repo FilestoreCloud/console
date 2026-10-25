@@ -1,15 +1,25 @@
 import React from "react";
-import { Card, Row, Col, Typography, Tag, Progress, Table, Alert, Descriptions } from "antd";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
-  DollarOutlined,
-  ThunderboltOutlined,
-  CloudServerOutlined,
-  GlobalOutlined,
-  SafetyCertificateOutlined,
-  CheckCircleOutlined,
-} from "@ant-design/icons";
-
-const { Title, Text } = Typography;
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DollarSign,
+  Zap,
+  Globe,
+  ShieldCheck,
+  CheckCircle2,
+  TrendingUp,
+  Tag as TagIcon,
+} from "lucide-react";
 
 export interface FinOpsTabProps {
   tenantId: string;
@@ -75,166 +85,181 @@ export const FinOpsTab: React.FC<FinOpsTabProps> = ({
     },
   ];
 
-  const costColumns = [
-    {
-      title: "Cost Category",
-      dataIndex: "category",
-      key: "category",
-      render: (text: string, record: any) => (
-        <div>
-          <Text strong>{text}</Text>
-          <br />
-          <Text type="secondary" style={{ fontSize: 12 }}>{record.desc}</Text>
-        </div>
-      ),
-    },
-    {
-      title: "Usage Metrics",
-      dataIndex: "usage",
-      key: "usage",
-    },
-    {
-      title: "Unit Rate",
-      dataIndex: "rate",
-      key: "rate",
-    },
-    {
-      title: "Monthly Cost (USD)",
-      dataIndex: "monthly_cost",
-      key: "monthly_cost",
-      render: (cost: string) => <Tag color="blue">{cost}</Tag>,
-    },
-  ];
-
   const customDomain = tenant.custom_domain || `${tenantId}.customer-portal.com`;
   const domainStatus = tenant.custom_domain_status || "ISSUED_MANAGED";
   const cnameTarget = tenant.cname_target || `dev-nextcloud-alb.ap-southeast-1.elb.amazonaws.com`;
 
   return (
-    <div>
+    <div className="space-y-4">
       {/* 1. Top FinOps KPI Cards */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card size="small" variant="borderless" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-            <Text type="secondary" style={{ fontSize: 13 }}>Monthly Subscription</Text>
-            <div style={{ marginTop: 8 }}>
-              <Title level={3} style={{ margin: 0, color: "#1652f0" }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="shadow-sm">
+          <CardContent className="p-4">
+            <div className="text-xs font-medium text-muted-foreground">Monthly Subscription</div>
+            <div className="mt-2">
+              <div className="text-2xl font-bold text-primary">
                 ${fData.monthly_subscription_usd?.toFixed(2) || "499.00"}
-              </Title>
-              <Tag color="cyan" style={{ marginTop: 4 }}>Tier: {fData.plan_tier || "Enterprise"}</Tag>
+              </div>
+              <Badge variant="outline" className="mt-1 bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950/40 dark:text-cyan-400 text-xs">
+                Tier: {fData.plan_tier || "Enterprise"}
+              </Badge>
             </div>
-          </Card>
-        </Col>
+          </CardContent>
+        </Card>
 
-        <Col xs={24} sm={12} lg={6}>
-          <Card size="small" variant="borderless" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-            <Text type="secondary" style={{ fontSize: 13 }}>Total AWS Infra Cost (COGS)</Text>
-            <div style={{ marginTop: 8 }}>
-              <Title level={3} style={{ margin: 0, color: "#fa8c16" }}>
+        <Card className="shadow-sm">
+          <CardContent className="p-4">
+            <div className="text-xs font-medium text-muted-foreground">Total AWS Infra Cost (COGS)</div>
+            <div className="mt-2">
+              <div className="text-2xl font-bold text-amber-600 dark:text-amber-500">
                 ${fData.total_infra_cost_usd?.toFixed(2) || "12.85"}
-              </Title>
-              <Text type="secondary" style={{ fontSize: 12 }}>
+              </div>
+              <div className="text-xs text-muted-foreground mt-0.5">
                 Spot Savings: -${fData.spot_savings_usd?.toFixed(2) || "7.77"}
-              </Text>
+              </div>
             </div>
-          </Card>
-        </Col>
+          </CardContent>
+        </Card>
 
-        <Col xs={24} sm={12} lg={6}>
-          <Card size="small" variant="borderless" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-            <Text type="secondary" style={{ fontSize: 13 }}>Gross Profit Margin</Text>
-            <div style={{ marginTop: 8 }}>
-              <Title level={3} style={{ margin: 0, color: "#52c41a" }}>
+        <Card className="shadow-sm">
+          <CardContent className="p-4">
+            <div className="text-xs font-medium text-muted-foreground">Gross Profit Margin</div>
+            <div className="mt-2">
+              <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-500 flex items-center gap-1.5">
+                <TrendingUp className="h-5 w-5" />
                 {fData.gross_margin_percent || 97.4}%
-              </Title>
-              <Progress
-                percent={fData.gross_margin_percent || 97.4}
-                size="small"
-                status="active"
-                strokeColor="#52c41a"
-                showInfo={false}
-              />
+              </div>
+              <div className="mt-2">
+                <Progress value={fData.gross_margin_percent || 97.4} className="h-1.5" />
+              </div>
             </div>
-          </Card>
-        </Col>
+          </CardContent>
+        </Card>
 
-        <Col xs={24} sm={12} lg={6}>
-          <Card size="small" variant="borderless" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-            <Text type="secondary" style={{ fontSize: 13 }}>Cost Allocation Tag</Text>
-            <div style={{ marginTop: 8 }}>
-              <Tag color="purple" style={{ fontSize: 12, padding: "4px 8px" }}>
-                {fData.cost_attribution_tag}
-              </Tag>
-              <br />
-              <Text type="secondary" style={{ fontSize: 11 }}>Granular AWS CUR Attribution</Text>
+        <Card className="shadow-sm">
+          <CardContent className="p-4">
+            <div className="text-xs font-medium text-muted-foreground">Cost Allocation Tag</div>
+            <div className="mt-2">
+              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-400 font-mono text-[11px] truncate max-w-full">
+                <TagIcon className="h-3 w-3 mr-1 shrink-0" />
+                <span className="truncate">{fData.cost_attribution_tag}</span>
+              </Badge>
+              <div className="text-xs text-muted-foreground mt-1">Granular AWS CUR Attribution</div>
             </div>
-          </Card>
-        </Col>
-      </Row>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* 2. White-Label Custom Domain & SSL Automation Card */}
-      <Card
-        title={
-          <span>
-            <GlobalOutlined style={{ marginRight: 8, color: "#1652f0" }} />
-            White-Label Custom Domain & Automated SSL (CloudFront SaaS Manager)
-          </span>
-        }
-        variant="borderless"
-        style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-      >
-        <Descriptions column={{ xs: 1, sm: 2, md: 3 }} size="small" bordered>
-          <Descriptions.Item label="Custom FQDN">
-            <Text strong>{customDomain}</Text>
-          </Descriptions.Item>
-          <Descriptions.Item label="SSL Status">
-            <Tag color="green" icon={<SafetyCertificateOutlined />}>
-              {domainStatus}
-            </Tag>
-          </Descriptions.Item>
-          <Descriptions.Item label="Edge Target (CNAME)">
-            <Text code>{cnameTarget}</Text>
-          </Descriptions.Item>
-          <Descriptions.Item label="Certificate Authority">
-            AWS Certificate Manager (ACM) Managed TLS
-          </Descriptions.Item>
-          <Descriptions.Item label="Edge Distribution">
-            Amazon CloudFront SaaS Multi-Tenant Distribution (2,000 SNI capacity)
-          </Descriptions.Item>
-          <Descriptions.Item label="Automated Validation">
-            <Tag color="blue" icon={<CheckCircleOutlined />}>HTTP-01 Managed Token</Tag>
-          </Descriptions.Item>
-        </Descriptions>
+      <Card className="shadow-sm">
+        <CardHeader className="py-3 px-4 sm:px-6 border-b">
+          <div className="flex items-center gap-2">
+            <Globe className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm sm:text-base font-semibold">
+              White-Label Custom Domain & Automated SSL (CloudFront SaaS Manager)
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+            <div className="p-3 rounded-lg border bg-muted/20 space-y-1">
+              <div className="text-muted-foreground font-medium">Custom FQDN</div>
+              <div className="font-semibold text-foreground text-sm truncate">{customDomain}</div>
+            </div>
+
+            <div className="p-3 rounded-lg border bg-muted/20 space-y-1">
+              <div className="text-muted-foreground font-medium">SSL Status</div>
+              <div>
+                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 gap-1">
+                  <ShieldCheck className="h-3 w-3 text-emerald-600" />
+                  {domainStatus}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-lg border bg-muted/20 space-y-1">
+              <div className="text-muted-foreground font-medium">Edge Target (CNAME)</div>
+              <code className="text-foreground bg-muted px-1.5 py-0.5 rounded font-mono text-[11px] block truncate">
+                {cnameTarget}
+              </code>
+            </div>
+
+            <div className="p-3 rounded-lg border bg-muted/20 space-y-1">
+              <div className="text-muted-foreground font-medium">Certificate Authority</div>
+              <div className="text-foreground">AWS Certificate Manager (ACM) Managed TLS</div>
+            </div>
+
+            <div className="p-3 rounded-lg border bg-muted/20 space-y-1">
+              <div className="text-muted-foreground font-medium">Edge Distribution</div>
+              <div className="text-foreground">Amazon CloudFront SaaS Multi-Tenant Distribution (2,000 SNI capacity)</div>
+            </div>
+
+            <div className="p-3 rounded-lg border bg-muted/20 space-y-1">
+              <div className="text-muted-foreground font-medium">Automated Validation</div>
+              <div>
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 gap-1">
+                  <CheckCircle2 className="h-3 w-3 text-blue-600" />
+                  HTTP-01 Managed Token
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </CardContent>
       </Card>
 
       {/* 3. Cost Attribution Breakdown Table */}
-      <Card
-        title={
-          <span>
-            <DollarOutlined style={{ marginRight: 8, color: "#fa8c16" }} />
-            Unit Economics & AWS Infrastructure Cost Breakdown
-          </span>
-        }
-        variant="borderless"
-        style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-      >
-        <Table
-          columns={costColumns}
-          dataSource={costBreakdownData}
-          pagination={false}
-          size="middle"
-          scroll={{ x: 650 }}
-        />
+      <Card className="shadow-sm">
+        <CardHeader className="py-3 px-4 sm:px-6 border-b">
+          <div className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4 text-amber-500" />
+            <CardTitle className="text-sm sm:text-base font-semibold">
+              Unit Economics & AWS Infrastructure Cost Breakdown
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">Cost Category</TableHead>
+                  <TableHead className="text-xs">Usage Metrics</TableHead>
+                  <TableHead className="text-xs">Unit Rate</TableHead>
+                  <TableHead className="text-xs text-right">Monthly Cost (USD)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {costBreakdownData.map((item) => (
+                  <TableRow key={item.key} className="hover:bg-muted/50">
+                    <TableCell>
+                      <div>
+                        <div className="font-semibold text-xs text-foreground">{item.category}</div>
+                        <div className="text-[11px] text-muted-foreground">{item.desc}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{item.usage}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{item.rate}</TableCell>
+                    <TableCell className="text-right">
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 font-mono text-xs">
+                        {item.monthly_cost}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
       </Card>
 
       {/* 4. FinOps Architecture Directives */}
-      <Alert
-        message="Active FinOps Cost Optimizations"
-        description="This tenant utilizes Amazon Fargate Spot capacity (saving 52.5% compute cost), S3 Intelligent-Tiering automatic cold data archiving, and direct-to-S3 multipart upload bypass to achieve a 97%+ gross profit margin."
-        type="info"
-        showIcon
-        icon={<ThunderboltOutlined />}
-      />
+      <Alert className="bg-blue-50 border-blue-200 text-blue-900 dark:bg-blue-950/40 dark:border-blue-900 dark:text-blue-300">
+        <Zap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+        <AlertTitle className="text-xs font-semibold">Active FinOps Cost Optimizations</AlertTitle>
+        <AlertDescription className="text-xs mt-1 text-blue-800 dark:text-blue-300">
+          This tenant utilizes Amazon Fargate Spot capacity (saving 52.5% compute cost), S3 Intelligent-Tiering automatic cold data archiving, and direct-to-S3 multipart upload bypass to achieve a 97%+ gross profit margin.
+        </AlertDescription>
+      </Alert>
     </div>
   );
 };

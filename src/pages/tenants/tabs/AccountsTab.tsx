@@ -1,8 +1,21 @@
 import React from "react";
-import { Card, Table, Tag, Typography, Button, Space } from "antd";
-import { UserOutlined, PlusOutlined, KeyOutlined } from "@ant-design/icons";
-
-const { Text } = Typography;
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Users, Plus, Key } from "lucide-react";
 
 export interface AccountsTabProps {
   accounts: any[];
@@ -18,137 +31,126 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
   onToggleAccountStatus,
 }) => {
   return (
-    <Card
-      title={
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 8,
-          }}
+    <Card className="border-border shadow-sm overflow-hidden">
+      <CardHeader className="py-4 px-5 border-b flex flex-row items-center justify-between">
+        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+          <Users className="h-4 w-4 text-blue-500" />
+          <span>User Accounts Directory ({accounts.length})</span>
+        </CardTitle>
+        <Button
+          size="sm"
+          onClick={onAddAccount}
+          className="h-8 text-xs bg-[#1652f0] hover:bg-[#1652f0]/90 text-white flex items-center gap-1.5"
         >
-          <Space>
-            <UserOutlined style={{ color: "#3b82f6" }} />
-            <span>User Accounts Directory ({accounts.length})</span>
-          </Space>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            size="small"
-            onClick={onAddAccount}
-          >
-            Add Account
-          </Button>
-        </div>
-      }
-      variant="borderless"
-      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-    >
-      <Table
-        dataSource={accounts}
-        rowKey="username"
-        pagination={false}
-        size="middle"
-        scroll={{ x: 920 }}
-        columns={[
-          {
-            title: "Username",
-            dataIndex: "username",
-            key: "username",
-            render: (u: string, record: any) => (
-              <div>
-                <Text strong>{u}</Text>
-                {record.role === "TenantAdmin" && (
-                  <Tag color="gold" style={{ marginLeft: 6, fontSize: 10 }}>
-                    ADMIN
-                  </Tag>
-                )}
-              </div>
-            ),
-          },
-          {
-            title: "Display Name",
-            dataIndex: "display_name",
-            key: "display_name",
-          },
-          {
-            title: "Email",
-            dataIndex: "email",
-            key: "email",
-          },
-          {
-            title: "Role",
-            dataIndex: "role",
-            key: "role",
-            render: (r: string) => <Tag color="blue">{r}</Tag>,
-          },
-          {
-            title: "Quota / Storage",
-            key: "quota",
-            render: (_: any, record: any) => (
-              <span>
-                {record.storage_used_gb || 0} GB / {record.quota_gb || 50} GB
-              </span>
-            ),
-          },
-          {
-            title: "Status",
-            dataIndex: "status",
-            key: "status",
-            render: (st: string) =>
-              st === "ACTIVE" ? (
-                <Tag color="success">ACTIVE</Tag>
-              ) : (
-                <Tag color="default">DISABLED</Tag>
-              ),
-          },
-          {
-            title: "MFA",
-            dataIndex: "mfa_enabled",
-            key: "mfa_enabled",
-            render: (mfa: boolean) =>
-              mfa ? <Tag color="green">ENABLED</Tag> : <Tag color="default">NONE</Tag>,
-          },
-          {
-            title: "Last Login",
-            dataIndex: "last_login",
-            key: "last_login",
-            render: (ll: string) => (
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                {ll}
-              </Text>
-            ),
-          },
-          {
-            title: "Actions",
-            key: "actions",
-            align: "right" as const,
-            render: (_: any, record: any) => (
-              <Space wrap size={4}>
-                <Button
-                  size="small"
-                  type={record.role === "TenantAdmin" ? "primary" : "default"}
-                  ghost={record.role === "TenantAdmin"}
-                  icon={<KeyOutlined />}
-                  onClick={() => onResetPassword(record.username)}
+          <Plus className="h-3.5 w-3.5" />
+          <span>Add Account</span>
+        </Button>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader className="bg-muted/40">
+            <TableRow>
+              <TableHead className="font-semibold text-xs">Username</TableHead>
+              <TableHead className="font-semibold text-xs">Display Name</TableHead>
+              <TableHead className="font-semibold text-xs">Email</TableHead>
+              <TableHead className="font-semibold text-xs">Role</TableHead>
+              <TableHead className="font-semibold text-xs">Quota / Storage</TableHead>
+              <TableHead className="font-semibold text-xs">Status</TableHead>
+              <TableHead className="font-semibold text-xs">MFA</TableHead>
+              <TableHead className="font-semibold text-xs">Last Login</TableHead>
+              <TableHead className="font-semibold text-xs text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {accounts.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={9}
+                  className="h-24 text-center text-xs text-muted-foreground"
                 >
-                  {record.role === "TenantAdmin" ? "Set / Reset Password" : "Reset Password"}
-                </Button>
-                <Button
-                  size="small"
-                  onClick={() =>
-                    onToggleAccountStatus(record.username, record.status)
-                  }
-                >
-                  {record.status === "ACTIVE" ? "Disable" : "Enable"}
-                </Button>
-              </Space>
-            ),
-          },
-        ]}
-      />
+                  No user accounts configured.
+                </TableCell>
+              </TableRow>
+            ) : (
+              accounts.map((record) => (
+                <TableRow key={record.username} className="text-xs">
+                  <TableCell>
+                    <div className="flex items-center gap-1.5 font-bold">
+                      <span>{record.username}</span>
+                      {record.role === "TenantAdmin" && (
+                        <Badge
+                          variant="warning"
+                          className="text-[10px] py-0 px-1 font-bold"
+                        >
+                          ADMIN
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>{record.display_name}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {record.email}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="info" className="text-xs">
+                      {record.role}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {record.storage_used_gb || 0} GB / {record.quota_gb || 50} GB
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={record.status === "ACTIVE" ? "success" : "outline"}
+                      className="text-xs"
+                    >
+                      {record.status === "ACTIVE" ? "ACTIVE" : "DISABLED"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={record.mfa_enabled ? "success" : "outline"}
+                      className="text-xs"
+                    >
+                      {record.mfa_enabled ? "ENABLED" : "NONE"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-[11px]">
+                    {record.last_login || "--"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onResetPassword(record.username)}
+                        className="h-7 text-xs flex items-center gap-1"
+                      >
+                        <Key className="h-3 w-3" />
+                        <span>
+                          {record.role === "TenantAdmin"
+                            ? "Set / Reset Password"
+                            : "Reset Password"}
+                        </span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          onToggleAccountStatus(record.username, record.status)
+                        }
+                        className="h-7 text-xs"
+                      >
+                        {record.status === "ACTIVE" ? "Disable" : "Enable"}
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
     </Card>
   );
 };

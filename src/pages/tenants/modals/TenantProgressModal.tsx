@@ -1,38 +1,36 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
-  Modal,
-  Steps,
-  Progress,
-  Tag,
-  Typography,
-  Space,
-  Row,
-  Col,
-  Button,
-  Input,
-  Select,
-  Tooltip,
-  Badge,
-  Alert,
-  Switch,
-  message,
-} from "antd";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
-  SyncOutlined,
-  CheckCircleFilled,
-  ClockCircleOutlined,
-  CopyOutlined,
-  ReloadOutlined,
-  SearchOutlined,
-  ThunderboltOutlined,
-  CodeOutlined,
-  InfoCircleOutlined,
-  CloseCircleOutlined,
-  LoadingOutlined,
-} from "@ant-design/icons";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  RotateCw,
+  CheckCircle2,
+  Clock,
+  Copy,
+  Search,
+  Zap,
+  Terminal,
+  Loader2,
+} from "lucide-react";
+import { toast } from "sonner";
 import { dataProvider } from "../../../providers/dataProvider";
-
-const { Text } = Typography;
 
 export interface LogEntry {
   timestamp: string;
@@ -94,13 +92,17 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
       });
       if (res?.data) {
         setData({
-          workflowType: res.data.workflowType || (initialStatus.includes("DEL") ? "DEPROVISION" : "PROVISION"),
+          workflowType:
+            res.data.workflowType ||
+            (initialStatus.includes("DEL") ? "DEPROVISION" : "PROVISION"),
           status: res.data.status || initialStatus,
           progress: Number(res.data.progress ?? 15),
           currentStep: res.data.currentStep || "Workflow in progress...",
           currentStepDescription: res.data.currentStepDescription,
           elapsedSeconds: Number(res.data.elapsedSeconds || 0),
-          estimatedRemainingSeconds: Number(res.data.estimatedRemainingSeconds || 0),
+          estimatedRemainingSeconds: Number(
+            res.data.estimatedRemainingSeconds || 0
+          ),
           milestones: res.data.milestones || [],
           logs: res.data.logs || [],
           executionArn: res.data.executionArn,
@@ -120,7 +122,6 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
     return () => clearInterval(interval);
   }, [visible, tenantId, fetchProgress]);
 
-  // Auto-scroll terminal to bottom when new logs arrive
   useEffect(() => {
     if (autoScroll && logContainerRef.current) {
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
@@ -140,7 +141,6 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
   const currentStepDesc = data?.currentStepDescription;
   const isFinished = progress >= 100 || data?.status === "SUCCEEDED";
 
-  // Filter logs by search keyword and level
   const filteredLogs = (data?.logs || []).filter((l) => {
     const matchesLevel = filterLevel === "ALL" || l.level === filterLevel;
     const matchesSearch =
@@ -155,332 +155,284 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
       .map((l) => `[${l.timestamp}] [${l.source}] [${l.level}] ${l.message}`)
       .join("\n");
     navigator.clipboard.writeText(formatted);
-    message.success("Logs copied to clipboard!");
+    toast.success("Logs copied to clipboard!");
   };
 
-  const stepsItems = (data?.milestones || []).map((m) => {
-    let stepStatus: "wait" | "process" | "finish" | "error" = "wait";
-    if (m.status === "completed") stepStatus = "finish";
-    else if (m.status === "active") stepStatus = "process";
-    else if (m.status === "error") stepStatus = "error";
-
-    return {
-      title: m.name,
-      description: (
-        <div style={{ fontSize: 11, color: "#64748b" }}>
-          {m.description}
-          <div style={{ marginTop: 2, fontWeight: 600 }}>{m.percent}%</div>
-        </div>
-      ),
-      status: stepStatus,
-      icon:
-        stepStatus === "process" ? (
-          <LoadingOutlined style={{ color: "#1652f0" }} />
-        ) : undefined,
-    };
-  });
-
   return (
-    <Modal
-      open={visible}
-      onCancel={onClose}
-      width={900}
-      footer={[
-        <Button key="close" type="primary" onClick={onClose}>
-          Close
-        </Button>,
-      ]}
-      title={
-        <Space align="center" style={{ width: "100%", justifyContent: "space-between" }}>
-          <Space align="center">
+    <Dialog open={visible} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent className="max-w-4xl p-6">
+        <DialogHeader className="flex flex-row items-center justify-between">
+          <div className="flex items-center gap-2">
             {isFinished ? (
-              <CheckCircleFilled style={{ color: "#52c41a", fontSize: 20 }} />
+              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
             ) : (
-              <SyncOutlined spin style={{ color: isDeleting ? "#ff4d4f" : "#1652f0", fontSize: 20 }} />
+              <RotateCw
+                className={`h-5 w-5 animate-spin ${
+                  isDeleting ? "text-red-500" : "text-[#1652f0]"
+                }`}
+              />
             )}
-            <span style={{ fontSize: 16, fontWeight: 700 }}>
-              {isDeleting ? "Deprovisioning Teardown" : "Provisioning Orchestration"}:{" "}
-              <span style={{ color: "#1652f0" }}>{tenantId}</span>
-            </span>
-          </Space>
-          <Space>
-            <Tag color={isDeleting ? "error" : "processing"} style={{ fontWeight: 600, margin: 0 }}>
+            <DialogTitle className="text-base font-bold">
+              {isDeleting
+                ? "Deprovisioning Teardown"
+                : "Provisioning Orchestration"}
+              : <span className="text-[#1652f0]">{tenantId}</span>
+            </DialogTitle>
+          </div>
+          <div className="flex items-center gap-2 pr-6">
+            <Badge
+              variant={isDeleting ? "destructive" : "info"}
+              className="font-bold text-xs"
+            >
               {isDeleting ? "DEPROVISIONING" : "PROVISIONING"}
-            </Tag>
-            {isFinished && <Tag color="success">COMPLETED</Tag>}
-          </Space>
-        </Space>
-      }
-    >
-      <div style={{ padding: "8px 0" }}>
-        {/* Progress & Timing Bar */}
-        <div
-          style={{
-            background: isDeleting ? "#fff1f0" : "#f0f7ff",
-            border: `1px solid ${isDeleting ? "#ffa39e" : "#adc6ff"}`,
-            borderRadius: 8,
-            padding: "12px 16px",
-            marginBottom: 16,
-          }}
-        >
-          <Row align="middle" gutter={[16, 8]}>
-            <Col xs={24} md={14}>
-              <Space direction="vertical" size={2} style={{ width: "100%" }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <Text strong style={{ fontSize: 13 }}>
-                    Overall Execution Progress: {progress}%
-                  </Text>
+            </Badge>
+            {isFinished && (
+              <Badge variant="success" className="text-xs">
+                COMPLETED
+              </Badge>
+            )}
+          </div>
+        </DialogHeader>
+
+        <div className="space-y-4 my-2">
+          {/* Progress & Timing Bar */}
+          <div
+            className={`rounded-lg border p-3 ${
+              isDeleting
+                ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900"
+                : "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900"
+            }`}
+          >
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
+              <div className="space-y-1 w-full md:w-3/5">
+                <div className="flex justify-between text-xs font-semibold">
+                  <span>Overall Execution Progress: {progress}%</span>
                   {data && data.elapsedSeconds > 0 && (
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      <ClockCircleOutlined style={{ marginRight: 4 }} />
-                      Elapsed: <Text strong>{data.elapsedSeconds}s</Text>
+                    <span className="text-muted-foreground flex items-center gap-1 font-normal">
+                      <Clock className="h-3 w-3" />
+                      Elapsed: <b>{data.elapsedSeconds}s</b>
                       {data.estimatedRemainingSeconds > 0 && (
-                        <span> (~{data.estimatedRemainingSeconds}s remaining)</span>
+                        <span>
+                          (~{data.estimatedRemainingSeconds}s remaining)
+                        </span>
                       )}
-                    </Text>
+                    </span>
                   )}
                 </div>
                 <Progress
-                  percent={progress}
-                  status={isDeleting ? "exception" : isFinished ? "success" : "active"}
-                  strokeColor={
-                    isDeleting
-                      ? { "0%": "#faad14", "100%": "#ff4d4f" }
-                      : { "0%": "#1652f0", "100%": "#52c41a" }
-                  }
-                  style={{ margin: "4px 0" }}
+                  value={progress}
+                  className={`h-2 ${
+                    isDeleting ? "bg-red-100 dark:bg-red-950" : ""
+                  }`}
                 />
-              </Space>
-            </Col>
-            <Col xs={24} md={10} style={{ textAlign: "right" }}>
-              <Space direction="vertical" align="end" size={2}>
-                <Tag color="geekblue" icon={<ThunderboltOutlined />} style={{ fontSize: 11 }}>
-                  AWS Step Functions & Worker Lambda
-                </Tag>
-                {data?.executionArn && (
-                  <Tooltip title={data.executionArn}>
-                    <Text
-                      code
-                      copyable={{ text: data.executionArn }}
-                      style={{ fontSize: 10, maxWidth: 280 }}
-                      ellipsis
-                    >
-                      {data.executionArn.split(":").pop()}
-                    </Text>
-                  </Tooltip>
-                )}
-              </Space>
-            </Col>
-          </Row>
-        </div>
+              </div>
 
-        {/* Current Active Step Banner */}
-        <Alert
-          type={isDeleting ? "warning" : "info"}
-          showIcon
-          icon={isFinished ? <CheckCircleFilled /> : <LoadingOutlined />}
-          message={
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <Text strong style={{ fontSize: 13 }}>
-                Active Step:
-              </Text>
-              <Tag color={isDeleting ? "volcano" : "blue"} style={{ fontWeight: 600 }}>
+              <div className="text-right flex flex-col items-end gap-1">
+                <Badge
+                  variant="info"
+                  className="flex items-center gap-1 text-[11px]"
+                >
+                  <Zap className="h-3 w-3" />
+                  <span>AWS Step Functions &amp; Worker Lambda</span>
+                </Badge>
+                {data?.executionArn && (
+                  <code
+                    className="text-[10px] text-muted-foreground truncate max-w-xs cursor-pointer hover:underline"
+                    onClick={() => {
+                      navigator.clipboard.writeText(data.executionArn!);
+                      toast.success("Execution ARN copied!");
+                    }}
+                    title={data.executionArn}
+                  >
+                    {data.executionArn.split(":").pop()}
+                  </code>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Current Active Step Banner */}
+          <Alert variant={isDeleting ? "warning" : "info"} className="py-2.5">
+            <div className="flex items-center gap-2 flex-wrap text-xs">
+              {isFinished ? (
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              ) : (
+                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+              )}
+              <span className="font-bold">Active Step:</span>
+              <Badge variant="secondary" className="font-semibold text-xs">
                 {currentStep}
-              </Tag>
+              </Badge>
               {currentStepDesc && (
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  — {currentStepDesc}
-                </Text>
+                <span className="text-muted-foreground">— {currentStepDesc}</span>
               )}
             </div>
-          }
-          style={{ marginBottom: 20 }}
-        />
+          </Alert>
 
-        {/* Steps Milestones Visualizer */}
-        <div style={{ marginBottom: 24, padding: "0 8px" }}>
-          <Text strong style={{ display: "block", marginBottom: 12, fontSize: 13 }}>
-            Execution Milestones & Current Phase:
-          </Text>
-          {stepsItems.length > 0 ? (
-            <Steps
-              items={stepsItems}
-              size="small"
-              responsive
-              style={{ overflowX: "auto", paddingBottom: 8 }}
-            />
-          ) : (
-            <div style={{ textAlign: "center", padding: 16 }}>
-              <LoadingOutlined spin style={{ fontSize: 20 }} />
-              <div style={{ marginTop: 8 }}>Discovering execution milestones...</div>
+          {/* Milestones Visualizer */}
+          <div>
+            <div className="text-xs font-semibold mb-2">
+              Execution Milestones &amp; Current Phase:
             </div>
-          )}
-        </div>
-
-        {/* Real-Time Live Logs Terminal */}
-        <div
-          style={{
-            background: "#0d1117",
-            borderRadius: 8,
-            border: "1px solid #30363d",
-            overflow: "hidden",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          }}
-        >
-          {/* Terminal Toolbar */}
-          <div
-            style={{
-              padding: "8px 12px",
-              background: "#161b22",
-              borderBottom: "1px solid #30363d",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: 8,
-            }}
-          >
-            <Space align="center" size={8}>
-              <CodeOutlined style={{ color: "#58a6ff" }} />
-              <Text strong style={{ color: "#e6edf3", fontSize: 12 }}>
-                Live Execution Logs
-              </Text>
-              <Badge status={isFinished ? "default" : "processing"} text={<span style={{ color: isFinished ? "#8b949e" : "#58a6ff", fontSize: 11 }}>{isFinished ? "Ended" : "Live (2s)"}</span>} />
-              <span style={{ color: "#8b949e", fontSize: 11 }}>({filteredLogs.length} events)</span>
-            </Space>
-
-            <Space wrap size={8}>
-              <Input
-                size="small"
-                prefix={<SearchOutlined style={{ color: "#8b949e" }} />}
-                placeholder="Filter logs..."
-                value={filterText}
-                onChange={(e) => setFilterText(e.target.value)}
-                style={{ width: 140, background: "#0d1117", borderColor: "#30363d", color: "#e6edf3" }}
-                allowClear
-              />
-              <Select
-                size="small"
-                value={filterLevel}
-                onChange={setFilterLevel}
-                style={{ width: 90 }}
-                options={[
-                  { value: "ALL", label: "All Levels" },
-                  { value: "INFO", label: "INFO" },
-                  { value: "SUCCESS", label: "SUCCESS" },
-                  { value: "WARN", label: "WARN" },
-                  { value: "ERROR", label: "ERROR" },
-                ]}
-              />
-              <Tooltip title="Auto-scroll to latest log">
-                <Space size={4} style={{ color: "#8b949e", fontSize: 11 }}>
-                  <span>Scroll:</span>
-                  <Switch
-                    size="small"
-                    checked={autoScroll}
-                    onChange={setAutoScroll}
-                  />
-                </Space>
-              </Tooltip>
-              <Tooltip title="Refresh logs">
-                <Button
-                  size="small"
-                  type="text"
-                  icon={<ReloadOutlined style={{ color: "#8b949e" }} />}
-                  onClick={fetchProgress}
-                  loading={loading}
-                />
-              </Tooltip>
-              <Tooltip title="Copy all logs">
-                <Button
-                  size="small"
-                  type="text"
-                  icon={<CopyOutlined style={{ color: "#8b949e" }} />}
-                  onClick={handleCopyLogs}
-                />
-              </Tooltip>
-            </Space>
-          </div>
-
-          {/* Terminal Log Console */}
-          <div
-            ref={logContainerRef}
-            style={{
-              maxHeight: 280,
-              minHeight: 180,
-              overflowY: "auto",
-              padding: "10px 14px",
-              fontFamily: "Menlo, Monaco, 'Courier New', monospace",
-              fontSize: 11.5,
-              lineHeight: 1.6,
-              color: "#c9d1d9",
-            }}
-          >
-            {filteredLogs.length === 0 ? (
-              <div style={{ color: "#8b949e", textAlign: "center", padding: "24px 0" }}>
-                {filterText || filterLevel !== "ALL"
-                  ? "No logs match the current filter criteria."
-                  : "Streaming logs from Step Functions & CloudWatch worker..."}
+            {data?.milestones && data.milestones.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {data.milestones.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`rounded-lg border p-2 text-xs transition-colors ${
+                      m.status === "completed"
+                        ? "border-emerald-500/40 bg-emerald-500/5 text-emerald-700 dark:text-emerald-400"
+                        : m.status === "active"
+                        ? "border-blue-500 bg-blue-500/10 text-blue-700 dark:text-blue-300 font-semibold"
+                        : "border-border text-muted-foreground bg-card"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="truncate">{m.name}</span>
+                      <span className="font-mono text-[10px]">{m.percent}%</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                      {m.description}
+                    </p>
+                  </div>
+                ))}
               </div>
             ) : (
-              filteredLogs.map((log, idx) => {
-                let lvlColor = "#58a6ff"; // INFO default
-                if (log.level === "SUCCESS") lvlColor = "#3fb950";
-                else if (log.level === "WARN") lvlColor = "#d29922";
-                else if (log.level === "ERROR") lvlColor = "#f85149";
-
-                const srcColor = log.source === "TenantWorker" ? "#7ee787" : "#58a6ff";
-
-                return (
-                  <div
-                    key={idx}
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: 8,
-                      wordBreak: "break-all",
-                      padding: "2px 0",
-                      borderBottom: "1px solid rgba(255,255,255,0.02)",
-                    }}
-                  >
-                    <span style={{ color: "#7d8590", flexShrink: 0, userSelect: "none" }}>
-                      {log.timestamp.includes("T")
-                        ? log.timestamp.split("T")[1].replace("Z", "")
-                        : log.timestamp.split(" ")[1] || log.timestamp}
-                    </span>
-                    <span
-                      style={{
-                        color: srcColor,
-                        fontWeight: 600,
-                        flexShrink: 0,
-                        fontSize: 10.5,
-                        background: "rgba(255,255,255,0.06)",
-                        padding: "0 4px",
-                        borderRadius: 3,
-                      }}
-                    >
-                      {log.source}
-                    </span>
-                    <span
-                      style={{
-                        color: lvlColor,
-                        fontWeight: 600,
-                        flexShrink: 0,
-                        fontSize: 10.5,
-                      }}
-                    >
-                      [{log.level}]
-                    </span>
-                    <span style={{ color: log.level === "ERROR" ? "#f85149" : "#e6edf3" }}>
-                      {log.message}
-                    </span>
-                  </div>
-                );
-              })
+              <div className="text-center py-4 text-xs text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin mx-auto mb-1 text-muted-foreground" />
+                <span>Discovering execution milestones...</span>
+              </div>
             )}
           </div>
+
+          {/* Real-Time Live Logs Terminal */}
+          <div className="rounded-lg border border-slate-800 bg-[#0d1117] overflow-hidden shadow-md">
+            {/* Toolbar */}
+            <div className="flex items-center justify-between px-3 py-2 bg-[#161b22] border-b border-slate-800 flex-wrap gap-2 text-xs">
+              <div className="flex items-center gap-2">
+                <Terminal className="h-4 w-4 text-sky-400" />
+                <span className="font-semibold text-slate-200">
+                  Live Execution Logs
+                </span>
+                <span className="text-slate-400 text-[11px]">
+                  ({filteredLogs.length} events)
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="relative w-36">
+                  <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-500" />
+                  <Input
+                    placeholder="Filter logs..."
+                    value={filterText}
+                    onChange={(e) => setFilterText(e.target.value)}
+                    className="pl-7 h-7 text-xs bg-slate-900 border-slate-700 text-slate-200 placeholder:text-slate-500"
+                  />
+                </div>
+
+                <div className="w-24">
+                  <Select value={filterLevel} onValueChange={setFilterLevel}>
+                    <SelectTrigger className="h-7 text-xs bg-slate-900 border-slate-700 text-slate-200">
+                      <SelectValue placeholder="Level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Levels</SelectItem>
+                      <SelectItem value="INFO">INFO</SelectItem>
+                      <SelectItem value="SUCCESS">SUCCESS</SelectItem>
+                      <SelectItem value="WARN">WARN</SelectItem>
+                      <SelectItem value="ERROR">ERROR</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-slate-400 text-xs">
+                  <span>Scroll:</span>
+                  <Switch
+                    checked={autoScroll}
+                    onCheckedChange={setAutoScroll}
+                    className="scale-75"
+                  />
+                </div>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                  onClick={fetchProgress}
+                  disabled={loading}
+                  title="Refresh logs"
+                >
+                  <RotateCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                  onClick={handleCopyLogs}
+                  title="Copy logs"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Logs Body */}
+            <div
+              ref={logContainerRef}
+              className="max-h-64 min-h-[160px] overflow-y-auto p-3 font-mono text-[11px] leading-relaxed text-slate-300 divide-y divide-slate-800/40"
+            >
+              {filteredLogs.length === 0 ? (
+                <div className="text-center py-8 text-slate-500">
+                  {filterText || filterLevel !== "ALL"
+                    ? "No logs match the current filter criteria."
+                    : "Streaming logs from Step Functions & CloudWatch worker..."}
+                </div>
+              ) : (
+                filteredLogs.map((log, idx) => {
+                  let lvlColor = "text-sky-400";
+                  if (log.level === "SUCCESS") lvlColor = "text-emerald-400";
+                  else if (log.level === "WARN") lvlColor = "text-amber-400";
+                  else if (log.level === "ERROR") lvlColor = "text-red-400";
+
+                  return (
+                    <div
+                      key={idx}
+                      className="flex items-start gap-2 py-1 hover:bg-slate-800/20"
+                    >
+                      <span className="text-slate-500 shrink-0 select-none">
+                        {log.timestamp.includes("T")
+                          ? log.timestamp.split("T")[1].replace("Z", "")
+                          : log.timestamp.split(" ")[1] || log.timestamp}
+                      </span>
+                      <span className="text-emerald-300 bg-white/5 px-1 rounded text-[10px] shrink-0 font-semibold">
+                        {log.source}
+                      </span>
+                      <span className={`shrink-0 font-semibold text-[10px] ${lvlColor}`}>
+                        [{log.level}]
+                      </span>
+                      <span className={log.level === "ERROR" ? "text-red-400" : "text-slate-200"}>
+                        {log.message}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    </Modal>
+
+        <DialogFooter className="pt-2">
+          <Button
+            type="button"
+            size="sm"
+            onClick={onClose}
+            className="bg-[#1652f0] hover:bg-[#1652f0]/90 text-white"
+          >
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };

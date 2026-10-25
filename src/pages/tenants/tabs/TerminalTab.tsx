@@ -1,14 +1,17 @@
 import React, { useState } from "react";
-import { Card, Space, Button, Input, Tag, Typography, message, Switch } from "antd";
 import {
-  CodeOutlined,
-  ClearOutlined,
-  PlayCircleOutlined,
-  SyncOutlined,
-} from "@ant-design/icons";
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Terminal, Play, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { dataProvider } from "../../../providers/dataProvider";
-
-const { Text } = Typography;
 
 export interface TerminalTabProps {
   tenantId: string;
@@ -18,7 +21,6 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
   const [occCommand, setOccCommand] = useState("status");
   const [occLoading, setOccLoading] = useState(false);
   const [isAsync, setIsAsync] = useState(false);
-  const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [terminalOutput, setTerminalOutput] = useState<
     Array<{
       cmd: string;
@@ -53,29 +55,31 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
         });
         const job = res.data?.job || res.data;
         if (job.status === "COMPLETED" || job.status === "FAILED") {
-          const duration = Math.round((Date.now() - startTime));
+          const duration = Math.round(Date.now() - startTime);
           setTerminalOutput((prev) => [
             ...prev,
             {
               cmd: `occ ${cmd} (Async Job ${jobId})`,
-              output: job.output || (job.status === "COMPLETED" ? "Async job finished successfully." : "Job failed."),
+              output:
+                job.output ||
+                (job.status === "COMPLETED"
+                  ? "Async job finished successfully."
+                  : "Job failed."),
               exit_code: job.exit_code ?? (job.status === "COMPLETED" ? 0 : 1),
               duration_ms: duration,
               timestamp: new Date().toISOString(),
             },
           ]);
-          setActiveJobId(null);
           setOccLoading(false);
-          message.success(`Async job 'occ ${cmd}' completed!`);
+          toast.success(`Async job 'occ ${cmd}' completed!`);
           return;
         }
       } catch (_) {
         // continue polling
       }
     }
-    setActiveJobId(null);
     setOccLoading(false);
-    message.warning(`Async job ${jobId} is taking longer than expected. Check Audit logs.`);
+    toast.warning(`Async job ${jobId} is taking longer than expected.`);
   };
 
   const handleExecuteOcc = async (cmdToRun?: string) => {
@@ -96,7 +100,6 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
           },
         });
         const jobId = res.data?.job_id || `job-${Date.now()}`;
-        setActiveJobId(jobId);
         setTerminalOutput((prev) => [
           ...prev,
           {
@@ -107,7 +110,7 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
             timestamp: new Date().toISOString(),
           },
         ]);
-        message.info(`Dispatched async OCC job: ${jobId}`);
+        toast.info(`Dispatched async OCC job: ${jobId}`);
         pollJobStatus(jobId, cmd, startTime);
       } else {
         const res = await dataProvider.custom({
@@ -130,257 +133,157 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ tenantId }) => {
             timestamp: data.executed_at || new Date().toISOString(),
           },
         ]);
-        message.success(`Command 'occ ${cmd}' executed successfully!`);
+        toast.success(`Command 'occ ${cmd}' executed successfully!`);
         setOccLoading(false);
       }
     } catch (err: any) {
-      message.error(err?.message || "OCC execution failed");
+      toast.error(err?.message || "OCC execution failed");
       setOccLoading(false);
     }
   };
 
+  const quickCommands = [
+    "status",
+    "files:scan --all",
+    "db:add-missing-indices",
+    "maintenance:mode --status",
+    "app:list",
+    "check",
+    "user:list",
+  ];
+
   return (
-    <div>
-      <Card
-        title={
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <Space wrap>
-              <CodeOutlined style={{ color: "#1652f0" }} />
-              <span>Interactive Storix `occ` CLI Diagnostic Runner</span>
-              <Tag color="geekblue">Container: service-{tenantId}</Tag>
-            </Space>
-            <Space wrap>
-              <Space size={4}>
-                <Text type="secondary" style={{ fontSize: 12 }}>Async Mode</Text>
-                <Switch
-                  size="small"
-                  checked={isAsync}
-                  onChange={setIsAsync}
-                />
-              </Space>
-              <Button
-                size="small"
-                icon={<ClearOutlined />}
-                onClick={() => setTerminalOutput([])}
-              >
-                Clear Screen
-              </Button>
-            </Space>
-          </div>
-        }
-        variant="borderless"
-        style={{
-          marginBottom: 16,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-        }}
-      >
-        <Space direction="vertical" size={12} style={{ width: "100%" }}>
-          <div>
-            <Text strong style={{ fontSize: 13, marginRight: 8 }}>
-              Quick Diagnostic Commands:
-            </Text>
-            <Space wrap>
-              <Button
-                size="small"
-                onClick={() => handleExecuteOcc("status")}
-                loading={occLoading}
-              >
-                status
-              </Button>
-              <Button
-                size="small"
-                onClick={() => handleExecuteOcc("files:scan --all")}
-                loading={occLoading}
-              >
-                files:scan --all
-              </Button>
-              <Button
-                size="small"
-                onClick={() => handleExecuteOcc("db:add-missing-indices")}
-                loading={occLoading}
-              >
-                db:add-missing-indices
-              </Button>
-              <Button
-                size="small"
-                onClick={() => handleExecuteOcc("maintenance:mode --status")}
-                loading={occLoading}
-              >
-                maintenance:mode --status
-              </Button>
-              <Button
-                size="small"
-                onClick={() => handleExecuteOcc("app:list")}
-                loading={occLoading}
-              >
-                app:list
-              </Button>
-              <Button
-                size="small"
-                onClick={() => handleExecuteOcc("check")}
-                loading={occLoading}
-              >
-                check
-              </Button>
-              <Button
-                size="small"
-                onClick={() => handleExecuteOcc("user:list")}
-                loading={occLoading}
-              >
-                user:list
-              </Button>
-            </Space>
+    <div className="space-y-4">
+      {/* Control Card */}
+      <Card className="border-border shadow-sm">
+        <CardHeader className="py-4 px-5 border-b flex flex-row items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <Terminal className="h-4 w-4 text-[#1652f0]" />
+            <CardTitle className="text-sm font-semibold">
+              Interactive Storix `occ` CLI Diagnostic Runner
+            </CardTitle>
+            <Badge variant="info" className="text-[10px]">
+              service-{tenantId}
+            </Badge>
           </div>
 
-          <Space.Compact style={{ width: "100%" }}>
-            <span
-              style={{
-                background: "#1e1e1e",
-                color: "#10b981",
-                fontFamily: "monospace",
-                fontSize: 13,
-                padding: "4px 10px",
-                borderRadius: "6px 0 0 6px",
-                display: "flex",
-                alignItems: "center",
-                border: "1px solid #333",
-                borderRight: "none",
-              }}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span>Async Mode:</span>
+              <Switch
+                checked={isAsync}
+                onCheckedChange={setIsAsync}
+                className="scale-75"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTerminalOutput([])}
+              className="h-7 text-xs flex items-center gap-1"
             >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>Clear Screen</span>
+            </Button>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-4 space-y-3">
+          {/* Quick Buttons */}
+          <div className="flex items-center gap-2 flex-wrap text-xs">
+            <span className="font-semibold text-muted-foreground">
+              Quick Diagnostic Commands:
+            </span>
+            {quickCommands.map((c) => (
+              <Button
+                key={c}
+                variant="outline"
+                size="sm"
+                onClick={() => handleExecuteOcc(c)}
+                disabled={occLoading}
+                className="h-6 text-xs font-mono"
+              >
+                {c}
+              </Button>
+            ))}
+          </div>
+
+          {/* Command Input Bar */}
+          <div className="flex">
+            <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-slate-900 text-emerald-400 font-mono text-xs font-bold">
               occ
             </span>
             <Input
               placeholder="e.g. status, config:system:get version, db:convert-filecache-bigint"
               value={occCommand}
               onChange={(e) => setOccCommand(e.target.value)}
-              onPressEnter={() => handleExecuteOcc()}
-              style={{ fontFamily: "monospace" }}
+              onKeyDown={(e) => e.key === "Enter" && handleExecuteOcc()}
+              className="rounded-none font-mono text-xs h-9 flex-1"
             />
             <Button
-              type="primary"
-              icon={<PlayCircleOutlined />}
-              loading={occLoading}
+              type="button"
+              size="sm"
+              disabled={occLoading}
               onClick={() => handleExecuteOcc()}
-              style={{
-                background: "#1652f0",
-                borderColor: "#1652f0",
-              }}
+              className="rounded-l-none h-9 text-xs bg-[#1652f0] hover:bg-[#1652f0]/90 text-white flex items-center gap-1.5"
             >
-              Execute
+              <Play className="h-3.5 w-3.5" />
+              <span>Execute</span>
             </Button>
-          </Space.Compact>
-        </Space>
+          </div>
+        </CardContent>
       </Card>
 
-      {/* Monospace Terminal Screen */}
-      <Card
-        title={
-          <Space>
-            <span style={{ color: "#10b981" }}>●</span>
-            <span style={{ color: "#f59e0b" }}>●</span>
-            <span style={{ color: "#ef4444" }}>●</span>
-            <span
-              style={{
-                fontFamily: "monospace",
-                fontSize: 12,
-                marginLeft: 8,
-              }}
-            >
-              www-data@fargate-task: /var/www/html
-            </span>
-          </Space>
-        }
-        size="small"
-        style={{
-          background: "#0f172a",
-          border: "1px solid #1e293b",
-          boxShadow: "0 4px 6px -1px rgba(0,0,0,0.2)",
-        }}
-        styles={{
-          body: { padding: 16 },
-          header: {
-            background: "#1e293b",
-            borderBottom: "1px solid #334155",
-            color: "#94a3b8",
-          },
-        }}
-      >
-        <div
-          style={{
-            minHeight: 280,
-            maxHeight: 500,
-            overflowY: "auto",
-            fontFamily:
-              "'Fira Code', 'JetBrains Mono', Monaco, monospace",
-            fontSize: 12,
-            lineHeight: "1.6",
-            color: "#e2e8f0",
-          }}
-        >
+      {/* Terminal Screen Card */}
+      <Card className="border border-slate-800 bg-[#0f172a] shadow-md overflow-hidden text-slate-200">
+        <div className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-900 border-b border-slate-800 text-xs">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-500 inline-block" />
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-500 inline-block" />
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 inline-block" />
+          <span className="ml-2 font-mono text-slate-400 text-[11px]">
+            www-data@fargate-task: /var/www/html
+          </span>
+        </div>
+
+        <div className="min-h-[280px] max-h-[500px] overflow-y-auto p-4 font-mono text-xs leading-relaxed space-y-4">
           {terminalOutput.length === 0 ? (
-            <div style={{ color: "#64748b", fontStyle: "italic" }}>
+            <div className="text-slate-500 italic">
               Terminal output buffer empty. Execute a command above to inspect
               Storix platform internals.
             </div>
           ) : (
             terminalOutput.map((item, idx) => (
-              <div key={idx} style={{ marginBottom: 16 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
+              <div key={idx} className="space-y-1">
+                <div className="flex items-center justify-between text-[11px] flex-wrap gap-2">
                   <div>
-                    <span style={{ color: "#38bdf8" }}>
-                      storix@{tenantId}
-                    </span>
-                    <span style={{ color: "#94a3b8" }}>:</span>
-                    <span style={{ color: "#a855f7" }}>/var/www/html</span>
-                    <span style={{ color: "#94a3b8" }}>$ </span>
-                    <strong style={{ color: "#4ade80" }}>{item.cmd}</strong>
+                    <span className="text-sky-400">storix@{tenantId}</span>
+                    <span className="text-slate-500">:</span>
+                    <span className="text-purple-400">/var/www/html</span>
+                    <span className="text-slate-500">$ </span>
+                    <strong className="text-emerald-400">{item.cmd}</strong>
                   </div>
-                  <Space size={6}>
-                    <Tag
-                      color={item.exit_code === 0 ? "success" : "error"}
-                      style={{ fontSize: 10, margin: 0 }}
+                  <div className="flex items-center gap-1.5 text-[10px]">
+                    <Badge
+                      variant={item.exit_code === 0 ? "success" : "destructive"}
+                      className="text-[10px] py-0 px-1 font-mono"
                     >
                       exit {item.exit_code}
-                    </Tag>
-                    <Tag color="default" style={{ fontSize: 10, margin: 0 }}>
+                    </Badge>
+                    <span className="text-slate-500 font-mono">
                       {item.duration_ms}ms
-                    </Tag>
-                    <span style={{ fontSize: 10, color: "#64748b" }}>
+                    </span>
+                    <span className="text-slate-500">
                       {item.timestamp.slice(11, 19)}
                     </span>
-                  </Space>
+                  </div>
                 </div>
+
                 <pre
-                  style={{
-                    margin: "6px 0 0 0",
-                    padding: "8px 12px",
-                    background: "#090d16",
-                    borderRadius: 4,
-                    color: "#cbd5e1",
-                    fontSize: 11,
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-all",
-                    borderLeft:
-                      item.exit_code === 0
-                        ? "3px solid #10b981"
-                        : "3px solid #ef4444",
-                  }}
+                  className={`p-3 rounded bg-[#090d16] text-slate-200 text-[11px] whitespace-pre-wrap break-all border-l-2 ${
+                    item.exit_code === 0
+                      ? "border-l-emerald-500"
+                      : "border-l-red-500"
+                  }`}
                 >
                   {item.output}
                 </pre>

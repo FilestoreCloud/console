@@ -1,26 +1,24 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
   Card,
-  Row,
-  Col,
-  Space,
-  Tag,
-  Select,
-  Input,
-  Switch,
-  Button,
-  Typography,
-} from "antd";
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
-  FileTextOutlined,
-  SearchOutlined,
-  ReloadOutlined,
-  SyncOutlined,
-} from "@ant-design/icons";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { FileText, Search, RotateCw } from "lucide-react";
 import { dataProvider } from "../../../providers/dataProvider";
 import { useSmartInterval } from "../../../hooks/useSmartInterval";
-
-const { Text } = Typography;
 
 export interface LogsTabProps {
   tenantId: string;
@@ -65,7 +63,6 @@ export const LogsTab: React.FC<LogsTabProps> = ({
     handleFetchLogs();
   }, [handleFetchLogs]);
 
-  // Task 1.2 & 4.2: Intelligent polling with Page Visibility pause & idle backoff
   useSmartInterval(handleFetchLogs, logsAutoRefresh ? 5000 : null, {
     maxIdleSeconds: 120,
     backoffFactor: 1.5,
@@ -74,116 +71,90 @@ export const LogsTab: React.FC<LogsTabProps> = ({
   });
 
   return (
-    <div>
-      <Card
-        title={
-          <Row justify="space-between" align="middle" gutter={[8, 8]}>
-            <Col xs={24} lg={8}>
-              <Space wrap>
-                <FileTextOutlined style={{ color: "#0284c7" }} />
-                <span>Container Log Stream</span>
-                <Tag color="cyan">
-                  Log Group: /ecs/
-                  {awsTopology.cluster_name ? "prod-storix" : "storix"}
-                </Tag>
-              </Space>
-            </Col>
-            <Col xs={24} lg={16}>
-              <Space wrap>
-                <Select
-                  size="small"
-                  value={logsContainer}
-                  onChange={(val) => setLogsContainer(val)}
-                  style={{ width: 170 }}
-                  options={[
-                    { value: "all", label: "All Logs" },
-                    {
-                      value: "storix-app",
-                      label: "Storix 30 App",
-                    },
-                  ]}
-                />
-                <Select
-                  size="small"
-                  value={logsLevel}
-                  onChange={(val) => setLogsLevel(val)}
-                  style={{ width: 110 }}
-                  options={[
-                    { value: "ALL", label: "All Levels" },
-                    { value: "INFO", label: "INFO" },
-                    { value: "WARN", label: "WARN" },
-                    { value: "ERROR", label: "ERROR" },
-                  ]}
-                />
-                <Input
-                  size="small"
-                  placeholder="Filter pattern..."
-                  prefix={<SearchOutlined style={{ color: "#94a3b8" }} />}
-                  value={logsFilter}
-                  onChange={(e) => setLogsFilter(e.target.value)}
-                  onPressEnter={handleFetchLogs}
-                  style={{ width: 150 }}
-                />
-                <Space size={4}>
-                  <Switch
-                    size="small"
-                    checked={logsAutoRefresh}
-                    onChange={(val) => setLogsAutoRefresh(val)}
-                  />
-                  <Text style={{ fontSize: 11 }}>Auto 5s</Text>
-                </Space>
-                <Button
-                  size="small"
-                  icon={<ReloadOutlined />}
-                  onClick={handleFetchLogs}
-                  loading={logsLoading}
-                >
-                  Refresh
-                </Button>
-              </Space>
-            </Col>
-          </Row>
-        }
-        variant="borderless"
-        style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-      >
-        <div
-          style={{
-            background: "#090d16",
-            color: "#cbd5e1",
-            borderRadius: 6,
-            padding: 12,
-            fontFamily:
-              "'Fira Code', 'JetBrains Mono', Monaco, monospace",
-            fontSize: 12,
-            maxHeight: 520,
-            overflowY: "auto",
-            border: "1px solid #1e293b",
-          }}
-        >
+    <Card className="border-border shadow-sm">
+      <CardHeader className="py-4 px-5 border-b flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4 text-sky-500" />
+          <CardTitle className="text-sm font-semibold">
+            Container Log Stream
+          </CardTitle>
+          <Badge variant="info" className="text-[10px] font-mono">
+            Log Group: /ecs/
+            {awsTopology.cluster_name ? "prod-storix" : "storix"}
+          </Badge>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="w-36">
+            <Select value={logsContainer} onValueChange={setLogsContainer}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="Container" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Logs</SelectItem>
+                <SelectItem value="storix-app">Storix 30 App</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-28">
+            <Select value={logsLevel} onValueChange={setLogsLevel}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="Level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Levels</SelectItem>
+                <SelectItem value="INFO">INFO</SelectItem>
+                <SelectItem value="WARN">WARN</SelectItem>
+                <SelectItem value="ERROR">ERROR</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="relative w-36">
+            <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Filter pattern..."
+              value={logsFilter}
+              onChange={(e) => setLogsFilter(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleFetchLogs()}
+              className="pl-7 h-8 text-xs"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Switch
+              checked={logsAutoRefresh}
+              onCheckedChange={setLogsAutoRefresh}
+              className="scale-75"
+            />
+            <span>Auto 5s</span>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleFetchLogs}
+            disabled={logsLoading}
+            className="h-8 text-xs flex items-center gap-1"
+          >
+            <RotateCw className={`h-3 w-3 ${logsLoading ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
+          </Button>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-4">
+        <div className="rounded-lg border border-slate-800 bg-[#090d16] p-3 text-slate-300 font-mono text-xs max-h-[520px] overflow-y-auto space-y-1.5">
           {logsLoading && containerLogs.length === 0 ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: 40,
-                color: "#94a3b8",
-              }}
-            >
-              <SyncOutlined spin style={{ fontSize: 20, marginBottom: 8 }} />
-              <br />
-              Streaming logs from CloudWatch for tenant '{tenantId}'...
+            <div className="text-center py-10 text-slate-500">
+              <RotateCw className="h-5 w-5 animate-spin mx-auto mb-2 text-slate-400" />
+              <p>Streaming logs from CloudWatch for tenant &apos;{tenantId}&apos;...</p>
             </div>
           ) : containerLogs.filter(
-              (l) => logsLevel === "ALL" || l.level === logsLevel,
+              (l) => logsLevel === "ALL" || l.level === logsLevel
             ).length === 0 ? (
-            <div
-              style={{
-                color: "#64748b",
-                fontStyle: "italic",
-                textAlign: "center",
-                padding: 20,
-              }}
-            >
+            <div className="text-center py-8 text-slate-500 italic">
               No container logs match current filter criteria.
             </div>
           ) : (
@@ -192,71 +163,37 @@ export const LogsTab: React.FC<LogsTabProps> = ({
               .map((l, idx) => (
                 <div
                   key={idx}
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    rowGap: 4,
-                    columnGap: 10,
-                    padding: "6px 0",
-                    borderBottom: "1px solid #111827",
-                    alignItems: "center",
-                  }}
+                  className="flex items-center gap-2 py-1 border-b border-slate-900/60 flex-wrap"
                 >
-                  <span
-                    style={{
-                      color: "#64748b",
-                      fontSize: 11,
-                      minWidth: 140,
-                    }}
-                  >
+                  <span className="text-[11px] text-slate-500 min-w-[130px]">
                     {l.timestamp}
                   </span>
-                  <Tag
-                    color={
-                      l.container === "litellm-sidecar" ? "purple" : "orange"
-                    }
-                    style={{
-                      fontSize: 10,
-                      padding: "0 4px",
-                      margin: 0,
-                      minWidth: 90,
-                      textAlign: "center",
-                    }}
+                  <Badge
+                    variant="secondary"
+                    className="text-[10px] py-0 px-1 font-mono"
                   >
                     {l.container}
-                  </Tag>
-                  <Tag
-                    color={
+                  </Badge>
+                  <Badge
+                    variant={
                       l.level === "ERROR"
-                        ? "red"
+                        ? "destructive"
                         : l.level === "WARN"
-                          ? "gold"
-                          : "blue"
+                        ? "warning"
+                        : "info"
                     }
-                    style={{
-                      fontSize: 10,
-                      padding: "0 4px",
-                      margin: 0,
-                      minWidth: 46,
-                      textAlign: "center",
-                    }}
+                    className="text-[10px] py-0 px-1 font-mono"
                   >
                     {l.level}
-                  </Tag>
-                  <span
-                    style={{
-                      flex: "1 1 240px",
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-all",
-                    }}
-                  >
+                  </Badge>
+                  <span className="flex-1 whitespace-pre-wrap break-all text-slate-200">
                     {l.message}
                   </span>
                 </div>
               ))
           )}
         </div>
-      </Card>
-    </div>
+      </CardContent>
+    </Card>
   );
 };

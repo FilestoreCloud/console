@@ -1,13 +1,20 @@
 import React from "react";
-import { Tag, Progress, Space, Typography, Tooltip } from "antd";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
-  CheckCircleOutlined,
-  AlertOutlined,
-  WarningOutlined,
-  ClockCircleOutlined,
-  SyncOutlined,
-  CloseCircleOutlined,
-} from "@ant-design/icons";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  CheckCircle2,
+  AlertTriangle,
+  AlertOctagon,
+  Clock,
+  RotateCw,
+  XCircle,
+} from "lucide-react";
 
 export const renderStatusTag = (
   status: string,
@@ -17,49 +24,51 @@ export const renderStatusTag = (
   const isClickable = !!onProgressClick;
   const wrapClickable = (node: React.ReactNode, tooltipTitle: string) => {
     return (
-      <Tooltip title={tooltipTitle}>
-        <div
-          onClick={(e) => {
-            if (onProgressClick && record) {
-              e.stopPropagation();
-              onProgressClick(record);
-            }
-          }}
-          style={{
-            cursor: isClickable ? "pointer" : "default",
-            display: "inline-block",
-            width: "100%",
-          }}
-        >
-          {node}
-        </div>
-      </Tooltip>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              onClick={(e) => {
+                if (onProgressClick && record) {
+                  e.stopPropagation();
+                  onProgressClick(record);
+                }
+              }}
+              className={`w-full ${isClickable ? "cursor-pointer" : "cursor-default"}`}
+            >
+              {node}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{tooltipTitle}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   };
 
   switch (status) {
     case "ACTIVE":
-      return <Tag color="success" icon={<CheckCircleOutlined />}>ACTIVE</Tag>;
+      return (
+        <Badge variant="success" className="flex items-center gap-1 font-semibold">
+          <CheckCircle2 className="h-3 w-3" />
+          <span>ACTIVE</span>
+        </Badge>
+      );
     case "PROVISIONING": {
       const progress = Number(record?.progress || 20);
       const step = record?.current_step || "Provisioning AWS resources...";
       return wrapClickable(
-        <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
-          <Tag color="processing" icon={<SyncOutlined spin />}>
-            PROVISIONING ({progress}%)
-          </Tag>
-          <Progress
-            percent={progress}
-            size="small"
-            status="active"
-            showInfo={false}
-            strokeColor={{ "0%": "#108ee9", "100%": "#52c41a" }}
-            style={{ margin: 0 }}
-          />
-          <Typography.Text type="secondary" ellipsis style={{ fontSize: 11, maxWidth: 180 }}>
+        <div className="space-y-1 w-full min-w-[150px]">
+          <Badge variant="info" className="flex items-center gap-1 font-semibold">
+            <RotateCw className="h-3 w-3 animate-spin" />
+            <span>PROVISIONING ({progress}%)</span>
+          </Badge>
+          <Progress value={progress} className="h-1.5" />
+          <p className="text-[11px] text-muted-foreground truncate max-w-[180px]">
             {step}
-          </Typography.Text>
-        </Space>,
+          </p>
+        </div>,
         `Click to view live steps & execution logs (${step})`
       );
     }
@@ -68,22 +77,16 @@ export const renderStatusTag = (
       const progress = Number(record?.progress || 15);
       const step = record?.current_step || "Tearing down dedicated AWS resources...";
       return wrapClickable(
-        <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
-          <Tag color="error" icon={<SyncOutlined spin />}>
-            DELETING ({progress}%)
-          </Tag>
-          <Progress
-            percent={progress}
-            size="small"
-            status="exception"
-            showInfo={false}
-            strokeColor={{ "0%": "#faad14", "100%": "#ff4d4f" }}
-            style={{ margin: 0 }}
-          />
-          <Typography.Text ellipsis style={{ fontSize: 11, maxWidth: 180, color: "#ff4d4f" }}>
+        <div className="space-y-1 w-full min-w-[150px]">
+          <Badge variant="destructive" className="flex items-center gap-1 font-semibold">
+            <RotateCw className="h-3 w-3 animate-spin" />
+            <span>DELETING ({progress}%)</span>
+          </Badge>
+          <Progress value={progress} className="h-1.5 bg-red-100 dark:bg-red-950" />
+          <p className="text-[11px] text-red-500 truncate max-w-[180px]">
             {step}
-          </Typography.Text>
-        </Space>,
+          </p>
+        </div>,
         `Click to view live steps & execution logs (${step})`
       );
     }
@@ -91,22 +94,16 @@ export const renderStatusTag = (
       const progress = Number(record?.progress || 30);
       const step = record?.current_step || "Scaling tasks to 0 & draining traffic...";
       return wrapClickable(
-        <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
-          <Tag color="warning" icon={<SyncOutlined spin />}>
-            SUSPENDING ({progress}%)
-          </Tag>
-          <Progress
-            percent={progress}
-            size="small"
-            status="active"
-            showInfo={false}
-            strokeColor="#fa8c16"
-            style={{ margin: 0 }}
-          />
-          <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#d46b08" }} ellipsis>
+        <div className="space-y-1 w-full min-w-[150px]">
+          <Badge variant="warning" className="flex items-center gap-1 font-semibold">
+            <RotateCw className="h-3 w-3 animate-spin" />
+            <span>SUSPENDING ({progress}%)</span>
+          </Badge>
+          <Progress value={progress} className="h-1.5" />
+          <p className="text-[11px] text-amber-600 dark:text-amber-400 truncate max-w-[180px]">
             {step}
-          </Typography.Text>
-        </Space>,
+          </p>
+        </div>,
         `Click to view live steps & execution logs (${step})`
       );
     }
@@ -114,22 +111,16 @@ export const renderStatusTag = (
       const progress = Number(record?.progress || 25);
       const step = record?.current_step || "Scaling tasks to 1 & verifying container health...";
       return wrapClickable(
-        <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
-          <Tag color="cyan" icon={<SyncOutlined spin />}>
-            RESUMING ({progress}%)
-          </Tag>
-          <Progress
-            percent={progress}
-            size="small"
-            status="active"
-            showInfo={false}
-            strokeColor="#13c2c8"
-            style={{ margin: 0 }}
-          />
-          <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#08979c" }} ellipsis>
+        <div className="space-y-1 w-full min-w-[150px]">
+          <Badge variant="info" className="flex items-center gap-1 font-semibold">
+            <RotateCw className="h-3 w-3 animate-spin" />
+            <span>RESUMING ({progress}%)</span>
+          </Badge>
+          <Progress value={progress} className="h-1.5" />
+          <p className="text-[11px] text-teal-600 dark:text-teal-400 truncate max-w-[180px]">
             {step}
-          </Typography.Text>
-        </Space>,
+          </p>
+        </div>,
         `Click to view live steps & execution logs (${step})`
       );
     }
@@ -137,22 +128,16 @@ export const renderStatusTag = (
       const progress = Number(record?.progress || 20);
       const step = record?.current_step || "Seeding demo accounts and files...";
       return wrapClickable(
-        <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
-          <Tag color="purple" icon={<SyncOutlined spin />}>
-            SEEDING ({progress}%)
-          </Tag>
-          <Progress
-            percent={progress}
-            size="small"
-            status="active"
-            showInfo={false}
-            strokeColor="#722ed1"
-            style={{ margin: 0 }}
-          />
-          <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#531dab" }} ellipsis>
+        <div className="space-y-1 w-full min-w-[150px]">
+          <Badge variant="secondary" className="flex items-center gap-1 font-semibold">
+            <RotateCw className="h-3 w-3 animate-spin" />
+            <span>SEEDING ({progress}%)</span>
+          </Badge>
+          <Progress value={progress} className="h-1.5" />
+          <p className="text-[11px] text-purple-600 dark:text-purple-400 truncate max-w-[180px]">
             {step}
-          </Typography.Text>
-        </Space>,
+          </p>
+        </div>,
         `Click to view live steps & execution logs (${step})`
       );
     }
@@ -160,62 +145,107 @@ export const renderStatusTag = (
       const progress = Number(record?.progress || 25);
       const step = record?.current_step || "Rolling ECS container image upgrade in progress...";
       return wrapClickable(
-        <Space direction="vertical" size={2} style={{ width: "100%", minWidth: 150 }}>
-          <Tag color="geekblue" icon={<SyncOutlined spin />}>
-            UPGRADING ({progress}%)
-          </Tag>
-          <Progress
-            percent={progress}
-            size="small"
-            status="active"
-            showInfo={false}
-            strokeColor="#2f54eb"
-            style={{ margin: 0 }}
-          />
-          <Typography.Text style={{ fontSize: 11, maxWidth: 180, color: "#1d39c4" }} ellipsis>
+        <div className="space-y-1 w-full min-w-[150px]">
+          <Badge variant="info" className="flex items-center gap-1 font-semibold">
+            <RotateCw className="h-3 w-3 animate-spin" />
+            <span>UPGRADING ({progress}%)</span>
+          </Badge>
+          <Progress value={progress} className="h-1.5" />
+          <p className="text-[11px] text-blue-600 dark:text-blue-400 truncate max-w-[180px]">
             {step}
-          </Typography.Text>
-        </Space>,
+          </p>
+        </div>,
         `Click to view live steps & execution logs (${step})`
       );
     }
     case "FAILED":
       return (
-        <Tooltip title={record?.last_error || "Provisioning failed and Saga rollback completed"}>
-          <Space direction="vertical" size={2}>
-            <Tag color="error" icon={<CloseCircleOutlined />}>
-              FAILED
-            </Tag>
-            <Typography.Text ellipsis style={{ fontSize: 10, maxWidth: 160, color: "#ff4d4f" }}>
-              {record?.last_error || "Saga rollback completed"}
-            </Typography.Text>
-          </Space>
-        </Tooltip>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="space-y-1">
+                <Badge variant="destructive" className="flex items-center gap-1 font-semibold">
+                  <XCircle className="h-3 w-3" />
+                  <span>FAILED</span>
+                </Badge>
+                <p className="text-[10px] text-red-500 truncate max-w-[160px]">
+                  {record?.last_error || "Saga rollback completed"}
+                </p>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{record?.last_error || "Provisioning failed and Saga rollback completed"}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       );
     case "DEGRADED":
-      return <Tag color="warning" icon={<AlertOutlined />}>DEGRADED</Tag>;
+      return (
+        <Badge variant="warning" className="flex items-center gap-1 font-semibold">
+          <AlertTriangle className="h-3 w-3" />
+          <span>DEGRADED</span>
+        </Badge>
+      );
     case "INCIDENT":
-      return <Tag color="error" icon={<WarningOutlined />}>INCIDENT / OUTAGE</Tag>;
+      return (
+        <Badge variant="destructive" className="flex items-center gap-1 font-semibold">
+          <AlertOctagon className="h-3 w-3" />
+          <span>INCIDENT / OUTAGE</span>
+        </Badge>
+      );
     case "MAINTENANCE":
-      return <Tag color="processing" icon={<ClockCircleOutlined />}>MAINTENANCE</Tag>;
+      return (
+        <Badge variant="info" className="flex items-center gap-1 font-semibold">
+          <Clock className="h-3 w-3" />
+          <span>MAINTENANCE</span>
+        </Badge>
+      );
     case "SUSPENDED":
-      return <Tag color="default">SUSPENDED ($0 FINOPS)</Tag>;
+      return (
+        <Badge variant="outline" className="font-semibold text-muted-foreground">
+          SUSPENDED ($0 FINOPS)
+        </Badge>
+      );
     case "DELETED":
-      return <Tag color="default">DELETED</Tag>;
+      return (
+        <Badge variant="outline" className="font-semibold text-muted-foreground">
+          DELETED
+        </Badge>
+      );
     default:
-      return <Tag color="default">{status}</Tag>;
+      return (
+        <Badge variant="outline" className="font-semibold">
+          {status}
+        </Badge>
+      );
   }
 };
 
 export const renderSeverityTag = (sev: string): React.ReactNode => {
   switch (sev) {
     case "SEV-1":
-      return <Tag color="#cf1322">SEV-1 CRITICAL</Tag>;
+      return (
+        <Badge variant="destructive" className="font-bold">
+          SEV-1 CRITICAL
+        </Badge>
+      );
     case "SEV-2":
-      return <Tag color="#d46b08">SEV-2 MAJOR</Tag>;
+      return (
+        <Badge variant="warning" className="font-bold">
+          SEV-2 MAJOR
+        </Badge>
+      );
     case "SEV-3":
-      return <Tag color="#d4b106">SEV-3 MINOR</Tag>;
+      return (
+        <Badge variant="info" className="font-semibold">
+          SEV-3 MINOR
+        </Badge>
+      );
     default:
-      return <Tag color="#1d39c4">{sev || "NOTICE"}</Tag>;
+      return (
+        <Badge variant="outline" className="font-semibold">
+          {sev || "NOTICE"}
+        </Badge>
+      );
   }
 };

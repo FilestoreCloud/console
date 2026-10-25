@@ -1,44 +1,51 @@
 import React, { useState, useEffect } from "react";
 import {
   Card,
-  Row,
-  Col,
-  Form,
-  Input,
-  Switch,
-  Button,
-  Space,
-  Typography,
-  Tag,
-  Alert,
-  Divider,
-  message,
-  Tooltip,
-} from "antd";
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import {
-  BellOutlined,
-  SendOutlined,
-  CheckCircleOutlined,
-  SaveOutlined,
-  SlackOutlined,
-  ApiOutlined,
-  WarningOutlined,
-  SyncOutlined,
-  BranchesOutlined,
-  ThunderboltOutlined,
-} from "@ant-design/icons";
+  Bell,
+  Send,
+  CheckCircle2,
+  Save,
+  RotateCw,
+  AlertTriangle,
+  GitBranch,
+  Zap,
+  Radio,
+  Info,
+} from "lucide-react";
 import { dataProvider } from "../../providers/dataProvider";
 
-const { Title, Text, Paragraph } = Typography;
-
 export const WebhooksSettings: React.FC = () => {
-  const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [testingType, setTestingType] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<{
     [key: string]: { success: boolean; msg: string };
   }>({});
+
+  // Form values state
+  const [enabled, setEnabled] = useState(true);
+  const [slackUrl, setSlackUrl] = useState("");
+  const [discordUrl, setDiscordUrl] = useState("");
+  const [pagerdutyKey, setPagerdutyKey] = useState("");
+  const [customUrl, setCustomUrl] = useState("");
+
+  const [evIncident, setEvIncident] = useState(true);
+  const [evCircuit, setEvCircuit] = useState(true);
+  const [evClone, setEvClone] = useState(true);
+  const [evRestart, setEvRestart] = useState(true);
 
   useEffect(() => {
     loadConfig();
@@ -54,39 +61,38 @@ export const WebhooksSettings: React.FC = () => {
         payload: { action: "GET_WEBHOOK_CONFIG" },
       });
       const cfg = res.data?.config || {};
-      form.setFieldsValue({
-        enabled: cfg.enabled ?? true,
-        slack_url: cfg.slack_url || "",
-        discord_url: cfg.discord_url || "",
-        pagerduty_key: cfg.pagerduty_key || "",
-        custom_url: cfg.custom_url || "",
-        ev_incident: cfg.events?.incident_declared ?? true,
-        ev_circuit: cfg.events?.circuit_breaker ?? true,
-        ev_clone: cfg.events?.tenant_cloned ?? true,
-        ev_restart: cfg.events?.agent_restarted ?? true,
-      });
+      setEnabled(cfg.enabled ?? true);
+      setSlackUrl(cfg.slack_url || "");
+      setDiscordUrl(cfg.discord_url || "");
+      setPagerdutyKey(cfg.pagerduty_key || "");
+      setCustomUrl(cfg.custom_url || "");
+      setEvIncident(cfg.events?.incident_declared ?? true);
+      setEvCircuit(cfg.events?.circuit_breaker ?? true);
+      setEvClone(cfg.events?.tenant_cloned ?? true);
+      setEvRestart(cfg.events?.agent_restarted ?? true);
     } catch (err: any) {
-      message.error("Failed to load webhook configuration");
+      toast.error("Failed to load webhook configuration");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSave = async (values: any) => {
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!dataProvider.custom) return;
     setIsSaving(true);
     try {
       const payloadConfig = {
-        enabled: values.enabled,
-        slack_url: values.slack_url,
-        discord_url: values.discord_url,
-        pagerduty_key: values.pagerduty_key,
-        custom_url: values.custom_url,
+        enabled,
+        slack_url: slackUrl,
+        discord_url: discordUrl,
+        pagerduty_key: pagerdutyKey,
+        custom_url: customUrl,
         events: {
-          incident_declared: values.ev_incident,
-          circuit_breaker: values.ev_circuit,
-          tenant_cloned: values.ev_clone,
-          agent_restarted: values.ev_restart,
+          incident_declared: evIncident,
+          circuit_breaker: evCircuit,
+          tenant_cloned: evClone,
+          agent_restarted: evRestart,
         },
       };
       await dataProvider.custom({
@@ -97,9 +103,9 @@ export const WebhooksSettings: React.FC = () => {
           config: payloadConfig,
         },
       });
-      message.success("Webhook configuration saved successfully!");
+      toast.success("Webhook configuration saved successfully!");
     } catch (err: any) {
-      message.error(err?.message || "Failed to save webhook configuration");
+      toast.error(err?.message || "Failed to save webhook configuration");
     } finally {
       setIsSaving(false);
     }
@@ -108,9 +114,7 @@ export const WebhooksSettings: React.FC = () => {
   const handleTestWebhook = async (type: string, url: string) => {
     if (!dataProvider.custom) return;
     if (!url) {
-      message.warning(
-        `Please enter a valid URL or key for ${type.toUpperCase()}`,
-      );
+      toast.warning(`Please enter a valid URL or key for ${type.toUpperCase()}`);
       return;
     }
     setTestingType(type);
@@ -133,488 +137,392 @@ export const WebhooksSettings: React.FC = () => {
             msg: data.message || "Test delivered (HTTP 200)",
           },
         }));
-        message.success(
-          `${type.toUpperCase()} test alert delivered successfully!`,
+        toast.success(
+          `${type.toUpperCase()} test alert delivered successfully!`
         );
       } else {
         setTestResults((prev) => ({
           ...prev,
           [type]: { success: false, msg: data.error || "Delivery failed" },
         }));
-        message.error(`${type.toUpperCase()} test failed: ${data.error}`);
+        toast.error(`${type.toUpperCase()} test failed: ${data.error}`);
       }
     } catch (err: any) {
       setTestResults((prev) => ({
         ...prev,
         [type]: { success: false, msg: err?.message || "Delivery failed" },
       }));
-      message.error(`Test failed: ${err?.message}`);
+      toast.error(`Test failed: ${err?.message}`);
     } finally {
       setTestingType(null);
     }
   };
 
   return (
-    <div style={{ paddingBottom: 40 }}>
-      <Card
-        style={{ marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-      >
-        <Row justify="space-between" align="middle" gutter={[16, 16]}>
-          <Col xs={24} lg={16}>
-            <Space align="center" size={12} wrap>
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 8,
-                  background: "#fef3c7",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <BellOutlined style={{ fontSize: 24, color: "#d97706" }} />
-              </div>
-              <div>
-                <Title level={4} style={{ margin: 0 }}>
-                  Webhook Notifications & Incident Alerting
-                </Title>
-                <Text type="secondary" style={{ fontSize: 13 }}>
-                  Dispatch real-time alerts for SEV-1/SEV-2 incidents, circuit
-                  breaker trips, tenant clones, and agent restarts.
-                </Text>
-              </div>
-            </Space>
-          </Col>
-          <Col xs={24} lg={8}>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-end" }}>
-              <Button
-                icon={<SyncOutlined />}
-                onClick={loadConfig}
-                loading={isLoading}
-              >
-                Reload
-              </Button>
-              <Button
-                type="primary"
-                icon={<SaveOutlined />}
-                loading={isSaving}
-                onClick={() => form.submit()}
-                style={{ background: "#1652f0", borderColor: "#1652f0" }}
-              >
-                Save Configuration
-              </Button>
+    <div className="space-y-6 pb-10">
+      {/* Top Banner Card */}
+      <Card className="border-border shadow-sm">
+        <CardContent className="p-4 sm:p-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-lg bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+              <Bell className="h-6 w-6 text-amber-500" />
             </div>
-          </Col>
-        </Row>
+            <div>
+              <h1 className="text-lg font-bold text-foreground">
+                Webhook Notifications & Incident Alerting
+              </h1>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Dispatch real-time alerts for SEV-1/SEV-2 incidents, circuit
+                breaker trips, tenant clones, and agent restarts.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadConfig}
+              disabled={isLoading}
+              className="flex items-center gap-1.5"
+            >
+              <RotateCw
+                className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+              />
+              <span>Reload</span>
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={isSaving}
+              className="bg-[#1652f0] hover:bg-[#1652f0]/90 text-white flex items-center gap-1.5"
+            >
+              <Save className="h-4 w-4" />
+              <span>Save Configuration</span>
+            </Button>
+          </div>
+        </CardContent>
       </Card>
 
-      <Form form={form} layout="vertical" onFinish={handleSave}>
-        <Row gutter={[20, 20]}>
-          {/* Left Column: Notification Endpoints */}
-          <Col xs={24} lg={15}>
-            {/* Global Dispatch Status */}
-            <Card
-              title={
-                <Space>
-                  <BellOutlined style={{ color: "#1652f0" }} />
-                  <span>Notification Engine Control</span>
-                </Space>
-              }
-              variant="borderless"
-              style={{
-                marginBottom: 20,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-              }}
-            >
-              <Form.Item
-                name="enabled"
-                valuePropName="checked"
-                style={{ marginBottom: 0 }}
-                label={
-                  <Space>
-                    <strong>Master Webhook Notification Dispatcher</strong>
-                    <Tooltip title="When disabled, all external webhook calls are bypassed">
-                      <Tag color="blue">Global</Tag>
-                    </Tooltip>
-                  </Space>
-                }
-              >
-                <Switch
-                  checkedChildren="ENABLED"
-                  unCheckedChildren="DISABLED"
-                />
-              </Form.Item>
-            </Card>
+      <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column: Notification Endpoints (8 cols on lg) */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Global Dispatch Status */}
+          <Card className="border-border shadow-sm">
+            <CardHeader className="py-4 px-6 border-b">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Bell className="h-4 w-4 text-[#1652f0]" />
+                <span>Notification Engine Control</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Label className="font-semibold text-sm">
+                      Master Webhook Notification Dispatcher
+                    </Label>
+                    <Badge variant="info" className="text-[10px] py-0 px-1.5">
+                      Global
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    When disabled, all external webhook calls are bypassed
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-semibold">
+                    {enabled ? "ENABLED" : "DISABLED"}
+                  </span>
+                  <Switch checked={enabled} onCheckedChange={setEnabled} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Endpoints */}
-            <Card
-              title={
-                <Space>
-                  <ApiOutlined style={{ color: "#0284c7" }} />
-                  <span>Configured Webhook Endpoints</span>
-                </Space>
-              }
-              variant="borderless"
-              style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-            >
+          {/* Endpoints */}
+          <Card className="border-border shadow-sm">
+            <CardHeader className="py-4 px-6 border-b">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Radio className="h-4 w-4 text-sky-500" />
+                <span>Configured Webhook Endpoints</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-5">
               {/* 1. Slack */}
-              <div style={{ marginBottom: 20 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 8,
-                  }}
-                >
-                  <Space>
-                    <SlackOutlined style={{ fontSize: 18, color: "#4a154b" }} />
-                    <strong style={{ fontSize: 14 }}>
-                      Slack Incoming Webhook
-                    </strong>
-                  </Space>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 font-semibold text-sm">
+                    <span className="text-base">💬</span>
+                    <span>Slack Incoming Webhook</span>
+                  </div>
                   {testResults["slack"] && (
-                    <Tag
-                      color={testResults["slack"].success ? "success" : "error"}
+                    <Badge
+                      variant={
+                        testResults["slack"].success ? "success" : "destructive"
+                      }
+                      className="text-xs"
                     >
                       {testResults["slack"].msg}
-                    </Tag>
+                    </Badge>
                   )}
                 </div>
-                <Space.Compact className="webhook-compact-group" style={{ width: "100%" }}>
-                  <Form.Item
-                    name="slack_url"
-                    style={{ flex: 1, marginBottom: 0 }}
-                  >
-                    <Input placeholder="https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX" />
-                  </Form.Item>
+                <div className="flex gap-2 webhook-compact-group">
+                  <Input
+                    placeholder="https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
+                    value={slackUrl}
+                    onChange={(e) => setSlackUrl(e.target.value)}
+                    className="flex-1 font-mono text-xs"
+                  />
                   <Button
-                    icon={<SendOutlined />}
-                    loading={testingType === "slack"}
-                    onClick={() =>
-                      handleTestWebhook(
-                        "slack",
-                        form.getFieldValue("slack_url"),
-                      )
-                    }
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={testingType === "slack"}
+                    onClick={() => handleTestWebhook("slack", slackUrl)}
+                    className="flex items-center gap-1.5 whitespace-nowrap"
                   >
-                    Send Test Alert
+                    <Send className="h-3.5 w-3.5" />
+                    <span>Send Test Alert</span>
                   </Button>
-                </Space.Compact>
+                </div>
               </div>
 
-              <Divider style={{ margin: "16px 0" }} />
+              <Separator />
 
               {/* 2. Discord */}
-              <div style={{ marginBottom: 20 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 8,
-                  }}
-                >
-                  <Space>
-                    <span style={{ fontSize: 16 }}>🎮</span>
-                    <strong style={{ fontSize: 14 }}>Discord Webhook</strong>
-                  </Space>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 font-semibold text-sm">
+                    <span className="text-base">🎮</span>
+                    <span>Discord Webhook</span>
+                  </div>
                   {testResults["discord"] && (
-                    <Tag
-                      color={
-                        testResults["discord"].success ? "success" : "error"
+                    <Badge
+                      variant={
+                        testResults["discord"].success ? "success" : "destructive"
                       }
+                      className="text-xs"
                     >
                       {testResults["discord"].msg}
-                    </Tag>
+                    </Badge>
                   )}
                 </div>
-                <Space.Compact className="webhook-compact-group" style={{ width: "100%" }}>
-                  <Form.Item
-                    name="discord_url"
-                    style={{ flex: 1, marginBottom: 0 }}
-                  >
-                    <Input placeholder="https://discord.com/api/webhooks/1234567890/abcdefg..." />
-                  </Form.Item>
+                <div className="flex gap-2 webhook-compact-group">
+                  <Input
+                    placeholder="https://discord.com/api/webhooks/1234567890/abcdefg..."
+                    value={discordUrl}
+                    onChange={(e) => setDiscordUrl(e.target.value)}
+                    className="flex-1 font-mono text-xs"
+                  />
                   <Button
-                    icon={<SendOutlined />}
-                    loading={testingType === "discord"}
-                    onClick={() =>
-                      handleTestWebhook(
-                        "discord",
-                        form.getFieldValue("discord_url"),
-                      )
-                    }
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={testingType === "discord"}
+                    onClick={() => handleTestWebhook("discord", discordUrl)}
+                    className="flex items-center gap-1.5 whitespace-nowrap"
                   >
-                    Send Test Alert
+                    <Send className="h-3.5 w-3.5" />
+                    <span>Send Test Alert</span>
                   </Button>
-                </Space.Compact>
+                </div>
               </div>
 
-              <Divider style={{ margin: "16px 0" }} />
+              <Separator />
 
               {/* 3. PagerDuty */}
-              <div style={{ marginBottom: 20 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 8,
-                  }}
-                >
-                  <Space>
-                    <span style={{ fontSize: 16 }}>📟</span>
-                    <strong style={{ fontSize: 14 }}>
-                      PagerDuty (Events API v2)
-                    </strong>
-                  </Space>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 font-semibold text-sm">
+                    <span className="text-base">📟</span>
+                    <span>PagerDuty (Events API v2)</span>
+                  </div>
                   {testResults["pagerduty"] && (
-                    <Tag
-                      color={
-                        testResults["pagerduty"].success ? "success" : "error"
+                    <Badge
+                      variant={
+                        testResults["pagerduty"].success
+                          ? "success"
+                          : "destructive"
                       }
+                      className="text-xs"
                     >
                       {testResults["pagerduty"].msg}
-                    </Tag>
+                    </Badge>
                   )}
                 </div>
-                <Space.Compact className="webhook-compact-group" style={{ width: "100%" }}>
-                  <Form.Item
-                    name="pagerduty_key"
-                    style={{ flex: 1, marginBottom: 0 }}
-                  >
-                    <Input placeholder="32-character PagerDuty Integration / Routing Key" />
-                  </Form.Item>
+                <div className="flex gap-2 webhook-compact-group">
+                  <Input
+                    placeholder="32-character PagerDuty Integration / Routing Key"
+                    value={pagerdutyKey}
+                    onChange={(e) => setPagerdutyKey(e.target.value)}
+                    className="flex-1 font-mono text-xs"
+                  />
                   <Button
-                    icon={<SendOutlined />}
-                    loading={testingType === "pagerduty"}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={testingType === "pagerduty"}
                     onClick={() =>
-                      handleTestWebhook(
-                        "pagerduty",
-                        form.getFieldValue("pagerduty_key"),
-                      )
+                      handleTestWebhook("pagerduty", pagerdutyKey)
                     }
+                    className="flex items-center gap-1.5 whitespace-nowrap"
                   >
-                    Send Test Alert
+                    <Send className="h-3.5 w-3.5" />
+                    <span>Send Test Alert</span>
                   </Button>
-                </Space.Compact>
+                </div>
               </div>
 
-              <Divider style={{ margin: "16px 0" }} />
+              <Separator />
 
               {/* 4. Custom Generic Webhook */}
               <div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 8,
-                  }}
-                >
-                  <Space>
-                    <ApiOutlined style={{ fontSize: 16, color: "#10b981" }} />
-                    <strong style={{ fontSize: 14 }}>
-                      Custom HTTP Webhook Endpoint (JSON)
-                    </strong>
-                  </Space>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 font-semibold text-sm">
+                    <Radio className="h-4 w-4 text-emerald-500" />
+                    <span>Custom HTTP Webhook Endpoint (JSON)</span>
+                  </div>
                   {testResults["custom"] && (
-                    <Tag
-                      color={
-                        testResults["custom"].success ? "success" : "error"
+                    <Badge
+                      variant={
+                        testResults["custom"].success ? "success" : "destructive"
                       }
+                      className="text-xs"
                     >
                       {testResults["custom"].msg}
-                    </Tag>
+                    </Badge>
                   )}
                 </div>
-                <Space.Compact className="webhook-compact-group" style={{ width: "100%" }}>
-                  <Form.Item
-                    name="custom_url"
-                    style={{ flex: 1, marginBottom: 0 }}
-                  >
-                    <Input placeholder="https://api.yourcompany.com/v1/saas-events" />
-                  </Form.Item>
+                <div className="flex gap-2 webhook-compact-group">
+                  <Input
+                    placeholder="https://api.yourcompany.com/v1/saas-events"
+                    value={customUrl}
+                    onChange={(e) => setCustomUrl(e.target.value)}
+                    className="flex-1 font-mono text-xs"
+                  />
                   <Button
-                    icon={<SendOutlined />}
-                    loading={testingType === "custom"}
-                    onClick={() =>
-                      handleTestWebhook(
-                        "custom",
-                        form.getFieldValue("custom_url"),
-                      )
-                    }
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={testingType === "custom"}
+                    onClick={() => handleTestWebhook("custom", customUrl)}
+                    className="flex items-center gap-1.5 whitespace-nowrap"
                   >
-                    Send Test Alert
+                    <Send className="h-3.5 w-3.5" />
+                    <span>Send Test Alert</span>
                   </Button>
-                </Space.Compact>
+                </div>
               </div>
-            </Card>
-          </Col>
+            </CardContent>
+          </Card>
+        </div>
 
-          {/* Right Column: Event Subscriptions & Sample Payloads */}
-          <Col xs={24} lg={9}>
-            {/* Subscriptions Card */}
-            <Card
-              title={
-                <Space>
-                  <CheckCircleOutlined style={{ color: "#10b981" }} />
-                  <span>Subscribed Alert Triggers</span>
-                </Space>
-              }
-              variant="borderless"
-              style={{
-                marginBottom: 20,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-              }}
-            >
-              <Space direction="vertical" size={16} style={{ width: "100%" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <Space>
-                      <WarningOutlined style={{ color: "#ef4444" }} />
-                      <strong>Accidents & Critical Incidents</strong>
-                    </Space>
-                    <div style={{ fontSize: 11, color: "#64748b" }}>
-                      SEV-1 (Critical) & SEV-2 (Major) events
-                    </div>
+        {/* Right Column: Event Subscriptions & Architecture (5 cols on lg) */}
+        <div className="lg:col-span-5 space-y-6">
+          {/* Subscriptions Card */}
+          <Card className="border-border shadow-sm">
+            <CardHeader className="py-4 px-6 border-b">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <span>Subscribed Alert Triggers</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 font-semibold text-sm">
+                    <AlertTriangle className="h-4 w-4 text-red-500" />
+                    <span>Accidents &amp; Critical Incidents</span>
                   </div>
-                  <Form.Item
-                    name="ev_incident"
-                    valuePropName="checked"
-                    style={{ margin: 0 }}
-                  >
-                    <Switch size="small" />
-                  </Form.Item>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    SEV-1 (Critical) &amp; SEV-2 (Major) events
+                  </p>
                 </div>
+                <Switch
+                  checked={evIncident}
+                  onCheckedChange={setEvIncident}
+                />
+              </div>
 
-                <Divider style={{ margin: 0 }} />
+              <Separator />
 
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <Space>
-                      <BellOutlined style={{ color: "#f59e0b" }} />
-                      <strong>Circuit Breaker Transitions</strong>
-                    </Space>
-                    <div style={{ fontSize: 11, color: "#64748b" }}>
-                      Status changed to DEGRADED or INCIDENT
-                    </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 font-semibold text-sm">
+                    <Bell className="h-4 w-4 text-amber-500" />
+                    <span>Circuit Breaker Transitions</span>
                   </div>
-                  <Form.Item
-                    name="ev_circuit"
-                    valuePropName="checked"
-                    style={{ margin: 0 }}
-                  >
-                    <Switch size="small" />
-                  </Form.Item>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Status changed to DEGRADED or INCIDENT
+                  </p>
                 </div>
+                <Switch
+                  checked={evCircuit}
+                  onCheckedChange={setEvCircuit}
+                />
+              </div>
 
-                <Divider style={{ margin: 0 }} />
+              <Separator />
 
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <Space>
-                      <BranchesOutlined style={{ color: "#8b5cf6" }} />
-                      <strong>Tenant Cloned to Sandbox</strong>
-                    </Space>
-                    <div style={{ fontSize: 11, color: "#64748b" }}>
-                      Fork Tenant action triggers isolated environment
-                    </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 font-semibold text-sm">
+                    <GitBranch className="h-4 w-4 text-purple-500" />
+                    <span>Tenant Cloned to Sandbox</span>
                   </div>
-                  <Form.Item
-                    name="ev_clone"
-                    valuePropName="checked"
-                    style={{ margin: 0 }}
-                  >
-                    <Switch size="small" />
-                  </Form.Item>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Fork Tenant action triggers isolated environment
+                  </p>
                 </div>
+                <Switch checked={evClone} onCheckedChange={setEvClone} />
+              </div>
 
-                <Divider style={{ margin: 0 }} />
+              <Separator />
 
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <Space>
-                      <ThunderboltOutlined style={{ color: "#1652f0" }} />
-                      <strong>Agent Rolling Restarts</strong>
-                    </Space>
-                    <div style={{ fontSize: 11, color: "#64748b" }}>
-                      Manual or automated ECS task recreation
-                    </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 font-semibold text-sm">
+                    <Zap className="h-4 w-4 text-blue-500" />
+                    <span>Agent Rolling Restarts</span>
                   </div>
-                  <Form.Item
-                    name="ev_restart"
-                    valuePropName="checked"
-                    style={{ margin: 0 }}
-                  >
-                    <Switch size="small" />
-                  </Form.Item>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Manual or automated ECS task recreation
+                  </p>
                 </div>
-              </Space>
-            </Card>
+                <Switch
+                  checked={evRestart}
+                  onCheckedChange={setEvRestart}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Architecture Card */}
-            <Card
-              title={
-                <Space>
-                  <ApiOutlined style={{ color: "#6366f1" }} />
-                  <span>Alert Architecture Specification</span>
-                </Space>
-              }
-              variant="borderless"
-              style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-            >
-              <Alert
-                type="info"
-                showIcon
-                message="Non-Blocking Enterprise Reliability"
-                description="Webhooks run in an asynchronous, exception-isolated dispatcher with a 3.0-second network timeout. External endpoint latency never blocks tenant operations or control plane APIs."
-                style={{ fontSize: 12, marginBottom: 12 }}
-              />
+          {/* Architecture Card */}
+          <Card className="border-border shadow-sm">
+            <CardHeader className="py-4 px-6 border-b">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Info className="h-4 w-4 text-indigo-500" />
+                <span>Alert Architecture Specification</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-3">
+              <Alert variant="info" className="text-xs">
+                <AlertTitle className="font-semibold text-xs">
+                  Non-Blocking Enterprise Reliability
+                </AlertTitle>
+                <AlertDescription className="text-xs mt-1">
+                  Webhooks run in an asynchronous, exception-isolated dispatcher
+                  with a 3.0-second network timeout. External endpoint latency
+                  never blocks tenant operations or control plane APIs.
+                </AlertDescription>
+              </Alert>
 
-              <Text strong style={{ fontSize: 12 }}>
-                Sample Webhook Payload (JSON):
-              </Text>
-              <pre
-                style={{
-                  background: "#1e1e1e",
-                  color: "#d4d4d4",
-                  padding: 10,
-                  borderRadius: 6,
-                  fontSize: 11,
-                  fontFamily: "monospace",
-                  marginTop: 6,
-                  overflowX: "auto",
-                }}
-              >
-                {`{
+              <div>
+                <p className="text-xs font-semibold text-foreground mb-1">
+                  Sample Webhook Payload (JSON):
+                </p>
+                <pre className="rounded-lg bg-slate-900 p-3 text-[11px] font-mono text-slate-200 overflow-x-auto">
+{`{
   "event": "INCIDENT_DECLARED",
   "tenant_id": "acme",
   "environment": "prod",
@@ -626,11 +534,12 @@ export const WebhooksSettings: React.FC = () => {
     "reported_by": "SuperAdmin"
   }
 }`}
-              </pre>
-            </Card>
-          </Col>
-        </Row>
-      </Form>
+                </pre>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </form>
     </div>
   );
 };

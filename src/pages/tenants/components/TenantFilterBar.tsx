@@ -1,10 +1,15 @@
 import React from "react";
-import { Card, Row, Col, Space, Input, Select, Button } from "antd";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
-  SearchOutlined,
-  ReloadOutlined,
-  PlusOutlined,
-} from "@ant-design/icons";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Search, RotateCw, Plus } from "lucide-react";
 
 export interface TenantFilterBarProps {
   searchText: string;
@@ -28,61 +33,65 @@ export const TenantFilterBar: React.FC<TenantFilterBarProps> = ({
   onOpenCreateModal,
 }) => {
   return (
-    <Card
-      variant="borderless"
-      style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-    >
-      <Row justify="space-between" align="middle" gutter={[12, 12]}>
-        <Col xs={24} lg={14}>
-          <Space wrap style={{ width: "100%" }}>
+    <Card className="border-border shadow-sm mb-4">
+      <CardContent className="p-4 sm:p-5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+        <div className="flex items-center gap-3 flex-wrap flex-1">
+          <div className="relative min-w-[220px] max-w-sm flex-1">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search Tenant ID, domain, email..."
-              prefix={<SearchOutlined />}
               value={searchText}
               onChange={(e) => onSearchChange(e.target.value)}
-              style={{ minWidth: 200, maxWidth: 320 }}
-              allowClear
+              className="pl-9 h-9 text-xs"
             />
+          </div>
+
+          <div className="w-44">
             <Select
               value={statusFilter}
-              onChange={onStatusFilterChange}
-              style={{ width: 160 }}
-              options={[
-                { value: "ALL", label: "All Statuses" },
-                { value: "ACTIVE", label: "Active Only" },
-                { value: "PROVISIONING", label: "Provisioning Only" },
-                { value: "DELETING", label: "Deleting Only" },
-                { value: "SUSPENDING", label: "Suspending Only" },
-                { value: "RESUMING", label: "Resuming Only" },
-                { value: "SUSPENDED", label: "Suspended Only" },
-                { value: "FAILED", label: "Failed Only" },
-              ]}
-            />
-          </Space>
-        </Col>
-
-        <Col xs={24} lg={10}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-end" }}>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={onRefresh}
-              loading={isLoading}
+              onValueChange={onStatusFilterChange}
             >
-              Refresh
-            </Button>
-            {canCreate && (
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={onOpenCreateModal}
-                style={{ backgroundColor: "#1652f0", borderColor: "#1652f0" }}
-              >
-                Provision Dedicated Tenant
-              </Button>
-            )}
+              <SelectTrigger className="h-9 text-xs">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Statuses</SelectItem>
+                <SelectItem value="ACTIVE">Active Only</SelectItem>
+                <SelectItem value="PROVISIONING">Provisioning Only</SelectItem>
+                <SelectItem value="DELETING">Deleting Only</SelectItem>
+                <SelectItem value="SUSPENDING">Suspending Only</SelectItem>
+                <SelectItem value="RESUMING">Resuming Only</SelectItem>
+                <SelectItem value="SUSPENDED">Suspended Only</SelectItem>
+                <SelectItem value="FAILED">Failed Only</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </Col>
-      </Row>
+        </div>
+
+        <div className="flex items-center gap-2 justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRefresh}
+            disabled={isLoading}
+            className="h-9 text-xs flex items-center gap-1.5"
+          >
+            <RotateCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
+          </Button>
+
+          {canCreate && (
+            <Button
+              size="sm"
+              onClick={onOpenCreateModal}
+              className="h-9 text-xs bg-[#1652f0] hover:bg-[#1652f0]/90 text-white flex items-center gap-1.5"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Provision Dedicated Tenant</span>
+            </Button>
+          )}
+        </div>
+      </CardContent>
     </Card>
   );
 };

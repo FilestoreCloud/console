@@ -1,15 +1,21 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { echarts, EChartsType, EChartsOption } from "../utils/echarts";
-import { Card, Space, Button, Tag, Typography, Radio, Tooltip, theme } from "antd";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
-  LineChartOutlined,
-  ReloadOutlined,
-  ZoomInOutlined,
-  ZoomOutOutlined,
-  InfoCircleOutlined,
-} from "@ant-design/icons";
-
-const { Text } = Typography;
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  LineChart,
+  RotateCw,
+  ZoomIn,
+  ZoomOut,
+  Info,
+} from "lucide-react";
 
 export interface TelemetryPoint {
   timestamp: string;
@@ -42,7 +48,6 @@ export const InteractiveMetricsChart: React.FC<
   countdown = 15,
   onRefresh,
 }) => {
-  const { token } = theme.useToken();
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<EChartsType | null>(null);
   const [zoomPreset, setZoomPreset] = useState<"all" | "1h" | "30m">("all");
@@ -73,10 +78,9 @@ export const InteractiveMetricsChart: React.FC<
     );
   }, [history]);
 
-  // Theme-adaptive colors
-  const textColor = token.colorTextSecondary || "#64748b";
-  const borderColor = token.colorBorderSecondary || "#e2e8f0";
-  const splitLineColor = token.colorSplit || "#f1f5f9";
+  const textColor = "#64748b";
+  const borderColor = "#cbd5e1";
+  const splitLineColor = "#f1f5f9";
 
   // Initialize ECharts instance
   useEffect(() => {
@@ -357,98 +361,114 @@ export const InteractiveMetricsChart: React.FC<
   };
 
   return (
-    <Card
-      title={
-        <Space wrap>
-          <LineChartOutlined style={{ color: "#1652f0" }} />
-          <span>Interactive Live Telemetry Stream</span>
-          <Tag color={intervalSec > 0 ? "processing" : "default"}>
-            {intervalSec > 0 ? `STREAMING (${countdown}s)` : "PAUSED"}
-          </Tag>
-          <Tooltip title="Scroll mouse wheel or trackpad pinch anywhere on the chart to Zoom In / Zoom Out. Drag the bottom slider handles to pan time windows.">
-            <Tag
-              icon={<InfoCircleOutlined />}
-              color="cyan"
-              style={{ cursor: "pointer" }}
+    <TooltipProvider>
+      <Card className="border-border shadow-sm">
+        <CardHeader className="py-4 px-6 border-b flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <LineChart className="h-5 w-5 text-[#1652f0]" />
+            <CardTitle className="text-base font-semibold">
+              Interactive Live Telemetry Stream
+            </CardTitle>
+            <Badge
+              variant={intervalSec > 0 ? "info" : "outline"}
+              className="text-xs font-medium"
             >
-              Wheel Zoom & Pan Enabled
-            </Tag>
-          </Tooltip>
-        </Space>
-      }
-      extra={
-        <Space wrap>
-          <Radio.Group
-            size="small"
-            value={zoomPreset}
-            onChange={(e) => handleZoomPresetChange(e.target.value)}
-          >
-            <Radio.Button value="30m">Last 30m</Radio.Button>
-            <Radio.Button value="1h">Last 1h</Radio.Button>
-            <Radio.Button value="all">Full Range</Radio.Button>
-          </Radio.Group>
+              {intervalSec > 0 ? `STREAMING (${countdown}s)` : "PAUSED"}
+            </Badge>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="info"
+                  className="cursor-pointer flex items-center gap-1 text-xs"
+                >
+                  <Info className="h-3 w-3" />
+                  <span>Wheel Zoom &amp; Pan Enabled</span>
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  Scroll mouse wheel or trackpad pinch anywhere on the chart to
+                  Zoom In / Zoom Out. Drag the bottom slider handles to pan time
+                  windows.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
 
-          {onRefresh && (
-            <Button size="small" icon={<ReloadOutlined />} onClick={onRefresh}>
-              Sync Now
-            </Button>
-          )}
-        </Space>
-      }
-      variant="borderless"
-      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-    >
-      <div>
-        <div
-          ref={chartRef}
-          style={{
-            width: "100%",
-            height: 380,
-          }}
-        />
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 8,
-            marginTop: 4,
-            padding: "0 12px",
-          }}
-        >
-          <Text type="secondary" style={{ fontSize: 11 }}>
-            💡 <strong>Interaction guide:</strong> Hover for tooltip values •
-            Mouse wheel to <strong>Zoom In/Out</strong> • Drag bottom slider to
-            pan time window • Click legend to show/hide metrics.
-          </Text>
-          <Space size={8}>
-            <Button
-              size="small"
-              type="text"
-              icon={<ZoomInOutlined />}
-              onClick={() => {
-                chartInstance.current?.dispatchAction({
-                  type: "dataZoom",
-                  dataZoomIndex: 0,
-                  start: 30,
-                  end: 70,
-                });
-              }}
-            >
-              Center Zoom
-            </Button>
-            <Button
-              size="small"
-              type="text"
-              icon={<ZoomOutOutlined />}
-              onClick={() => handleZoomPresetChange("all")}
-            >
-              Reset Zoom
-            </Button>
-          </Space>
-        </div>
-      </div>
-    </Card>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="inline-flex rounded-lg border bg-muted p-0.5 text-xs">
+              {(["30m", "1h", "all"] as const).map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => handleZoomPresetChange(preset)}
+                  className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
+                    zoomPreset === preset
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {preset === "30m"
+                    ? "Last 30m"
+                    : preset === "1h"
+                    ? "Last 1h"
+                    : "Full Range"}
+                </button>
+              ))}
+            </div>
+
+            {onRefresh && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onRefresh}
+                className="h-7 text-xs flex items-center gap-1"
+              >
+                <RotateCw className="h-3.5 w-3.5" />
+                <span>Sync Now</span>
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-4 sm:p-6">
+          <div ref={chartRef} className="w-full h-[380px]" />
+          <div className="mt-2 flex flex-col sm:flex-row items-center justify-between gap-2 px-2 text-xs text-muted-foreground">
+            <div>
+              💡 <strong>Interaction guide:</strong> Hover for tooltip values •
+              Mouse wheel to <strong>Zoom In/Out</strong> • Drag bottom slider
+              to pan time window • Click legend to show/hide metrics.
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 text-xs flex items-center gap-1"
+                onClick={() => {
+                  chartInstance.current?.dispatchAction({
+                    type: "dataZoom",
+                    dataZoomIndex: 0,
+                    start: 30,
+                    end: 70,
+                  });
+                }}
+              >
+                <ZoomIn className="h-3.5 w-3.5" />
+                <span>Center Zoom</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 text-xs flex items-center gap-1"
+                onClick={() => handleZoomPresetChange("all")}
+              >
+                <ZoomOut className="h-3.5 w-3.5" />
+                <span>Reset Zoom</span>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 };

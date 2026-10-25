@@ -1,7 +1,19 @@
 import React from "react";
-import { Card, Table, Tag, Typography } from "antd";
-
-const { Text, Paragraph } = Typography;
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 export interface AuditTabProps {
   auditLogs: any[];
@@ -13,72 +25,72 @@ export const AuditTab: React.FC<AuditTabProps> = ({
   tenantId,
 }) => {
   return (
-    <Card
-      title={`Compliance & Audit Log for '${tenantId}'`}
-      variant="borderless"
-      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-    >
-      <Table
-        dataSource={auditLogs}
-        rowKey="event_id"
-        pagination={{ pageSize: 10 }}
-        size="small"
-        scroll={{ x: 750 }}
-        locale={{
-          emptyText: "No audit events recorded yet for this tenant.",
-        }}
-        columns={[
-          {
-            title: "Timestamp",
-            dataIndex: "timestamp",
-            key: "timestamp",
-            render: (t: string) => <Text style={{ fontSize: 11 }}>{t}</Text>,
-          },
-          {
-            title: "Actor",
-            dataIndex: "actor",
-            key: "actor",
-            render: (a: string) => <Text strong>{a}</Text>,
-          },
-          {
-            title: "Role",
-            dataIndex: "role",
-            key: "role",
-            render: (r: string) => <Tag color="blue">{r}</Tag>,
-          },
-          {
-            title: "Action",
-            dataIndex: "action",
-            key: "action",
-            render: (act: string) => <Tag color="orange">{act}</Tag>,
-          },
-          {
-            title: "Status",
-            dataIndex: "status",
-            key: "status",
-            render: (s: string) => (
-              <Tag color={s === "SUCCESS" ? "green" : "red"}>{s}</Tag>
-            ),
-          },
-          {
-            title: "Details",
-            dataIndex: "details",
-            key: "details",
-            render: (d: any) => (
-              <Paragraph
-                ellipsis={{ rows: 2 }}
-                style={{
-                  margin: 0,
-                  fontSize: 11,
-                  fontFamily: "monospace",
-                }}
-              >
-                {typeof d === "string" ? d : JSON.stringify(d)}
-              </Paragraph>
-            ),
-          },
-        ]}
-      />
+    <Card className="border-border shadow-sm overflow-hidden">
+      <CardHeader className="py-4 px-5 border-b">
+        <CardTitle className="text-sm font-semibold">
+          Compliance &amp; Audit Log for &apos;{tenantId}&apos;
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader className="bg-muted/40">
+            <TableRow>
+              <TableHead className="font-semibold text-xs">Timestamp</TableHead>
+              <TableHead className="font-semibold text-xs">Actor</TableHead>
+              <TableHead className="font-semibold text-xs">Role</TableHead>
+              <TableHead className="font-semibold text-xs">Action</TableHead>
+              <TableHead className="font-semibold text-xs">Status</TableHead>
+              <TableHead className="font-semibold text-xs">Details</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {auditLogs.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center text-xs text-muted-foreground"
+                >
+                  No audit events recorded yet for this tenant.
+                </TableCell>
+              </TableRow>
+            ) : (
+              auditLogs.map((log, idx) => (
+                <TableRow key={log.event_id || idx} className="text-xs">
+                  <TableCell className="font-mono text-muted-foreground text-[11px]">
+                    {log.timestamp}
+                  </TableCell>
+                  <TableCell className="font-semibold">{log.actor}</TableCell>
+                  <TableCell>
+                    <Badge variant="info" className="text-xs">
+                      {log.role}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="warning" className="text-xs">
+                      {log.action}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={log.status === "SUCCESS" ? "success" : "destructive"}
+                      className="text-xs"
+                    >
+                      {log.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <code className="text-[11px] font-mono text-muted-foreground line-clamp-2">
+                      {typeof log.details === "string"
+                        ? log.details
+                        : JSON.stringify(log.details)}
+                    </code>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
     </Card>
   );
 };

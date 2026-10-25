@@ -1,10 +1,16 @@
 /// <reference types="vitest" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig({
   plugins: [react()],
   base: "/",
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   server: {
     port: 5173,
     proxy: {
@@ -53,39 +59,11 @@ export default defineConfig({
             if (id.includes("/@tanstack/")) {
               return "vendor-tanstack";
             }
-            if (id.includes("/rc-") || id.includes("/@rc-component/")) {
-              return "vendor-rc";
+            if (id.includes("/@radix-ui/")) {
+              return "vendor-radix";
             }
-            if (id.includes("/@ant-design/pro-")) {
-              return "vendor-pro";
-            }
-            if (
-              id.includes("/@ant-design/icons") ||
-              id.includes("/@ant-design/colors") ||
-              id.includes("/@ant-design/fast-color")
-            ) {
-              return "vendor-icons";
-            }
-            if (
-              id.includes("/antd/es/table") ||
-              id.includes("/antd/es/form") ||
-              id.includes("/antd/es/select") ||
-              id.includes("/antd/es/input") ||
-              id.includes("/antd/es/modal")
-            ) {
-              return "vendor-antd-data";
-            }
-            if (
-              id.includes("/antd/es/date-picker") ||
-              id.includes("/antd/es/time-picker") ||
-              id.includes("/antd/es/calendar") ||
-              id.includes("/antd/es/color-picker") ||
-              id.includes("/@ant-design/cssinjs")
-            ) {
-              return "vendor-antd-pickers";
-            }
-            if (id.includes("/antd/")) {
-              return "vendor-antd";
+            if (id.includes("/lucide-react/")) {
+              return "vendor-lucide";
             }
 
 

@@ -1,25 +1,34 @@
 import React, { useState, useEffect } from "react";
 import { useCustom } from "@refinedev/core";
-import { useNavigate } from "react-router-dom";
 import {
   Card,
-  Row,
-  Col,
-  Typography,
-  Space,
-  Select,
-  Button,
-  Tag,
-  Tooltip,
-} from "antd";
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
-  ReloadOutlined,
-  DashboardOutlined,
-  ApartmentOutlined,
-  CloudUploadOutlined,
-  LinkOutlined,
-  InfoCircleOutlined,
-} from "@ant-design/icons";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  RotateCw,
+  ExternalLink,
+  Info,
+  Server,
+  Activity,
+  Layers,
+} from "lucide-react";
 import {
   InteractiveFleetEcsChart,
   InteractiveFleetAlbChart,
@@ -28,10 +37,7 @@ import {
 import { InteractiveMetricsChart } from "../../components/InteractiveMetricsChart";
 import { dataProvider } from "../../providers/dataProvider";
 
-const { Text } = Typography;
-
 export const TelemetryDashboard: React.FC = () => {
-  const navigate = useNavigate();
   const [intervalSec, setIntervalSec] = useState<number>(15);
   const [countdown, setCountdown] = useState<number>(15);
   const [lastUpdate, setLastUpdate] = useState<string>("--:--:--");
@@ -83,173 +89,198 @@ export const TelemetryDashboard: React.FC = () => {
   const tenantMetrics = (tenantMetricsResp?.data as any) || {};
 
   return (
-    <div>
-      {/* 1. Interactive Control Bar */}
-      <Card
-        variant="borderless"
-        style={{ marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-      >
-        <Row justify="space-between" align="middle" gutter={[16, 16]}>
-          <Col xs={24} xl={12}>
-            <Space align="center" size="middle" wrap>
-              <span style={{ fontSize: 22 }}>📡</span>
+    <TooltipProvider>
+      <div className="space-y-6">
+        {/* 1. Interactive Control Bar */}
+        <Card className="border-border shadow-sm">
+          <CardContent className="p-4 sm:p-6 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📡</span>
               <div>
-                <Text strong style={{ fontSize: 16, display: "block" }}>
+                <h1 className="text-lg font-bold text-foreground">
                   Live CloudWatch Telemetry &amp; Metrics
-                </Text>
-                <Space wrap>
-                  <Tag color={intervalSec > 0 ? "processing" : "default"}>
+                </h1>
+                <div className="mt-1 flex items-center gap-2 flex-wrap">
+                  <Badge
+                    variant={intervalSec > 0 ? "info" : "outline"}
+                    className="text-xs font-semibold"
+                  >
                     {intervalSec > 0 ? `STREAMING (${countdown}s)` : "PAUSED"}
-                  </Tag>
-                  <Text type="secondary" style={{ fontSize: 12 }}>
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
                     Last updated: {lastUpdate}
-                  </Text>
-                  <Tooltip title="Interactive mode enables mouse wheel zoom in/out, pan slider handles, crosshair tooltips, and legend series toggles.">
-                    <Tag
-                      icon={<InfoCircleOutlined />}
-                      color="cyan"
-                      style={{ cursor: "pointer" }}
-                    >
-                      Wheel Zoom & Pan Enabled
-                    </Tag>
+                  </span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant="info"
+                        className="cursor-pointer flex items-center gap-1 text-xs"
+                      >
+                        <Info className="h-3 w-3" />
+                        <span>Wheel Zoom &amp; Pan Enabled</span>
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        Interactive mode enables mouse wheel zoom in/out, pan
+                        slider handles, crosshair tooltips, and legend series
+                        toggles.
+                      </p>
+                    </TooltipContent>
                   </Tooltip>
-                </Space>
+                </div>
               </div>
-            </Space>
-          </Col>
+            </div>
 
-          <Col xs={24} xl={12}>
-            <Space wrap>
+            <div className="flex items-center gap-2 flex-wrap w-full xl:w-auto">
               {/* Tenant Filter */}
-              <Select
-                value={selectedTenant}
-                onChange={(val) => setSelectedTenant(val)}
-                style={{ width: 180 }}
-                options={[
-                  { value: "fleet", label: "🌐 All Tenants (Fleet)" },
-                  { value: "acme", label: "🏢 Acme Corp (Tenant)" },
-                  { value: "marvel", label: "🦸 Marvel Ent (Tenant)" },
-                ]}
-              />
+              <div className="w-48">
+                <Select
+                  value={selectedTenant}
+                  onValueChange={(val) => setSelectedTenant(val)}
+                >
+                  <SelectTrigger className="h-9 text-xs">
+                    <SelectValue placeholder="Select tenant" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fleet">🌐 All Tenants (Fleet)</SelectItem>
+                    <SelectItem value="acme">🏢 Acme Corp (Tenant)</SelectItem>
+                    <SelectItem value="marvel">🦸 Marvel Ent (Tenant)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* Streaming Interval */}
-              <Select
-                value={intervalSec}
-                onChange={(val) => {
-                  setIntervalSec(val);
-                  setCountdown(val);
-                }}
-                style={{ width: 140 }}
-                options={[
-                  { value: 15, label: "Every 15s (Live)" },
-                  { value: 30, label: "Every 30s" },
-                  { value: 60, label: "Every 60s" },
-                  { value: 0, label: "⏸ Pause Stream" },
-                ]}
-              />
-              <Button icon={<ReloadOutlined />} onClick={refreshAll}>
-                Sync Now
-              </Button>
+              <div className="w-40">
+                <Select
+                  value={String(intervalSec)}
+                  onValueChange={(val) => {
+                    const num = Number(val);
+                    setIntervalSec(num);
+                    setCountdown(num);
+                  }}
+                >
+                  <SelectTrigger className="h-9 text-xs">
+                    <SelectValue placeholder="Interval" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">Every 15s (Live)</SelectItem>
+                    <SelectItem value="30">Every 30s</SelectItem>
+                    <SelectItem value="60">Every 60s</SelectItem>
+                    <SelectItem value="0">⏸ Pause Stream</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <Button
-                type="primary"
-                href="https://ap-southeast-1.console.aws.amazon.com/cloudwatch/home?region=ap-southeast-1#dashboards/dashboard/prod-Storix-SaaS-Control-Plane"
-                target="_blank"
-                icon={<LinkOutlined />}
-                style={{ backgroundColor: "#1652f0", borderColor: "#1652f0" }}
+                variant="outline"
+                size="sm"
+                onClick={refreshAll}
+                className="h-9 text-xs flex items-center gap-1.5"
               >
-                AWS Console
+                <RotateCw className="h-3.5 w-3.5" />
+                <span>Sync Now</span>
               </Button>
-            </Space>
-          </Col>
-        </Row>
-      </Card>
 
-      {/* 2. Tenant-Specific Dedicated Telemetry View if selected */}
-      {selectedTenant !== "fleet" && (
-        <div style={{ marginBottom: 16 }}>
-          <InteractiveMetricsChart
-            tenantId={selectedTenant}
-            clusterName="prod-storix-cluster"
-            history={tenantMetrics.history || tenantMetrics.metrics?.history || []}
-            autoscalingTargetCpu={tenantMetrics.autoscaling_target_cpu || tenantMetrics.metrics?.autoscaling_target_cpu || 70.0}
-            intervalSec={intervalSec}
-            countdown={countdown}
-            onRefresh={refreshAll}
-          />
-        </div>
-      )}
+              <Button
+                size="sm"
+                asChild
+                className="h-9 text-xs bg-[#1652f0] hover:bg-[#1652f0]/90 text-white flex items-center gap-1.5"
+              >
+                <a
+                  href="https://ap-southeast-1.console.aws.amazon.com/cloudwatch/home?region=ap-southeast-1#dashboards/dashboard/prod-Storix-SaaS-Control-Plane"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  <span>AWS Console</span>
+                </a>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* 3. Fleet-Wide Telemetry Charts */}
-      <Row gutter={[16, 16]}>
-        {/* Card 1: Tenant Lifecycle Status */}
-        <Col xs={24} lg={8}>
-          <Card
-            title={
-              <Space>
-                <ApartmentOutlined style={{ color: "#3b82f6" }} />
+        {/* 2. Tenant-Specific Dedicated Telemetry View if selected */}
+        {selectedTenant !== "fleet" && (
+          <div>
+            <InteractiveMetricsChart
+              tenantId={selectedTenant}
+              clusterName="prod-storix-cluster"
+              history={
+                tenantMetrics.history || tenantMetrics.metrics?.history || []
+              }
+              autoscalingTargetCpu={
+                tenantMetrics.autoscaling_target_cpu ||
+                tenantMetrics.metrics?.autoscaling_target_cpu ||
+                70.0
+              }
+              intervalSec={intervalSec}
+              countdown={countdown}
+              onRefresh={refreshAll}
+            />
+          </div>
+        )}
+
+        {/* 3. Fleet-Wide Telemetry Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Card 1: Tenant Lifecycle Status */}
+          <Card className="border-border shadow-sm">
+            <CardHeader className="py-4 px-6 border-b flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Layers className="h-4 w-4 text-blue-500" />
                 <span>Tenant Lifecycle Status</span>
-                <Tag color="blue">Interactive</Tag>
-              </Space>
-            }
-            variant="borderless"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-          >
-            <InteractiveFleetLifecycleChart height={260} />
-            <Text
-              type="secondary"
-              style={{ fontSize: 11, display: "block", marginTop: 8 }}
-            >
-              Metric: Storix/SaaS &gt; TenantActiveStatus
-            </Text>
+              </CardTitle>
+              <Badge variant="info" className="text-[10px]">
+                Interactive
+              </Badge>
+            </CardHeader>
+            <CardContent className="p-4">
+              <InteractiveFleetLifecycleChart height={260} />
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Metric: Storix/SaaS &gt; TenantActiveStatus
+              </p>
+            </CardContent>
           </Card>
-        </Col>
 
-        {/* Card 2: ECS Fargate CPU & Memory */}
-        <Col xs={24} lg={8}>
-          <Card
-            title={
-              <Space>
-                <DashboardOutlined style={{ color: "#16a34a" }} />
+          {/* Card 2: ECS Fargate CPU & Memory */}
+          <Card className="border-border shadow-sm">
+            <CardHeader className="py-4 px-6 border-b flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Server className="h-4 w-4 text-emerald-500" />
                 <span>ECS Fargate CPU &amp; Memory</span>
-                <Tag color="green">Wheel Zoom</Tag>
-              </Space>
-            }
-            variant="borderless"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-          >
-            <InteractiveFleetEcsChart data={fleetMetrics} height={260} />
-            <Text
-              type="secondary"
-              style={{ fontSize: 11, display: "block", marginTop: 8 }}
-            >
-              Namespace: AWS/ECS (prod-storix-cluster)
-            </Text>
+              </CardTitle>
+              <Badge variant="success" className="text-[10px]">
+                Wheel Zoom
+              </Badge>
+            </CardHeader>
+            <CardContent className="p-4">
+              <InteractiveFleetEcsChart data={fleetMetrics} height={260} />
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Namespace: AWS/ECS (prod-storix-cluster)
+              </p>
+            </CardContent>
           </Card>
-        </Col>
 
-        {/* Card 3: ALB Ingress Requests & Latency */}
-        <Col xs={24} lg={8}>
-          <Card
-            title={
-              <Space>
-                <CloudUploadOutlined style={{ color: "#0284c7" }} />
+          {/* Card 3: ALB Ingress Requests & Latency */}
+          <Card className="border-border shadow-sm">
+            <CardHeader className="py-4 px-6 border-b flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Activity className="h-4 w-4 text-sky-500" />
                 <span>ALB Ingress Requests &amp; Latency</span>
-                <Tag color="cyan">Dual-Axis</Tag>
-              </Space>
-            }
-            variant="borderless"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-          >
-            <InteractiveFleetAlbChart data={fleetMetrics} height={260} />
-            <Text
-              type="secondary"
-              style={{ fontSize: 11, display: "block", marginTop: 8 }}
-            >
-              Namespace: AWS/ApplicationELB (Dual-Axis)
-            </Text>
+              </CardTitle>
+              <Badge variant="info" className="text-[10px]">
+                Dual-Axis
+              </Badge>
+            </CardHeader>
+            <CardContent className="p-4">
+              <InteractiveFleetAlbChart data={fleetMetrics} height={260} />
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Namespace: AWS/ApplicationELB (Dual-Axis)
+              </p>
+            </CardContent>
           </Card>
-        </Col>
-      </Row>
-    </div>
+        </div>
+      </div>
+    </TooltipProvider>
   );
 };
