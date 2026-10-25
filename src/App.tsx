@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useEffect, Suspense } from "react";
 import { Refine, Authenticated } from "@refinedev/core";
 import routerBindings, {
   CatchAllNavigate,
@@ -24,7 +24,6 @@ import { accessControlProvider } from "./providers/accessControlProvider";
 import { notificationProvider } from "./providers/notificationProvider";
 import { LayoutProvider } from "./components/layout/LayoutContext";
 import { AppLayout } from "./components/layout/AppLayout";
-import { CommandPalette } from "./components/CommandPalette";
 import { Toaster } from "@/components/ui/sonner";
 
 // Lazy-loaded routes for code splitting and instant initial page load
@@ -48,32 +47,12 @@ const LoadingFallback: React.FC = () => (
 );
 
 const App: React.FC = () => {
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    const saved = localStorage.getItem("storix_theme") || localStorage.getItem("filestore_theme");
-    if (saved) return saved === "dark";
-    return (
-      typeof window !== "undefined" &&
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-    );
-  });
-
   useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [isDark]);
-
-  const handleToggleTheme = () => {
-    setIsDark((prev) => {
-      const next = !prev;
-      localStorage.setItem("storix_theme", next ? "dark" : "light");
-      localStorage.setItem("filestore_theme", next ? "dark" : "light");
-      return next;
-    });
-  };
+    // Enforce pure light theme
+    document.documentElement.classList.remove("dark");
+    localStorage.setItem("storix_theme", "light");
+    localStorage.setItem("filestore_theme", "light");
+  }, []);
 
   return (
     <BrowserRouter>
@@ -136,7 +115,7 @@ const App: React.FC = () => {
                     key="authenticated-routes"
                     fallback={<CatchAllNavigate to="/login" />}
                   >
-                    <AppLayout isDark={isDark} onToggleTheme={handleToggleTheme}>
+                    <AppLayout>
                       <Outlet />
                     </AppLayout>
                   </Authenticated>
@@ -160,7 +139,6 @@ const App: React.FC = () => {
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </Suspense>
-          <CommandPalette isDark={isDark} onToggleTheme={handleToggleTheme} />
           <UnsavedChangesNotifier />
         </Refine>
         <Toaster richColors position="top-right" />

@@ -454,9 +454,9 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          <div className="max-h-[360px] overflow-auto">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-card sticky top-0 z-10 border-b">
                 <TableRow>
                   <TableHead className="text-xs">Execution Name</TableHead>
                   <TableHead className="text-xs">Workflow</TableHead>
@@ -744,9 +744,9 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          <div className="max-h-[360px] overflow-auto">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-card sticky top-0 z-10 border-b">
                 <TableRow>
                   <TableHead className="text-xs">Trace ID</TableHead>
                   <TableHead className="text-xs">Latency / Duration</TableHead>

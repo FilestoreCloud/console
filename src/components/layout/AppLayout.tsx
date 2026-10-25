@@ -35,14 +35,10 @@ const navItems: NavItem[] = [
 ];
 
 interface AppLayoutProps {
-  isDark?: boolean;
-  onToggleTheme?: () => void;
   children?: React.ReactNode;
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({
-  isDark,
-  onToggleTheme,
   children,
 }) => {
   const location = useLocation();
@@ -106,7 +102,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground antialiased">
       {/* Top Header */}
-      <CustomHeader isDark={isDark} onToggleTheme={onToggleTheme} />
+      <CustomHeader />
 
       <div className="flex flex-1">
         {/* Desktop Collapsible Sidebar */}
@@ -127,7 +123,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 />
               ) : (
                 <img
-                  src={isDark ? "/storix-logo-white.png" : "/storix-logo.png"}
+                  src="/storix-logo.png"
                   alt="Storix"
                   className="h-7 max-w-[130px] object-contain"
                 />
@@ -171,7 +167,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           <SheetContent side="left" className="w-72 p-0 flex flex-col">
             <div className="flex h-14 items-center border-b px-4 gap-2">
               <img
-                src={isDark ? "/storix-logo-white.png" : "/storix-logo.png"}
+                src="/storix-logo.png"
                 alt="Storix"
                 className="h-7 max-w-[140px] object-contain"
               />

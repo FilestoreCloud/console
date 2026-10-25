@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -23,6 +24,7 @@ import {
   MoreHorizontal,
   UserX,
   UserCheck,
+  Search,
 } from "lucide-react";
 
 export interface AccountsTabProps {
@@ -38,48 +40,77 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
   onResetPassword,
   onToggleAccountStatus,
 }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredAccounts = accounts.filter((acc) => {
+    if (!searchTerm.trim()) return true;
+    const q = searchTerm.toLowerCase();
+    return (
+      (acc.username || "").toLowerCase().includes(q) ||
+      (acc.display_name || "").toLowerCase().includes(q) ||
+      (acc.email || "").toLowerCase().includes(q) ||
+      (acc.role || "").toLowerCase().includes(q)
+    );
+  });
+
   return (
     <Card className="border shadow-sm">
-      <CardHeader className="py-3 px-4 sm:px-6 border-b flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-sm sm:text-base font-semibold">
-          Tenant User Accounts ({accounts.length})
-        </CardTitle>
-        <Button
-          size="sm"
-          onClick={onAddAccount}
-          className="h-8 text-xs flex items-center gap-1.5"
-        >
-          <UserPlus className="h-3.5 w-3.5" />
-          <span>Add Account</span>
-        </Button>
+      <CardHeader className="py-3 px-4 sm:px-6 border-b flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 space-y-0">
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm sm:text-base font-semibold">
+            Tenant User Accounts ({accounts.length})
+          </CardTitle>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <div className="relative w-full sm:w-56">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Search user, email, role..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="h-8 pl-8 text-xs"
+            />
+          </div>
+          <Button
+            size="sm"
+            onClick={onAddAccount}
+            className="h-8 text-xs flex items-center gap-1.5 whitespace-nowrap"
+          >
+            <UserPlus className="h-3.5 w-3.5" />
+            <span>Add Account</span>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="font-semibold text-xs">Username</TableHead>
-              <TableHead className="font-semibold text-xs">Display Name</TableHead>
-              <TableHead className="font-semibold text-xs">Email</TableHead>
-              <TableHead className="font-semibold text-xs">Role</TableHead>
-              <TableHead className="font-semibold text-xs">Storage Quota</TableHead>
-              <TableHead className="font-semibold text-xs">Status</TableHead>
-              <TableHead className="font-semibold text-xs">MFA</TableHead>
-              <TableHead className="font-semibold text-xs">Last Login</TableHead>
-              <TableHead className="font-semibold text-xs text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {accounts.length === 0 ? (
+        <div className="max-h-[380px] overflow-auto">
+          <Table>
+            <TableHeader className="bg-card sticky top-0 z-10 border-b">
               <TableRow>
-                <TableCell
-                  colSpan={9}
-                  className="h-24 text-center text-xs text-muted-foreground"
-                >
-                  No user accounts configured.
-                </TableCell>
+                <TableHead className="font-semibold text-xs">Username</TableHead>
+                <TableHead className="font-semibold text-xs">Display Name</TableHead>
+                <TableHead className="font-semibold text-xs">Email</TableHead>
+                <TableHead className="font-semibold text-xs">Role</TableHead>
+                <TableHead className="font-semibold text-xs">Storage Quota</TableHead>
+                <TableHead className="font-semibold text-xs">Status</TableHead>
+                <TableHead className="font-semibold text-xs">MFA</TableHead>
+                <TableHead className="font-semibold text-xs">Last Login</TableHead>
+                <TableHead className="font-semibold text-xs text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              accounts.map((record) => (
+            </TableHeader>
+            <TableBody>
+              {filteredAccounts.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={9}
+                    className="h-24 text-center text-xs text-muted-foreground"
+                  >
+                    {searchTerm
+                      ? "No accounts match your search."
+                      : "No user accounts configured."}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredAccounts.map((record) => (
                 <TableRow key={record.username} className="text-xs">
                   <TableCell>
                     <div className="flex items-center gap-1.5 font-bold">
@@ -184,6 +215,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
             )}
           </TableBody>
         </Table>
+        </div>
       </CardContent>
     </Card>
   );

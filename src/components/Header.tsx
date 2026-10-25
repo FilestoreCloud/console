@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useGetIdentity, useLogout } from "@refinedev/core";
 import { useLayout } from "./layout/LayoutContext";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,21 +19,14 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  ShieldCheck,
   LogOut,
   Globe,
   CheckCircle2,
-  LineChart,
   User,
-  Sun,
-  Moon,
   Menu,
   AlertTriangle,
 } from "lucide-react";
@@ -44,10 +36,7 @@ export interface HeaderProps {
   onToggleTheme?: () => void;
 }
 
-export const CustomHeader: React.FC<HeaderProps> = ({
-  isDark,
-  onToggleTheme,
-}) => {
+export const CustomHeader: React.FC<HeaderProps> = () => {
   const { data: user } = useGetIdentity<any>();
   const { mutate: logout } = useLogout();
   const { mobileSiderOpen, setMobileSiderOpen } = useLayout();
@@ -57,13 +46,13 @@ export const CustomHeader: React.FC<HeaderProps> = ({
 
   return (
     <TooltipProvider>
-      <header className="h-14 border-b bg-[#0f172a] text-white px-3 sm:px-4 flex items-center justify-between sticky top-0 z-30 select-none">
+      <header className="h-14 border-b bg-card text-foreground px-3 sm:px-4 flex items-center justify-between sticky top-0 z-30 select-none shadow-sm">
         {/* Left Section: Mobile toggle, Brand Title, Region */}
         <div className="flex items-center space-x-2 sm:space-x-3 overflow-hidden">
           <Button
             variant="ghost"
             size="icon"
-            className="mobile-sider-toggle md:hidden h-8 w-8 text-slate-300 hover:text-white hover:bg-slate-800"
+            className="mobile-sider-toggle md:hidden h-8 w-8 text-muted-foreground hover:text-foreground"
             onClick={() => setMobileSiderOpen(!mobileSiderOpen)}
             aria-label="Toggle navigation menu"
           >
@@ -71,122 +60,40 @@ export const CustomHeader: React.FC<HeaderProps> = ({
           </Button>
 
           <div className="flex items-center space-x-2">
-            <span className="font-bold text-sm sm:text-base tracking-tight text-white whitespace-nowrap">
+            <span className="font-bold text-sm sm:text-base tracking-tight text-foreground whitespace-nowrap">
               Storix Console
             </span>
-            <span className="hidden sm:inline-block text-[11px] font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
+            <span className="hidden sm:inline-block text-[11px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded border">
               v2.0
             </span>
           </div>
 
-          <div className="hidden lg:flex items-center space-x-1.5 ml-2 border-l border-slate-700 pl-3 text-xs text-slate-300">
-            <Globe className="h-3.5 w-3.5 text-blue-400" />
+          <div className="hidden lg:flex items-center space-x-1.5 ml-2 border-l pl-3 text-xs text-muted-foreground">
+            <Globe className="h-3.5 w-3.5 text-primary" />
             <span className="header-region-text font-mono text-[11px]">
               Region: ap-southeast-1
             </span>
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse ml-1" />
-            <span className="text-[11px] text-emerald-400 font-medium">Online</span>
+            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Online</span>
           </div>
         </div>
 
-        {/* Right Section: CloudWatch quick link, Theme Toggle, Role Badge, User Avatar */}
+        {/* Right Section: Minimalist User Avatar Menu */}
         <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            className="header-cmd-btn hidden md:inline-flex h-8 border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white text-xs px-2.5"
-            onClick={() => {
-              window.dispatchEvent(
-                new KeyboardEvent("keydown", { key: "k", metaKey: true })
-              );
-            }}
-          >
-            ⌘K Palette
-          </Button>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                asChild
-                className="text-slate-100 hover:bg-white/10 hover:text-white px-2 h-8"
-              >
-                <a
-                  href="https://ap-southeast-1.console.aws.amazon.com/cloudwatch/home?region=ap-southeast-1#dashboards/dashboard/prod-Storix-SaaS-Control-Plane"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5"
-                >
-                  <LineChart className="h-4 w-4 text-amber-400" />
-                  <span className="header-cw-text hidden lg:inline text-xs font-medium">
-                    CloudWatch Dashboard ↗
-                  </span>
-                </a>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Open AWS CloudWatch Dashboard</p>
-            </TooltipContent>
-          </Tooltip>
-
-          {onToggleTheme && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onToggleTheme}
-                  className="h-8 border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700 hover:text-white px-2.5 text-xs flex items-center gap-1"
-                >
-                  {isDark ? (
-                    <Sun className="h-3.5 w-3.5 text-amber-400" />
-                  ) : (
-                    <Moon className="h-3.5 w-3.5 text-slate-300" />
-                  )}
-                  <span className="header-theme-text font-medium">
-                    {isDark ? "Dark" : "Light"}
-                  </span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Switch to {isDark ? "Light" : "Dark"} Mode</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge
-                variant="destructive"
-                className="hidden sm:inline-flex items-center gap-1 bg-red-600/90 hover:bg-red-600 text-white font-medium cursor-default"
-              >
-                <ShieldCheck className="h-3.5 w-3.5" />
-                <span className="header-role-text">
-                  SuperAdmin (Full Control)
-                </span>
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Role: {role}</p>
-            </TooltipContent>
-          </Tooltip>
-
-          {/* User profile dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
                 aria-label="User account menu"
-                className="h-9 px-2 text-white hover:bg-white/10 flex items-center gap-2"
+                className="h-9 px-2 hover:bg-muted flex items-center gap-2"
               >
-                <Avatar className="h-7 w-7 border border-blue-400/30">
-                  <AvatarFallback className="bg-[#1652f0] text-white text-xs">
+                <Avatar className="h-7 w-7 border border-primary/20">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
                     <User className="h-3.5 w-3.5" />
                   </AvatarFallback>
                 </Avatar>
-                <span className="header-user-name hidden sm:inline text-xs font-medium">
+                <span className="header-user-name hidden sm:inline text-xs font-medium text-foreground">
                   {user?.name || "ADMIN"}
                 </span>
               </Button>

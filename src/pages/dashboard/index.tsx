@@ -33,7 +33,9 @@ import {
   Database,
   Server,
   Zap,
+  Search,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { InteractiveMetricsChart } from "../../components/InteractiveMetricsChart";
 import { dataProvider } from "../../providers/dataProvider";
 
@@ -41,6 +43,7 @@ export const DashboardPage: React.FC = () => {
   const [intervalSec, setIntervalSec] = useState<number>(15);
   const [countdown, setCountdown] = useState<number>(15);
   const [lastUpdate, setLastUpdate] = useState<string>("--:--:--");
+  const [auditSearch, setAuditSearch] = useState<string>("");
 
   // 1. Fetch fleet raw metrics
   const { data: rawMetricsResp, refetch: refetchRawMetrics, isLoading: metricsLoading } = useCustom({
@@ -84,6 +87,17 @@ export const DashboardPage: React.FC = () => {
   const fleetMetrics = (rawMetricsResp?.data as any)?.metrics;
   const tenants = (tenantsResp?.data || []) as any[];
   const auditLogs = (auditResp?.data || []) as any[];
+
+  const filteredAuditLogs = auditLogs.filter((log: any) => {
+    if (!auditSearch.trim()) return true;
+    const q = auditSearch.toLowerCase();
+    return (
+      String(log.actor || "").toLowerCase().includes(q) ||
+      String(log.action || "").toLowerCase().includes(q) ||
+      String(log.target || log.tenant_id || "").toLowerCase().includes(q) ||
+      String(log.ip_address || "").toLowerCase().includes(q)
+    );
+  });
 
   const totalTenants = tenants.length;
   const activeTenants = tenants.filter((t) => t.status === "ACTIVE").length;
@@ -283,21 +297,32 @@ export const DashboardPage: React.FC = () => {
           </h2>
         </div>
         <Card className="shadow-sm">
-          <CardHeader className="py-3 px-4 sm:px-6 border-b flex flex-row items-center justify-between space-y-0">
+          <CardHeader className="py-3 px-4 sm:px-6 border-b flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 space-y-0">
             <div className="flex items-center gap-2">
               <Database className="h-4 w-4 text-primary" />
               <CardTitle className="text-sm font-semibold">
                 Immutable Cloud Audit Trail
               </CardTitle>
             </div>
-            <span className="text-xs text-muted-foreground">
-              Showing latest {auditLogs.length} events
-            </span>
+            <div className="flex items-center gap-2.5">
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  placeholder="Search events, actors, targets..."
+                  value={auditSearch}
+                  onChange={(e) => setAuditSearch(e.target.value)}
+                  className="h-8 pl-8 text-xs"
+                />
+              </div>
+              <span className="text-xs text-muted-foreground whitespace-nowrap hidden md:inline">
+                {filteredAuditLogs.length} of {auditLogs.length}
+              </span>
+            </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
+            <div className="max-h-[380px] overflow-auto">
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-card sticky top-0 z-10 border-b">
                   <TableRow>
                     <TableHead className="text-xs font-semibold">Timestamp</TableHead>
                     <TableHead className="text-xs font-semibold">Actor</TableHead>
@@ -308,14 +333,16 @@ export const DashboardPage: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {auditLogs.length === 0 ? (
+                  {filteredAuditLogs.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-muted-foreground text-xs">
-                        No audit events recorded yet.
+                        {auditSearch
+                          ? "No audit events match your search."
+                          : "No audit events recorded yet."}
                       </TableCell>
                     </TableRow>
                   ) : (
-                    auditLogs.map((log: any, idx: number) => (
+                    filteredAuditLogs.map((log: any, idx: number) => (
                       <TableRow key={log.event_id || idx} className="hover:bg-muted/50 text-xs">
                         <TableCell className="font-mono text-muted-foreground text-[11px]">
                           {formatTimestamp(log.timestamp)}

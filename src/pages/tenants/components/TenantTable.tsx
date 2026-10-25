@@ -272,8 +272,9 @@ export const TenantTable: React.FC<TenantTableProps> = ({
         {/* Tenant Table Card */}
         <Card className="border-border shadow-sm overflow-hidden">
           <CardContent className="p-0">
-            <Table>
-              <TableHeader className="bg-muted/40">
+            <div className="max-h-[600px] overflow-auto">
+              <Table>
+                <TableHeader className="bg-muted/40 sticky top-0 z-10">
                 <TableRow>
                   <TableHead className="w-10">
                     <input
@@ -476,16 +477,6 @@ export const TenantTable: React.FC<TenantTableProps> = ({
                               </Button>
                             )}
 
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => onShowTenant(record.tenant_id)}
-                              className="h-7 text-xs flex items-center gap-1"
-                            >
-                              <Eye className="h-3 w-3" />
-                              <span>Manage</span>
-                            </Button>
-
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
@@ -498,6 +489,14 @@ export const TenantTable: React.FC<TenantTableProps> = ({
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-44">
+                                <DropdownMenuItem
+                                  onClick={() => onShowTenant(record.tenant_id)}
+                                  className="cursor-pointer text-xs"
+                                >
+                                  <Eye className="h-3.5 w-3.5 mr-2 text-primary" />
+                                  <span>View Details</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   onClick={() =>
                                     onToggleStatus(record.tenant_id, record.status)
@@ -536,6 +535,7 @@ export const TenantTable: React.FC<TenantTableProps> = ({
                 )}
               </TableBody>
             </Table>
+            </div>
           </CardContent>
         </Card>
 
