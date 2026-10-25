@@ -39,6 +39,15 @@ const TenantList = React.lazy(() =>
 const TenantShow = React.lazy(() =>
   import("./pages/tenants/show").then((m) => ({ default: m.TenantShow })),
 );
+const AuditLogList = React.lazy(() =>
+  import("./pages/audit-logs/list").then((m) => ({ default: m.AuditLogList })),
+);
+const TelemetryDashboard = React.lazy(() =>
+  import("./pages/telemetry").then((m) => ({ default: m.TelemetryDashboard })),
+);
+const WebhooksSettings = React.lazy(() =>
+  import("./pages/settings/webhooks").then((m) => ({ default: m.WebhooksSettings })),
+);
 
 const LoadingFallback: React.FC = () => (
   <div className="min-h-[360px] flex items-center justify-center">
@@ -127,9 +136,9 @@ const App: React.FC = () => {
                 <Route path="/tenants" element={<TenantList />} />
                 <Route path="/tenants/:id" element={<TenantShow />} />
                 <Route path="/tenants/show/:id" element={<TenantShow />} />
-                {/* Redirects */}
-                <Route path="/audit-logs" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/telemetry" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/audit-logs" element={<AuditLogList />} />
+                <Route path="/telemetry" element={<TelemetryDashboard />} />
+                <Route path="/settings/webhooks" element={<WebhooksSettings />} />
               </Route>
 
               {/* Login Route */}
