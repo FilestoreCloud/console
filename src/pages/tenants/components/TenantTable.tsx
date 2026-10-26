@@ -50,7 +50,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
-import { renderStatusTag } from "../helpers";
+import { renderStatusTag, getTenantAdminEmail } from "../helpers";
 import { TenantProgressModal } from "../modals/TenantProgressModal";
 
 export interface TenantTableProps {
@@ -417,7 +417,7 @@ export const TenantTable: React.FC<TenantTableProps> = ({
 
                         {/* Admin Contact */}
                         <TableCell className="text-xs">
-                          {record.admin_email || "admin@acme.com"}
+                          {getTenantAdminEmail(record)}
                         </TableCell>
 
                         {/* Quota */}

@@ -249,3 +249,45 @@ export const renderSeverityTag = (sev: string): React.ReactNode => {
       );
   }
 };
+
+/**
+ * Resolves the administrator email for a tenant consistently across
+ * tenant list, tenant detail header, and accounts table.
+ */
+export const getTenantAdminEmail = (tenant: any): string => {
+  if (!tenant) return "";
+  if (tenant.admin_email && typeof tenant.admin_email === "string" && tenant.admin_email.trim()) {
+    return tenant.admin_email.trim();
+  }
+  if (
+    tenant.default_admin?.email &&
+    typeof tenant.default_admin.email === "string" &&
+    tenant.default_admin.email.trim()
+  ) {
+    return tenant.default_admin.email.trim();
+  }
+  let accs = tenant.accounts;
+  if (typeof accs === "string") {
+    try {
+      accs = JSON.parse(accs);
+    } catch {
+      accs = [];
+    }
+  }
+  if (Array.isArray(accs) && accs.length > 0) {
+    const adminAcc =
+      accs.find(
+        (a: any) =>
+          a &&
+          typeof a === "object" &&
+          (a.role === "TenantAdmin" || a.role === "admin" || a.username === "admin") &&
+          a.email
+      ) || accs.find((a: any) => a && typeof a === "object" && a.email);
+    if (adminAcc?.email && typeof adminAcc.email === "string" && adminAcc.email.trim()) {
+      return adminAcc.email.trim();
+    }
+  }
+  const dom = tenant.domain || (tenant.tenant_id ? `${tenant.tenant_id}.png261.dev` : "");
+  return dom ? `admin@${dom}` : (tenant.tenant_id ? `admin@${tenant.tenant_id}.com` : "admin@acme-corp.com");
+};
+
