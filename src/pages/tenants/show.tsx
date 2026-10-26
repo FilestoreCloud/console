@@ -5,11 +5,8 @@ import { toast } from "sonner";
 import {
   LineChart,
   Server,
-  Bot,
   Users,
   ShieldCheck,
-  GitBranch,
-  DollarSign,
   Heart,
   Loader2,
 } from "lucide-react";
@@ -20,11 +17,8 @@ import { useSmartInterval } from "../../hooks/useSmartInterval";
 import {
   MetricsTab,
   TopologyTab,
-  AgentTab,
   AccountsTab,
   AuditTab,
-  ObservabilityTab,
-  FinOpsTab,
   HealthTab,
 } from "./tabs";
 import { TenantModals } from "./modals";
@@ -93,7 +87,7 @@ export const TenantShow: React.FC = () => {
       <Card className="m-6 text-center border-dashed shadow-sm">
         <CardContent className="py-12 flex flex-col items-center justify-center space-y-3">
           <Loader2 className="h-8 w-8 text-primary animate-spin" />
-          <p className="text-sm text-muted-foreground">Loading tenant configuration & agent telemetry...</p>
+          <p className="text-sm text-muted-foreground">Loading tenant configuration & telemetry...</p>
         </CardContent>
       </Card>
     );
@@ -101,7 +95,6 @@ export const TenantShow: React.FC = () => {
 
   const tenant = tenantData.tenant || tenantData;
   const awsTopology = tenantData.aws_topology || {};
-  const agent = tenantData.agent || {};
   const accounts = tenantData.accounts || [];
   const auditLogs = tenantData.audit_logs || [];
   const metrics = tenantData.metrics || {};
@@ -233,18 +226,7 @@ export const TenantShow: React.FC = () => {
         />
       </section>
 
-      {/* 5. Section: Agent Detail & Container Monitor */}
-      <section className="space-y-3">
-        <div className="flex items-center gap-2 border-b pb-2">
-          <Bot className="h-5 w-5 text-primary" />
-          <h2 className="text-base font-semibold text-foreground tracking-tight">
-            Agent Detail & Container Monitor
-          </h2>
-        </div>
-        <AgentTab agent={agent} awsTopology={awsTopology} />
-      </section>
-
-      {/* 6. Section: Tenant Accounts Management */}
+      {/* 5. Section: Tenant Accounts Management */}
       <section className="space-y-3">
         <div className="flex items-center gap-2 border-b pb-2">
           <Users className="h-5 w-5 text-primary" />
@@ -260,18 +242,7 @@ export const TenantShow: React.FC = () => {
         />
       </section>
 
-      {/* 7. Section: FinOps & Custom Domain */}
-      <section className="space-y-3">
-        <div className="flex items-center gap-2 border-b pb-2">
-          <DollarSign className="h-5 w-5 text-emerald-600" />
-          <h2 className="text-base font-semibold text-foreground tracking-tight">
-            FinOps & Custom Domain
-          </h2>
-        </div>
-        <FinOpsTab tenantId={tenantId} tenant={tenant} finops={tenantData.finops} />
-      </section>
-
-      {/* 8. Section: Health & Quota Limit */}
+      {/* 6. Section: Health & Quota Limit */}
       <section className="space-y-3">
         <div className="flex items-center gap-2 border-b pb-2">
           <Heart className="h-5 w-5 text-rose-500" />
@@ -282,18 +253,7 @@ export const TenantShow: React.FC = () => {
         <HealthTab tenantId={tenantId} tenant={tenant} health={tenantData.health} />
       </section>
 
-      {/* 9. Section: Step Functions & X-Ray Orchestration */}
-      <section className="space-y-3">
-        <div className="flex items-center gap-2 border-b pb-2">
-          <GitBranch className="h-5 w-5 text-primary" />
-          <h2 className="text-base font-semibold text-foreground tracking-tight">
-            Step Functions & X-Ray
-          </h2>
-        </div>
-        <ObservabilityTab tenantId={tenantId} />
-      </section>
-
-      {/* 10. Section: Tenant Audit Trail */}
+      {/* 7. Section: Tenant Audit Trail */}
       <section className="space-y-3">
         <div className="flex items-center gap-2 border-b pb-2">
           <ShieldCheck className="h-5 w-5 text-primary" />

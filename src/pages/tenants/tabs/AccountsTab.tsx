@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -46,6 +53,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
   onToggleAccountStatus,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
   const [revealedPasswords, setRevealedPasswords] = useState<Record<string, boolean>>({});
   const [copiedUser, setCopiedUser] = useState<string | null>(null);
 
@@ -73,25 +81,29 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
   };
 
   const filteredAccounts = accounts.filter((acc) => {
-    if (!searchTerm.trim()) return true;
-    const q = searchTerm.toLowerCase();
-    return (
+    const q = searchTerm.toLowerCase().trim();
+    const matchesSearch =
+      !q ||
       (acc.username || "").toLowerCase().includes(q) ||
       (acc.display_name || "").toLowerCase().includes(q) ||
       (acc.email || "").toLowerCase().includes(q) ||
-      (acc.role || "").toLowerCase().includes(q)
-    );
+      (acc.role || "").toLowerCase().includes(q);
+
+    const matchesStatus =
+      statusFilter === "ALL" || (acc.status || "ACTIVE") === statusFilter;
+
+    return matchesSearch && matchesStatus;
   });
 
   return (
     <Card className="border shadow-sm">
-      <CardHeader className="py-3 px-4 sm:px-6 border-b flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 space-y-0">
+      <CardHeader className="py-3 px-4 sm:px-6 border-b flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 space-y-0">
         <div className="flex items-center gap-2">
           <CardTitle className="text-sm sm:text-base font-semibold">
             Tenant User Accounts ({accounts.length})
           </CardTitle>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="relative w-full sm:w-56">
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
             <Input
@@ -101,6 +113,20 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
               className="h-8 pl-8 text-xs"
             />
           </div>
+
+          <div className="w-32">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Statuses</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="DISABLED">Disabled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <Button
             size="sm"
             onClick={onAddAccount}
@@ -112,7 +138,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="max-h-[380px] overflow-auto">
+        <div className="max-h-[350px] overflow-auto">
           <Table>
             <TableHeader className="bg-card sticky top-0 z-10 border-b">
               <TableRow>
@@ -135,8 +161,8 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                     colSpan={10}
                     className="h-24 text-center text-xs text-muted-foreground"
                   >
-                    {searchTerm
-                      ? "No accounts match your search."
+                    {searchTerm || statusFilter !== "ALL"
+                      ? "No accounts match current filters."
                       : "No user accounts configured."}
                   </TableCell>
                 </TableRow>
@@ -149,45 +175,34 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
 
                   return (
                     <TableRow key={record.username} className="text-xs">
-                      <TableCell>
-                        <div className="flex items-center gap-1.5 font-bold">
-                          <span>{record.username}</span>
-                          {record.role === "TenantAdmin" && (
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] py-0 px-1 font-bold bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400"
-                            >
-                              ADMIN
-                            </Badge>
-                          )}
-                        </div>
+                      <TableCell className="font-mono font-semibold">
+                        {record.username}
                       </TableCell>
                       <TableCell>{record.display_name}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {record.email}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="text-xs">
-                          {record.role}
+                        <Badge variant="outline" className="text-xs">
+                          {record.role || "user"}
                         </Badge>
                       </TableCell>
 
-                      {/* Masked / Full Password Cell */}
-                      <TableCell>
+                      <TableCell className="font-mono text-xs">
                         <div className="flex items-center gap-1.5">
                           <button
                             type="button"
-                            onClick={() => togglePasswordReveal(record.username)}
-                            className="font-mono text-xs px-2 py-0.5 rounded bg-muted/60 hover:bg-muted border border-border/50 transition-colors inline-flex items-center gap-1.5 cursor-pointer text-foreground group select-none"
-                            title={
-                              isRevealed
-                                ? "Click to mask password"
-                                : "Click to view full password"
+                            onClick={() =>
+                              togglePasswordReveal(record.username)
                             }
                             aria-label={
                               isRevealed
                                 ? `Hide password for ${record.username}`
                                 : `Show password for ${record.username}`
+                            }
+                            className="inline-flex items-center gap-1 text-[11px] bg-muted/70 hover:bg-muted px-2 py-0.5 rounded transition-colors group"
+                            title={
+                              isRevealed ? "Click to hide" : "Click to reveal"
                             }
                           >
                             {isRevealed ? (
@@ -229,85 +244,85 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                         {record.storage_used_gb || 0} GB /{" "}
                         {record.quota_gb || 50} GB
                       </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={record.status === "ACTIVE" ? "outline" : "secondary"}
-                      className={`text-xs ${
-                        record.status === "ACTIVE"
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400"
-                          : ""
-                      }`}
-                    >
-                      {record.status === "ACTIVE" ? "ACTIVE" : "DISABLED"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={record.mfa_enabled ? "outline" : "secondary"}
-                      className={`text-xs ${
-                        record.mfa_enabled
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400"
-                          : ""
-                      }`}
-                    >
-                      {record.mfa_enabled ? "ENABLED" : "NONE"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-[11px]">
-                    {record.last_login || "--"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                          aria-label="User actions"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem
-                          onClick={() => onResetPassword(record.username)}
-                          className="cursor-pointer text-xs"
-                        >
-                          <Key className="h-3.5 w-3.5 mr-2 text-primary" />
-                          <span>Reset Password</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() =>
-                            onToggleAccountStatus(record.username, record.status)
-                          }
-                          className={`cursor-pointer text-xs ${
+                      <TableCell>
+                        <Badge
+                          variant={record.status === "ACTIVE" ? "outline" : "secondary"}
+                          className={`text-xs ${
                             record.status === "ACTIVE"
-                              ? "text-destructive focus:text-destructive focus:bg-destructive/10"
-                              : "text-emerald-600 focus:text-emerald-600 focus:bg-emerald-50"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400"
+                              : ""
                           }`}
                         >
-                          {record.status === "ACTIVE" ? (
-                            <>
-                              <UserX className="h-3.5 w-3.5 mr-2" />
-                              <span>Disable Account</span>
-                            </>
-                          ) : (
-                            <>
-                              <UserCheck className="h-3.5 w-3.5 mr-2" />
-                              <span>Enable Account</span>
-                            </>
-                          )}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              );
-            })
-          )}
-          </TableBody>
-        </Table>
+                          {record.status === "ACTIVE" ? "ACTIVE" : "DISABLED"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={record.mfa_enabled ? "outline" : "secondary"}
+                          className={`text-xs ${
+                            record.mfa_enabled
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400"
+                              : ""
+                          }`}
+                        >
+                          {record.mfa_enabled ? "ENABLED" : "NONE"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-[11px]">
+                        {record.last_login || "--"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                              aria-label="User actions"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                              onClick={() => onResetPassword(record.username)}
+                              className="cursor-pointer text-xs"
+                            >
+                              <Key className="h-3.5 w-3.5 mr-2 text-primary" />
+                              <span>Reset Password</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() =>
+                                onToggleAccountStatus(record.username, record.status)
+                              }
+                              className={`cursor-pointer text-xs ${
+                                record.status === "ACTIVE"
+                                  ? "text-destructive focus:text-destructive focus:bg-destructive/10"
+                                  : "text-emerald-600 focus:text-emerald-600 focus:bg-emerald-50"
+                              }`}
+                            >
+                              {record.status === "ACTIVE" ? (
+                                <>
+                                  <UserX className="h-3.5 w-3.5 mr-2" />
+                                  <span>Disable Account</span>
+                                </>
+                              ) : (
+                                <>
+                                  <UserCheck className="h-3.5 w-3.5 mr-2" />
+                                  <span>Enable Account</span>
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
         </div>
       </CardContent>
     </Card>

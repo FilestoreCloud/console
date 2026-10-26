@@ -9,9 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Rocket, Info, Sparkles } from "lucide-react";
+import { Rocket } from "lucide-react";
 
 interface CreateTenantModalProps {
   visible: boolean;
@@ -19,6 +17,8 @@ interface CreateTenantModalProps {
   onSubmit: (values: any) => Promise<void>;
   loading: boolean;
 }
+
+const MAX_STORAGE_QUOTA_GB = 5000;
 
 export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
   visible,
@@ -29,8 +29,8 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
   const [tenantId, setTenantId] = useState("");
   const [domain, setDomain] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
   const [quotaGb, setQuotaGb] = useState("100");
-  const [isDemo, setIsDemo] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,8 +38,8 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
       setTenantId("");
       setDomain("");
       setAdminEmail("");
+      setAdminPassword("");
       setQuotaGb("100");
-      setIsDemo(false);
       setError(null);
     }
   }, [visible]);
@@ -58,13 +58,24 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
       setError("Please enter tenant admin email");
       return;
     }
+
+    const quotaNum = Number(quotaGb) || 100;
+    if (quotaNum < 10) {
+      setError("Minimum storage quota is 10 GB");
+      return;
+    }
+    if (quotaNum > MAX_STORAGE_QUOTA_GB) {
+      setError(`Maximum storage quota allowed is ${MAX_STORAGE_QUOTA_GB} GB`);
+      return;
+    }
+
     setError(null);
     await onSubmit({
       tenant_id: tenantId,
       domain: domain || `${tenantId}.png261.dev`,
       admin_email: adminEmail,
-      quota_gb: Number(quotaGb) || 100,
-      is_demo: isDemo,
+      admin_password: adminPassword.trim() || undefined,
+      quota_gb: quotaNum,
     });
   };
 
@@ -132,15 +143,37 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="create-quota" className="text-xs font-semibold">
-              Storage Quota (GB) *
+            <Label htmlFor="create-admin-password" className="text-xs font-semibold">
+              Default Admin Password (Optional)
             </Label>
+            <Input
+              id="create-admin-password"
+              type="password"
+              placeholder="Leave blank to use default (StorixAdmin2026!Secure)"
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+              className="h-9 text-xs"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              User <strong>admin</strong> is automatically created in Nextcloud. The web installer is permanently disabled.
+            </p>
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="create-quota" className="text-xs font-semibold">
+                Storage Quota (GB) *
+              </Label>
+              <span className="text-[11px] text-muted-foreground">
+                Max Quota: <strong>{MAX_STORAGE_QUOTA_GB.toLocaleString()} GB (5 TB)</strong>
+              </span>
+            </div>
             <div className="flex">
               <Input
                 id="create-quota"
                 type="number"
                 min={10}
-                max={5000}
+                max={MAX_STORAGE_QUOTA_GB}
                 required
                 placeholder="100"
                 value={quotaGb}
@@ -151,34 +184,10 @@ export const CreateTenantModal: React.FC<CreateTenantModalProps> = ({
                 GB
               </span>
             </div>
-          </div>
-
-          <div className="rounded-lg border p-3 space-y-2 bg-muted/20">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 font-semibold text-xs">
-                <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                <span>Provision Mode: Demo Tenant (Auto-Seed Showcase Data)</span>
-              </div>
-              <Switch checked={isDemo} onCheckedChange={setIsDemo} />
-            </div>
             <p className="text-[11px] text-muted-foreground">
-              When enabled, runs the dedicated Tenant Seeding Step Function immediately after infrastructure provisioning completes.
+              Configure initial storage limit (Min: 10 GB, Max: {MAX_STORAGE_QUOTA_GB.toLocaleString()} GB).
             </p>
           </div>
-
-          <Alert variant="info" className="text-xs">
-            <div className="flex items-start gap-2">
-              <Info className="h-4 w-4 mt-0.5" />
-              <div>
-                <AlertTitle className="font-semibold text-xs">
-                  AWS Multi-Tenant Isolation
-                </AlertTitle>
-                <AlertDescription className="text-xs mt-0.5">
-                  Provisions dedicated ECS Fargate task, dedicated database schema in RDS PostgreSQL, dedicated EFS configuration access point, and registers instance in DynamoDB.
-                </AlertDescription>
-              </div>
-            </div>
-          </Alert>
 
           <DialogFooter className="pt-2">
             <Button

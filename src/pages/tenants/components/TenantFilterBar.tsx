@@ -9,15 +9,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, RotateCw, Plus } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 
 export interface TenantFilterBarProps {
   searchText: string;
   onSearchChange: (value: string) => void;
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
-  onRefresh: () => void;
-  isLoading: boolean;
+  onRefresh?: () => void;
+  isLoading?: boolean;
   canCreate?: boolean;
   onOpenCreateModal: () => void;
 }
@@ -27,8 +27,6 @@ export const TenantFilterBar: React.FC<TenantFilterBarProps> = ({
   onSearchChange,
   statusFilter,
   onStatusFilterChange,
-  onRefresh,
-  isLoading,
   canCreate,
   onOpenCreateModal,
 }) => {
@@ -69,17 +67,6 @@ export const TenantFilterBar: React.FC<TenantFilterBarProps> = ({
         </div>
 
         <div className="flex items-center gap-2 justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRefresh}
-            disabled={isLoading}
-            className="h-9 text-xs flex items-center gap-1.5"
-          >
-            <RotateCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
-            <span>Refresh</span>
-          </Button>
-
           {canCreate && (
             <Button
               size="sm"

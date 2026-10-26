@@ -173,16 +173,6 @@ export const TelemetryDashboard: React.FC = () => {
               </div>
 
               <Button
-                variant="outline"
-                size="sm"
-                onClick={refreshAll}
-                className="h-9 text-xs flex items-center gap-1.5"
-              >
-                <RotateCw className="h-3.5 w-3.5" />
-                <span>Sync Now</span>
-              </Button>
-
-              <Button
                 size="sm"
                 asChild
                 className="h-9 text-xs bg-[#1652f0] hover:bg-[#1652f0]/90 text-white flex items-center gap-1.5"
