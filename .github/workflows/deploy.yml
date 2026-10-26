@@ -208,7 +208,7 @@ jobs:
   smoke-test:
     name: Post-Deployment SuperAdmin Live Verification
     needs: [deploy]
-    if: ${{ github.event_name != 'workflow_call' || inputs.run_smoke_test }}
+    if: ${{ (github.event_name == 'workflow_dispatch') || (github.event_name == 'workflow_call' && inputs.run_smoke_test == true) }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -271,7 +271,7 @@ jobs:
 
       - name: Install Playwright & Chromium
         run: |
-          npm install -D @playwright/test
+          npm install -D @playwright/test @aws-sdk/client-s3
           npx playwright install --with-deps chromium
 
       - name: Run SuperAdmin Playwright E2E Tests
