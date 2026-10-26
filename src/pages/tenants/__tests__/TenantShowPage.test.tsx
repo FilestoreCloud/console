@@ -115,16 +115,18 @@ describe("TenantShowPage — Deep Unified Single-Page Inspection", () => {
     );
   });
 
-  it("renders unified single-page sections without tabs", () => {
+  it("renders unified single-page sections without tabs and excludes removed sections", () => {
     renderComponent();
     expect(screen.getByText(/Live Metrics & Telemetry/)).toBeInTheDocument();
     expect(screen.getByText(/Dedicated Architecture & Topology/)).toBeInTheDocument();
-    expect(screen.getByText(/Agent Detail & Container Monitor/)).toBeInTheDocument();
     expect(screen.getByText(/Tenant Accounts Management/)).toBeInTheDocument();
-    expect(screen.getByText(/FinOps & Custom Domain/)).toBeInTheDocument();
     expect(screen.getByText(/Health & Quota Limit/)).toBeInTheDocument();
-    expect(screen.getByText(/Step Functions & X-Ray/)).toBeInTheDocument();
     expect(screen.getByText(/Tenant Audit Trail/)).toBeInTheDocument();
+
+    // Removed sections should not exist
+    expect(screen.queryByText(/Agent Detail & Container Monitor/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/FinOps & Custom Domain/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Step Functions & X-Ray/)).not.toBeInTheDocument();
   });
 
   it("renders masked password in tenant accounts table and reveals full password on click", () => {

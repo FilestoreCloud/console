@@ -7,6 +7,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -27,39 +34,59 @@ export const AuditTab: React.FC<AuditTabProps> = ({
   tenantId,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   const filteredLogs = auditLogs.filter((log) => {
-    if (!searchTerm.trim()) return true;
-    const q = searchTerm.toLowerCase();
+    const q = searchTerm.toLowerCase().trim();
     const detailsStr =
       typeof log.details === "string" ? log.details : JSON.stringify(log.details || "");
-    return (
+    const matchesSearch =
+      !q ||
       (log.actor || "").toLowerCase().includes(q) ||
       (log.action || "").toLowerCase().includes(q) ||
       (log.role || "").toLowerCase().includes(q) ||
       (log.status || "").toLowerCase().includes(q) ||
-      detailsStr.toLowerCase().includes(q)
-    );
+      detailsStr.toLowerCase().includes(q);
+
+    const matchesStatus =
+      statusFilter === "ALL" || (log.status || "").toUpperCase() === statusFilter;
+
+    return matchesSearch && matchesStatus;
   });
 
   return (
     <Card className="border-border shadow-sm overflow-hidden">
-      <CardHeader className="py-3 px-4 sm:px-6 border-b flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <CardHeader className="py-3 px-4 sm:px-6 border-b flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <CardTitle className="text-sm font-semibold">
           Compliance &amp; Audit Log for &apos;{tenantId}&apos; ({auditLogs.length})
         </CardTitle>
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Search actor, action, details..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-8 pl-8 text-xs"
-          />
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Search actor, action, details..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="h-8 pl-8 text-xs"
+            />
+          </div>
+
+          <div className="w-32">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Status</SelectItem>
+                <SelectItem value="SUCCESS">Success</SelectItem>
+                <SelectItem value="FAILED">Failed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="max-h-[380px] overflow-auto">
+        <div className="max-h-[350px] overflow-auto">
           <Table>
             <TableHeader className="bg-card sticky top-0 z-10 border-b">
               <TableRow>
@@ -78,7 +105,7 @@ export const AuditTab: React.FC<AuditTabProps> = ({
                     colSpan={6}
                     className="h-24 text-center text-xs text-muted-foreground"
                   >
-                    {searchTerm
+                    {searchTerm || statusFilter !== "ALL"
                       ? "No audit events match your search."
                       : "No audit events recorded yet for this tenant."}
                   </TableCell>
