@@ -24,6 +24,7 @@ import {
 import { TenantModals } from "./modals";
 import { TenantHeader } from "./TenantHeader";
 import { TenantProgressCard } from "./TenantProgressCard";
+import { getTenantAdminEmail } from "./helpers";
 
 export const TenantShow: React.FC = () => {
   const { id: rawRouteId } = useParams<{ id: string }>();
@@ -95,13 +96,35 @@ export const TenantShow: React.FC = () => {
 
   const tenant = tenantData.tenant || tenantData;
   const awsTopology = tenantData.aws_topology || {};
-  const accounts = tenantData.accounts || [];
+  const rawAccounts = tenantData.accounts || [];
   const auditLogs = tenantData.audit_logs || [];
   const metrics = tenantData.metrics || {};
 
   const tenantId = tenant.tenant_id;
   const domain = tenant.domain || `${tenantId}.png261.dev`;
   const currentStatus = tenant.status || "ACTIVE";
+  const resolvedAdminEmail = getTenantAdminEmail({ ...tenant, accounts: rawAccounts });
+
+  // Ensure accounts has at least the admin account with the consistent resolved email
+  const accounts = rawAccounts.length > 0 ? rawAccounts.map((acc: any) => {
+    if ((acc.username === "admin" || acc.role === "TenantAdmin") && !acc.email) {
+      return { ...acc, email: resolvedAdminEmail };
+    }
+    return acc;
+  }) : [
+    {
+      username: "admin",
+      display_name: `${(tenantId || "Tenant").charAt(0).toUpperCase() + (tenantId || "Tenant").slice(1)} Administrator`,
+      email: resolvedAdminEmail,
+      role: "TenantAdmin",
+      quota_gb: tenant.quota_gb || 100,
+      storage_used_gb: 0,
+      status: "ACTIVE",
+      mfa_enabled: false,
+      last_login: "Never",
+      created_at: tenant.created_at || new Date().toISOString(),
+    }
+  ];
 
   const handleToggleStatus = () => {
     const nextStatus = currentStatus === "SUSPENDED" ? "ACTIVE" : "SUSPENDED";
@@ -173,7 +196,7 @@ export const TenantShow: React.FC = () => {
       <TenantHeader
         tenantId={tenantId}
         domain={domain}
-        adminEmail={tenant.admin_email}
+        adminEmail={resolvedAdminEmail}
         currentStatus={currentStatus}
         progress={tenant.progress}
         currentStep={tenant.current_step}

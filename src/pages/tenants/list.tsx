@@ -14,6 +14,7 @@ import { dataProvider } from "../../providers/dataProvider";
 import { TenantKpiCards } from "./components/TenantKpiCards";
 import { TenantFilterBar } from "./components/TenantFilterBar";
 import { TenantTable } from "./components/TenantTable";
+import { getTenantAdminEmail } from "./helpers";
 
 export const TenantList: React.FC = () => {
   const [searchText, setSearchText] = useState("");
@@ -66,7 +67,8 @@ export const TenantList: React.FC = () => {
       !s ||
       t.tenant_id?.toLowerCase().includes(s) ||
       t.domain?.toLowerCase().includes(s) ||
-      t.admin_email?.toLowerCase().includes(s);
+      t.admin_email?.toLowerCase().includes(s) ||
+      getTenantAdminEmail(t).toLowerCase().includes(s);
     const matchesStatus = statusFilter === "ALL" || t.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
