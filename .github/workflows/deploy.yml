@@ -15,6 +15,11 @@ on:
         options:
           - prod
           - dev
+      run_smoke_test:
+        description: "Run Playwright and Smoke tests after deploy"
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       environment:
@@ -67,13 +72,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           repository: FilestoreCloud/console
           ref: ${{ inputs.ref || '' }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
@@ -88,7 +93,7 @@ jobs:
         run: npm run build
 
       - name: Upload Production Build Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: console-dist
           path: dist/
@@ -107,14 +112,14 @@ jobs:
       distribution_id: ${{ steps.deploy-spa.outputs.distribution_id }}
     steps:
       - name: Download Production Build Artifact
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v4
         with:
           name: console-dist
           path: dist
 
       - name: Configure AWS Credentials via OIDC
         id: aws-creds
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_CONSOLE || secrets.AWS_ROLE_INFRA }}
           aws-region: ${{ vars.AWS_REGION }}
@@ -208,11 +213,11 @@ jobs:
   smoke-test:
     name: Post-Deployment SuperAdmin Live Verification
     needs: [deploy]
-    if: ${{ (github.event_name == 'workflow_dispatch') || (github.event_name == 'workflow_call' && inputs.run_smoke_test == true) }}
+    if: ${{ inputs.run_smoke_test == true }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref || '' }}
 
@@ -256,12 +261,12 @@ jobs:
           echo "============================================================"
 
       - name: Setup Node.js for Playwright E2E Tests
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - name: Cache Playwright Browsers
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -289,7 +294,7 @@ jobs:
 
       - name: Upload Playwright Test Report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: superadmin-playwright-report
           path: playwright-report/
