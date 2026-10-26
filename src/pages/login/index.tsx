@@ -325,7 +325,7 @@ export const LoginPage: React.FC = () => {
           <Separator className="my-6" />
           <div className="text-center">
             <p className="text-xs text-muted-foreground">
-              🔒 Secured via AWS IAM, Two-Factor Authentication &amp; DynamoDB
+              🔒 Secured via AWS IAM &amp; DynamoDB Encryption
             </p>
           </div>
         </CardContent>
