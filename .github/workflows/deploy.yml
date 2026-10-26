@@ -15,6 +15,43 @@ on:
         options:
           - prod
           - dev
+  workflow_call:
+    inputs:
+      environment:
+        description: "Target Environment"
+        required: true
+        type: string
+        default: "dev"
+      admin_web_bucket:
+        description: "Target S3 Bucket Name for Web SPA"
+        required: false
+        type: string
+        default: ""
+      cloudfront_distribution_id:
+        description: "Target CloudFront Distribution ID"
+        required: false
+        type: string
+        default: ""
+      ref:
+        description: "Git ref to checkout"
+        required: false
+        type: string
+        default: ""
+      run_smoke_test:
+        description: "Run Playwright and Smoke tests after deploy"
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      cloudfront_url:
+        description: "Resolved CloudFront URL"
+        value: ${{ jobs.deploy.outputs.cloudfront_url }}
+      s3_bucket:
+        description: "Target S3 Bucket"
+        value: ${{ jobs.deploy.outputs.s3_bucket }}
+      distribution_id:
+        description: "Target CloudFront Distribution ID"
+        value: ${{ jobs.deploy.outputs.distribution_id }}
 
 permissions:
   id-token: write
@@ -31,6 +68,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || '' }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -60,6 +99,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       cloudfront_url: ${{ steps.deploy-spa.outputs.cloudfront_url }}
+      s3_bucket: ${{ steps.deploy-spa.outputs.s3_bucket }}
+      distribution_id: ${{ steps.deploy-spa.outputs.distribution_id }}
     steps:
       - name: Download Production Build Artifact
         uses: actions/download-artifact@v4
@@ -71,7 +112,7 @@ jobs:
         id: aws-creds
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_CONSOLE }}
+          role-to-assume: ${{ secrets.AWS_ROLE_CONSOLE || secrets.AWS_ROLE_INFRA }}
           aws-region: ${{ vars.AWS_REGION }}
           audience: sts.amazonaws.com
 
@@ -79,9 +120,9 @@ jobs:
         id: deploy-spa
         env:
           AWS_REGION: ${{ vars.AWS_REGION }}
-          DEPLOY_ENV: ${{ inputs.environment }}
-          ADMIN_WEB_BUCKET: ${{ vars.ADMIN_WEB_BUCKET }}
-          CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+          DEPLOY_ENV: ${{ inputs.environment || (github.ref_name == 'main' && 'prod' || 'dev') }}
+          ADMIN_WEB_BUCKET: ${{ inputs.admin_web_bucket || vars.ADMIN_WEB_BUCKET }}
+          CLOUDFRONT_DISTRIBUTION_ID: ${{ inputs.cloudfront_distribution_id || vars.CLOUDFRONT_DISTRIBUTION_ID }}
         run: |
           pip install boto3
           python3 -c "
@@ -163,10 +204,13 @@ jobs:
   smoke-test:
     name: Post-Deployment SuperAdmin Live Verification
     needs: [deploy]
+    if: ${{ github.event_name != 'workflow_call' || inputs.run_smoke_test }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || '' }}
 
       - name: Verify Live Web Endpoint & SuperAdmin API
         run: |
