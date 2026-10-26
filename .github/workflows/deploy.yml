@@ -97,6 +97,9 @@ jobs:
     name: Deploy to S3 + CloudFront
     needs: [build-and-test]
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment || (github.ref_name == 'main' && 'prod' || 'dev') }}
+      url: ${{ steps.deploy-spa.outputs.cloudfront_url }}
     outputs:
       cloudfront_url: ${{ steps.deploy-spa.outputs.cloudfront_url }}
       s3_bucket: ${{ steps.deploy-spa.outputs.s3_bucket }}
@@ -255,6 +258,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
 
       - name: Install Playwright & Chromium
         run: |
