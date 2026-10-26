@@ -234,17 +234,6 @@ export const ObservabilityTab: React.FC<ObservabilityTabProps> = ({ tenantId }) 
                   {autoRefresh ? "Auto 4s" : "Auto Off"}
                 </label>
               </div>
-
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => fetchData()}
-                disabled={loading}
-                className="gap-1.5 h-8 text-xs"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-                Refresh
-              </Button>
             </div>
           </div>
 

@@ -12,7 +12,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  RefreshCw,
   Database,
   CheckCircle2,
   AlertTriangle,
@@ -118,20 +117,6 @@ export const AuditLogList: React.FC = () => {
                 </Badge>
               </div>
             </div>
-          </div>
-          <div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetch()}
-              disabled={isLoading}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw
-                className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
-              />
-              <span>Refresh Logs</span>
-            </Button>
           </div>
         </CardContent>
       </Card>

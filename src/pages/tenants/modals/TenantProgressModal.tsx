@@ -358,17 +358,6 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
                   variant="ghost"
                   size="icon"
                   className="h-7 w-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
-                  onClick={fetchProgress}
-                  disabled={loading}
-                  title="Refresh logs"
-                >
-                  <RotateCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
                   onClick={handleCopyLogs}
                   title="Copy logs"
                 >

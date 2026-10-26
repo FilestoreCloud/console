@@ -125,14 +125,17 @@ export const TenantList: React.FC = () => {
           tenant_id: values.tenant_id.toLowerCase().trim(),
           domain: values.domain?.trim() || `${values.tenant_id}.png261.dev`,
           admin_email: values.admin_email.trim(),
+          admin_password: values.admin_password?.trim() || undefined,
           quota_gb: values.quota_gb,
           is_demo: !!values.is_demo,
         },
       },
       {
-        onSuccess: () => {
+        onSuccess: (data: any) => {
+          const defAdmin = data?.data?.default_admin || data?.default_admin;
+          const pwdMsg = defAdmin?.password ? ` (Default admin: ${defAdmin.username})` : "";
           toast.success(
-            `Tenant ${values.tenant_id} provisioning workflow initiated!`
+            `Tenant ${values.tenant_id} provisioning initiated!${pwdMsg}`
           );
           setModalVisible(false);
           refetch();

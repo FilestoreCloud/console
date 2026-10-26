@@ -24,7 +24,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  RotateCw,
   Activity,
   ShieldCheck,
   CheckCircle2,
@@ -206,17 +205,6 @@ export const DashboardPage: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={refreshAll}
-              disabled={metricsLoading || auditLoading}
-              className="h-8 text-xs gap-1.5"
-            >
-              <RotateCw className={`h-3.5 w-3.5 ${metricsLoading ? "animate-spin" : ""}`} />
-              <span>Refresh {intervalSec > 0 && `(${countdown}s)`}</span>
-            </Button>
           </div>
         </CardContent>
       </Card>
