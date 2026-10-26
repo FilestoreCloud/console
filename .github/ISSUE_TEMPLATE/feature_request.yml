@@ -1,0 +1,44 @@
+name: 💡 Feature Request
+description: Suggest an enhancement, new dashboard view, or UX improvement for Storix Console
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting an enhancement to Storix Console!
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement / Motivation
+      description: Describe what problem or workflow this feature would solve.
+      placeholder: As an administrator, I need to [...] so that [...]
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution / Mockup
+      description: Describe the UI/UX enhancement or attach visual mockups.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "High (Core administrative feature)"
+        - "Medium (Dashboard visual / UX enhancement)"
+        - "Low (Minor cosmetic polish)"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I would be willing to submit a PR to implement this feature.

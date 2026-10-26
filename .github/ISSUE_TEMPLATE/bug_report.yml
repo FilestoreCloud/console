@@ -1,0 +1,77 @@
+name: 🐛 Bug Report
+description: Report a bug, broken UI, or unexpected behavior in the Storix SuperAdmin Web Console
+title: "[Bug]: "
+labels: ["bug", "frontend"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue in Storix Web Console!
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Bug Description
+      description: What went wrong or didn't work as expected in the UI?
+      placeholder: Describe the visual or functional issue clearly...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Screen / Area
+      options:
+        - "Login & MFA Screen"
+        - "Tenant List & Status Table"
+        - "Tenant Detail & Topology Viewer"
+        - "Provision / Deprovision Modal"
+        - "Audit Logs & Activity Stream"
+        - "Live CloudWatch Metrics & AAS"
+        - "Theme (Dark / Light Mode)"
+        - "Mobile / Responsive View"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Web Browser
+      options:
+        - "Google Chrome"
+        - "Mozilla Firefox"
+        - "Apple Safari"
+        - "Microsoft Edge"
+        - "Mobile Browser (iOS / Android)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the problem.
+      placeholder: |
+        1. Navigate to '/tenants'
+        2. Click on 'Provision Tenant'
+        3. Fill form and submit
+        4. Modal freezes or throws error
+    validations:
+      required: true
+
+  - type: textarea
+    id: console_logs
+    attributes:
+      label: Browser DevTools Console Logs
+      description: Paste any JavaScript console errors or failed network requests.
+      render: shell
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have verified this behavior on a fresh browser session (cleared cache / incognito).
+          required: true
+        - label: I have checked that no sensitive tenant passwords or auth tokens are exposed in logs.
+          required: true
