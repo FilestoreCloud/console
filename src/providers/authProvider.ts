@@ -25,8 +25,8 @@ export const authProvider: AuthProvider = {
           credentials: "include",
           body: JSON.stringify({
             action: "VERIFY_MFA",
-            challenge_token,
-            mfa_code,
+            challenge_token: challenge_token.trim(),
+            mfa_code: mfa_code.trim(),
           }),
         });
         const data = await res.json();
@@ -34,7 +34,7 @@ export const authProvider: AuthProvider = {
           localStorage.setItem("saas_admin_token", data.token);
           localStorage.setItem(
             "saas_admin_email",
-            data.user || email || "SuperAdmin",
+            data.user || email?.trim() || "SuperAdmin",
           );
           localStorage.setItem("saas_admin_role", data.role || "SuperAdmin");
           return {
@@ -58,8 +58,8 @@ export const authProvider: AuthProvider = {
         credentials: "include",
         body: JSON.stringify({
           action: "LOGIN",
-          username: email,
-          password: password,
+          username: email?.trim(),
+          password: password?.trim(),
         }),
       });
       const data = await res.json();

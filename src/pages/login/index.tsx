@@ -23,14 +23,16 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     setErrorMessage(null);
     setIsSubmitting(true);
+    const cleanEmail = email.trim();
+    const cleanPassword = password.trim();
     try {
       const res = await fetch(API_BASE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "LOGIN",
-          username: email,
-          password: password,
+          username: cleanEmail,
+          password: cleanPassword,
         }),
       });
       const data = await res.json();
@@ -40,7 +42,7 @@ export const LoginPage: React.FC = () => {
       }
       if (data.token || data.status === "OK") {
         localStorage.setItem("saas_admin_token", data.token || "master-session-token");
-        localStorage.setItem("saas_admin_email", data.user || email);
+        localStorage.setItem("saas_admin_email", data.user || cleanEmail);
         localStorage.setItem("saas_admin_role", data.role || "SuperAdmin");
         window.location.href = "/tenants";
       } else {
