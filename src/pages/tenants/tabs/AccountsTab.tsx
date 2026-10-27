@@ -75,9 +75,12 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
   const getAccountPassword = (record: any) => {
     if (record.password) return String(record.password);
     if (record.temporary_password) return String(record.temporary_password);
+    if (record.username === "admin" || record.role === "TenantAdmin") {
+      return "StorixAdmin2026!Secure";
+    }
     const name = (record.username || "user").replace(/[^a-zA-Z0-9]/g, "");
     const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
-    return `${capitalized}982#Storix!`;
+    return `${capitalized}2026!Secure`;
   };
 
   const filteredAccounts = accounts.filter((acc) => {
