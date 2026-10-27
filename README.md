@@ -56,7 +56,7 @@ Enterprise Super Admin Web Console for multi-tenant Nextcloud on AWS, built with
 
 ## 🏗️ Architecture Overview
 
-![Super Admin Console AWS Architecture](docs/images/console_architecture.png)
+![Super Admin Console Control Plane & FinOps Architecture](docs/images/zoom_block_4_control_plane_finops.png)
 
 The Super Admin Console provides a decoupled, secure control plane for managing multi-tenant Nextcloud fleets across AWS:
 
