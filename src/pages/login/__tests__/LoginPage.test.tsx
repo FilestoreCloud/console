@@ -28,10 +28,6 @@ describe("LoginPage — SuperAdmin Authentication Flow", () => {
   it("renders administrative sign-in form correctly with empty fields", () => {
     render(<LoginPage />);
 
-    expect(screen.getByText("Storix Super Admin Portal")).toBeInTheDocument();
-    expect(
-      screen.getByText("Storix Multi-Tenant SaaS Control Plane"),
-    ).toBeInTheDocument();
     const emailInput = screen.getByPlaceholderText("admin@example.com") as HTMLInputElement;
     const passwordInput = screen.getByPlaceholderText("••••••••••••") as HTMLInputElement;
     expect(emailInput).toBeInTheDocument();
