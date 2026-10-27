@@ -124,18 +124,19 @@ export const AuditLogList: React.FC = () => {
       {/* Audit Log Table Card */}
       <Card className="border-border shadow-sm overflow-hidden">
         <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-muted/40">
-              <TableRow>
-                <TableHead className="font-semibold">Timestamp (UTC)</TableHead>
-                <TableHead className="font-semibold">Event Action</TableHead>
-                <TableHead className="font-semibold">Target Resource</TableHead>
-                <TableHead className="font-semibold">Actor (User)</TableHead>
-                <TableHead className="font-semibold">Role</TableHead>
-                <TableHead className="font-semibold">Status</TableHead>
-                <TableHead className="font-semibold">Source IP</TableHead>
-              </TableRow>
-            </TableHeader>
+          <div className="overflow-x-auto responsive-table-scroll">
+            <Table className="min-w-[800px]">
+              <TableHeader className="bg-muted/40">
+                <TableRow>
+                  <TableHead className="font-semibold whitespace-nowrap">Timestamp (UTC)</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap">Event Action</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap">Target Resource</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap">Actor (User)</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap">Role</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap">Status</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap">Source IP</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {logs.length === 0 ? (
                 <TableRow>
@@ -187,7 +188,8 @@ export const AuditLogList: React.FC = () => {
               )}
             </TableBody>
           </Table>
-        </CardContent>
+        </div>
+      </CardContent>
       </Card>
     </div>
   );

@@ -274,8 +274,8 @@ export const TenantTable: React.FC<TenantTableProps> = ({
         {/* Tenant Table Card */}
         <Card className="border-border shadow-sm overflow-hidden">
           <CardContent className="p-0">
-            <div className="max-h-[600px] overflow-auto">
-              <Table>
+            <div className="max-h-[620px] overflow-auto responsive-table-scroll">
+              <Table className="min-w-[980px]">
                 <TableHeader className="bg-muted/40 sticky top-0 z-10">
                 <TableRow>
                   <TableHead className="w-10">
@@ -290,13 +290,13 @@ export const TenantTable: React.FC<TenantTableProps> = ({
                       className="rounded border-input text-primary focus:ring-primary h-4 w-4"
                     />
                   </TableHead>
-                  <TableHead className="font-semibold">Tenant Identifier</TableHead>
-                  <TableHead className="font-semibold">Dedicated Ingress</TableHead>
-                  <TableHead className="font-semibold">Admin Contact</TableHead>
-                  <TableHead className="font-semibold">Quota</TableHead>
-                  <TableHead className="font-semibold">Status &amp; Progress</TableHead>
-                  <TableHead className="font-semibold">Isolated Infrastructure</TableHead>
-                  <TableHead className="font-semibold text-right">Actions</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap">Tenant Identifier</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap">Dedicated Ingress</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap">Admin Contact</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap">Quota</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap">Status &amp; Progress</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap">Isolated Infrastructure</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

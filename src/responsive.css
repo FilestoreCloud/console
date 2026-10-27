@@ -132,3 +132,24 @@
   }
 }
 
+/* Modern Tailwind / Radix UI responsive table and modal enhancements */
+.responsive-table-scroll {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: thin;
+  max-width: 100% !important;
+}
+
+@media (max-width: 640px) {
+  /* Prevent horizontal document overflow from tables and code blocks */
+  body, html {
+    overflow-x: hidden !important;
+  }
+
+  /* Safe padding for dialogs on compact mobile screens */
+  [role="dialog"] {
+    max-width: calc(100vw - 1.5rem) !important;
+  }
+}
+
+
