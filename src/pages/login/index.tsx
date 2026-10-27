@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
 import {
   Mail,
   Lock,
@@ -64,14 +63,8 @@ export const LoginPage: React.FC = () => {
             <img
               src="/storix-logo.png"
               alt="Storix"
-              className="h-11 mx-auto mb-3 object-contain"
+              className="h-11 mx-auto object-contain"
             />
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Storix Super Admin Portal
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Storix Multi-Tenant SaaS Control Plane
-            </p>
           </div>
 
           {errorMessage && (
@@ -126,9 +119,6 @@ export const LoginPage: React.FC = () => {
                   className="pl-9 h-10"
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Authenticated securely via Account &amp; Password
-              </p>
             </div>
 
             <Button
@@ -139,13 +129,6 @@ export const LoginPage: React.FC = () => {
               {isSubmitting ? "Authenticating..." : "Sign In to Control Plane"}
             </Button>
           </form>
-
-          <Separator className="my-6" />
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground">
-              🔒 Secured via AWS IAM &amp; DynamoDB Encryption
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>
