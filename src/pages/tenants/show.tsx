@@ -107,16 +107,17 @@ export const TenantShow: React.FC = () => {
 
   // Ensure accounts has at least the admin account with the consistent resolved email
   const accounts = rawAccounts.length > 0 ? rawAccounts.map((acc: any) => {
-    if ((acc.username === "admin" || acc.role === "TenantAdmin") && !acc.email) {
-      return { ...acc, email: resolvedAdminEmail };
-    }
-    return acc;
+    const isAdm = acc.username === "admin" || acc.role === "TenantAdmin";
+    const email = isAdm ? (acc.email || resolvedAdminEmail) : acc.email;
+    const pwd = acc.password || (isAdm ? (tenant.default_admin?.password || "StorixAdmin2026!Secure") : undefined);
+    return { ...acc, email, password: pwd };
   }) : [
     {
       username: "admin",
       display_name: `${(tenantId || "Tenant").charAt(0).toUpperCase() + (tenantId || "Tenant").slice(1)} Administrator`,
       email: resolvedAdminEmail,
       role: "TenantAdmin",
+      password: tenant.default_admin?.password || "StorixAdmin2026!Secure",
       quota_gb: tenant.quota_gb || 100,
       storage_used_gb: 0,
       status: "ACTIVE",
