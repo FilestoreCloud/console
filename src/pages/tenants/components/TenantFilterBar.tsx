@@ -32,24 +32,24 @@ export const TenantFilterBar: React.FC<TenantFilterBarProps> = ({
 }) => {
   return (
     <Card className="border-border shadow-sm mb-4">
-      <CardContent className="p-4 sm:p-5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-        <div className="flex items-center gap-3 flex-wrap flex-1">
-          <div className="relative min-w-[220px] max-w-sm flex-1">
+      <CardContent className="p-3.5 sm:p-5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 flex-wrap flex-1 min-w-0">
+          <div className="relative min-w-[200px] flex-1 max-w-full md:max-w-md">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search Tenant ID, domain, email..."
               value={searchText}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-9 h-9 text-xs"
+              className="pl-9 h-9 text-xs w-full"
             />
           </div>
 
-          <div className="w-44">
+          <div className="w-full sm:w-44 shrink-0">
             <Select
               value={statusFilter}
               onValueChange={onStatusFilterChange}
             >
-              <SelectTrigger className="h-9 text-xs">
+              <SelectTrigger className="h-9 text-xs w-full">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -66,14 +66,14 @@ export const TenantFilterBar: React.FC<TenantFilterBarProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 justify-end">
+        <div className="flex items-center gap-2 justify-end shrink-0 w-full md:w-auto">
           {canCreate && (
             <Button
               size="sm"
               onClick={onOpenCreateModal}
-              className="h-9 text-xs bg-[#1652f0] hover:bg-[#1652f0]/90 text-white flex items-center gap-1.5"
+              className="h-9 text-xs bg-[#1652f0] hover:bg-[#1652f0]/90 text-white flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap w-full md:w-auto"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 shrink-0" />
               <span>Provision Dedicated Tenant</span>
             </Button>
           )}

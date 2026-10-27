@@ -160,37 +160,39 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
 
   return (
     <Dialog open={visible} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent className="max-w-4xl p-6">
-        <DialogHeader className="flex flex-row items-center justify-between">
-          <div className="flex items-center gap-2">
-            {isFinished ? (
-              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-            ) : (
-              <RotateCw
-                className={`h-5 w-5 animate-spin ${
-                  isDeleting ? "text-red-500" : "text-[#1652f0]"
-                }`}
-              />
-            )}
-            <DialogTitle className="text-base font-bold">
-              {isDeleting
-                ? "Deprovisioning Teardown"
-                : "Provisioning Orchestration"}
-              : <span className="text-[#1652f0]">{tenantId}</span>
-            </DialogTitle>
-          </div>
-          <div className="flex items-center gap-2 pr-6">
-            <Badge
-              variant={isDeleting ? "destructive" : "info"}
-              className="font-bold text-xs"
-            >
-              {isDeleting ? "DEPROVISIONING" : "PROVISIONING"}
-            </Badge>
-            {isFinished && (
-              <Badge variant="success" className="text-xs">
-                COMPLETED
+      <DialogContent className="w-[95vw] sm:max-w-4xl p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pr-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2 min-w-0">
+              {isFinished ? (
+                <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+              ) : (
+                <RotateCw
+                  className={`h-5 w-5 animate-spin shrink-0 ${
+                    isDeleting ? "text-red-500" : "text-[#1652f0]"
+                  }`}
+                />
+              )}
+              <DialogTitle className="text-sm sm:text-base font-bold truncate">
+                {isDeleting
+                  ? "Deprovisioning Teardown"
+                  : "Provisioning Orchestration"}
+                : <span className="text-[#1652f0]">{tenantId}</span>
+              </DialogTitle>
+            </div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <Badge
+                variant={isDeleting ? "destructive" : "info"}
+                className="font-bold text-[10px] sm:text-xs shrink-0"
+              >
+                {isDeleting ? "DEPROVISIONING" : "PROVISIONING"}
               </Badge>
-            )}
+              {isFinished && (
+                <Badge variant="success" className="text-[10px] sm:text-xs shrink-0">
+                  COMPLETED
+                </Badge>
+              )}
+            </div>
           </div>
         </DialogHeader>
 
@@ -203,13 +205,13 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
                 : "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900"
             }`}
           >
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
-              <div className="space-y-1 w-full md:w-3/5">
-                <div className="flex justify-between text-xs font-semibold">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="space-y-1 w-full sm:w-3/5">
+                <div className="flex justify-between text-xs font-semibold flex-wrap gap-1">
                   <span>Overall Execution Progress: {progress}%</span>
                   {data && data.elapsedSeconds > 0 && (
                     <span className="text-muted-foreground flex items-center gap-1 font-normal">
-                      <Clock className="h-3 w-3" />
+                      <Clock className="h-3 w-3 shrink-0" />
                       Elapsed: <b>{data.elapsedSeconds}s</b>
                       {data.estimatedRemainingSeconds > 0 && (
                         <span>
@@ -227,17 +229,17 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
                 />
               </div>
 
-              <div className="text-right flex flex-col items-end gap-1">
+              <div className="text-left sm:text-right flex flex-col items-start sm:items-end gap-1 w-full sm:w-auto">
                 <Badge
                   variant="info"
-                  className="flex items-center gap-1 text-[11px]"
+                  className="flex items-center gap-1 text-[11px] shrink-0"
                 >
                   <Zap className="h-3 w-3" />
                   <span>AWS Step Functions &amp; Worker Lambda</span>
                 </Badge>
                 {data?.executionArn && (
                   <code
-                    className="text-[10px] text-muted-foreground truncate max-w-xs cursor-pointer hover:underline"
+                    className="text-[10px] text-muted-foreground truncate max-w-[260px] sm:max-w-xs cursor-pointer hover:underline font-mono"
                     onClick={() => {
                       navigator.clipboard.writeText(data.executionArn!);
                       toast.success("Execution ARN copied!");
@@ -255,16 +257,16 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
           <Alert variant={isDeleting ? "warning" : "info"} className="py-2.5">
             <div className="flex items-center gap-2 flex-wrap text-xs">
               {isFinished ? (
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
               ) : (
-                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                <Loader2 className="h-4 w-4 animate-spin text-blue-600 shrink-0" />
               )}
               <span className="font-bold">Active Step:</span>
-              <Badge variant="secondary" className="font-semibold text-xs">
+              <Badge variant="secondary" className="font-semibold text-xs shrink-0">
                 {currentStep}
               </Badge>
               {currentStepDesc && (
-                <span className="text-muted-foreground">— {currentStepDesc}</span>
+                <span className="text-muted-foreground break-words">— {currentStepDesc}</span>
               )}
             </div>
           </Alert>
@@ -275,11 +277,11 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
               Execution Milestones &amp; Current Phase:
             </div>
             {data?.milestones && data.milestones.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                 {data.milestones.map((m) => (
                   <div
                     key={m.id}
-                    className={`rounded-lg border p-2 text-xs transition-colors ${
+                    className={`rounded-lg border p-2 text-xs transition-colors flex flex-col justify-between ${
                       m.status === "completed"
                         ? "border-emerald-500/40 bg-emerald-500/5 text-emerald-700 dark:text-emerald-400"
                         : m.status === "active"
@@ -287,11 +289,11 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
                         : "border-border text-muted-foreground bg-card"
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="truncate">{m.name}</span>
-                      <span className="font-mono text-[10px]">{m.percent}%</span>
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="truncate font-medium">{m.name}</span>
+                      <span className="font-mono text-[10px] shrink-0">{m.percent}%</span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                    <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">
                       {m.description}
                     </p>
                   </div>
@@ -310,7 +312,7 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
             {/* Toolbar */}
             <div className="flex items-center justify-between px-3 py-2 bg-[#161b22] border-b border-slate-800 flex-wrap gap-2 text-xs">
               <div className="flex items-center gap-2">
-                <Terminal className="h-4 w-4 text-sky-400" />
+                <Terminal className="h-4 w-4 text-sky-400 shrink-0" />
                 <span className="font-semibold text-slate-200">
                   Live Execution Logs
                 </span>
@@ -319,18 +321,18 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="relative w-36">
+              <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-between sm:justify-end">
+                <div className="relative flex-1 sm:w-36 min-w-[110px]">
                   <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-500" />
                   <Input
                     placeholder="Filter logs..."
                     value={filterText}
                     onChange={(e) => setFilterText(e.target.value)}
-                    className="pl-7 h-7 text-xs bg-slate-900 border-slate-700 text-slate-200 placeholder:text-slate-500"
+                    className="pl-7 h-7 text-xs bg-slate-900 border-slate-700 text-slate-200 placeholder:text-slate-500 w-full"
                   />
                 </div>
 
-                <div className="w-24">
+                <div className="w-28 shrink-0">
                   <Select value={filterLevel} onValueChange={setFilterLevel}>
                     <SelectTrigger className="h-7 text-xs bg-slate-900 border-slate-700 text-slate-200">
                       <SelectValue placeholder="Level" />
@@ -345,7 +347,7 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
                   </Select>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-slate-400 text-xs">
+                <div className="flex items-center gap-1.5 text-slate-400 text-xs shrink-0">
                   <span>Scroll:</span>
                   <Switch
                     checked={autoScroll}
@@ -357,7 +359,7 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                  className="h-7 w-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800 shrink-0"
                   onClick={handleCopyLogs}
                   title="Copy logs"
                 >
@@ -400,7 +402,7 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
                       <span className={`shrink-0 font-semibold text-[10px] ${lvlColor}`}>
                         [{log.level}]
                       </span>
-                      <span className={log.level === "ERROR" ? "text-red-400" : "text-slate-200"}>
+                      <span className={`break-all whitespace-pre-wrap flex-1 ${log.level === "ERROR" ? "text-red-400" : "text-slate-200"}`}>
                         {log.message}
                       </span>
                     </div>
@@ -416,7 +418,7 @@ export const TenantProgressModal: React.FC<TenantProgressModalProps> = ({
             type="button"
             size="sm"
             onClick={onClose}
-            className="bg-[#1652f0] hover:bg-[#1652f0]/90 text-white"
+            className="bg-[#1652f0] hover:bg-[#1652f0]/90 text-white w-full sm:w-auto"
           >
             Close
           </Button>
