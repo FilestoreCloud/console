@@ -109,7 +109,7 @@ describe("TenantShowPage — Deep Unified Single-Page Inspection", () => {
     expect(mockUpdate).toHaveBeenCalledTimes(1);
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
-        values: { action: "SUSPEND", status: "SUSPENDED" },
+        values: { action: "SET_STATUS", status: "SUSPENDED" },
       }),
       expect.any(Object)
     );
