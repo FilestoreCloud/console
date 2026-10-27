@@ -140,7 +140,7 @@ describe("TenantShowPage — Deep Unified Single-Page Inspection", () => {
     // Click to reveal full password
     fireEvent.click(pwdBtn);
     expect(screen.getByRole("button", { name: /Hide password for admin/i })).toBeInTheDocument();
-    expect(screen.getByText("Admin982#Storix!")).toBeInTheDocument();
+    expect(screen.getByText("StorixAdmin2026!Secure")).toBeInTheDocument();
 
     // Click again to mask
     const hideBtn = screen.getByRole("button", { name: /Hide password for admin/i });
