@@ -308,16 +308,16 @@ export const DashboardPage: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="max-h-[380px] overflow-auto">
-              <Table>
+            <div className="max-h-[380px] overflow-auto responsive-table-scroll">
+              <Table className="min-w-[700px]">
                 <TableHeader className="bg-card sticky top-0 z-10 border-b">
                   <TableRow>
-                    <TableHead className="text-xs font-semibold">Timestamp</TableHead>
-                    <TableHead className="text-xs font-semibold">Actor</TableHead>
-                    <TableHead className="text-xs font-semibold">Action</TableHead>
-                    <TableHead className="text-xs font-semibold">Target</TableHead>
-                    <TableHead className="text-xs font-semibold">Status</TableHead>
-                    <TableHead className="text-xs font-semibold">Source IP</TableHead>
+                    <TableHead className="text-xs font-semibold whitespace-nowrap">Timestamp</TableHead>
+                    <TableHead className="text-xs font-semibold whitespace-nowrap">Actor</TableHead>
+                    <TableHead className="text-xs font-semibold whitespace-nowrap">Action</TableHead>
+                    <TableHead className="text-xs font-semibold whitespace-nowrap">Target</TableHead>
+                    <TableHead className="text-xs font-semibold whitespace-nowrap">Status</TableHead>
+                    <TableHead className="text-xs font-semibold whitespace-nowrap">Source IP</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

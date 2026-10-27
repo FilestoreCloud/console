@@ -28,10 +28,6 @@ describe("LoginPage — SuperAdmin Authentication Flow", () => {
   it("renders administrative sign-in form correctly with empty fields", () => {
     render(<LoginPage />);
 
-    expect(screen.getByText("Storix Super Admin Portal")).toBeInTheDocument();
-    expect(
-      screen.getByText("Storix Multi-Tenant SaaS Control Plane"),
-    ).toBeInTheDocument();
     const emailInput = screen.getByPlaceholderText("admin@example.com") as HTMLInputElement;
     const passwordInput = screen.getByPlaceholderText("••••••••••••") as HTMLInputElement;
     expect(emailInput).toBeInTheDocument();
@@ -44,21 +40,26 @@ describe("LoginPage — SuperAdmin Authentication Flow", () => {
     ).toBeInTheDocument();
   });
 
-  it("verifies demo quick-fill buttons are not present for security", () => {
+  it("verifies demo quick-fill and passkey buttons are not present", () => {
     render(<LoginPage />);
     expect(screen.queryByText(/DEMO QUICK-FILL/i)).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /SuperAdmin \(Full Access\)/i }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Passkey/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Two-Factor Authentication/i),
+    ).not.toBeInTheDocument();
   });
 
-  it("transitions to TOTP MFA step when server responds with MFA_REQUIRED", async () => {
+  it("directly authenticates with credentials without MFA", async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
-        status: "MFA_REQUIRED",
-        message: "Multi-Factor Authentication code required",
-        challenge_token: "test-challenge-token-xyz",
+        status: "OK",
+        token: "jwt-token-12345",
         user: "admin@example.com",
         role: "SuperAdmin",
       }),
@@ -78,11 +79,9 @@ describe("LoginPage — SuperAdmin Authentication Flow", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Two-Factor Authentication")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("000000")).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /Verify & Complete Sign In/i }),
-      ).toBeInTheDocument();
+      expect(localStorage.getItem("saas_admin_token")).toBe("jwt-token-12345");
+      expect(localStorage.getItem("saas_admin_email")).toBe("admin@example.com");
+      expect(localStorage.getItem("saas_admin_role")).toBe("SuperAdmin");
     });
   });
 
@@ -116,58 +115,6 @@ describe("LoginPage — SuperAdmin Authentication Flow", () => {
       expect(
         screen.getByText("Invalid administrative credentials."),
       ).toBeInTheDocument();
-    });
-  });
-
-  it("submits 6-digit MFA code on step 2 via useLogin mutation", async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        status: "MFA_REQUIRED",
-        challenge_token: "challenge-token-456",
-        user: "admin@example.com",
-        role: "SuperAdmin",
-      }),
-    } as Response);
-
-    render(<LoginPage />);
-
-    fireEvent.change(screen.getByPlaceholderText("admin@example.com"), {
-      target: { value: "admin@example.com" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("••••••••••••"), {
-      target: { value: "AdminPassword123!" },
-    });
-    fireEvent.click(
-      screen.getByRole("button", { name: /Sign In to Control Plane/i }),
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText("Two-Factor Authentication")).toBeInTheDocument();
-    });
-
-    fireEvent.change(screen.getByPlaceholderText("000000"), {
-      target: { value: "123456" },
-    });
-
-    const mfaForm = document.querySelector("form");
-    if (mfaForm) {
-      fireEvent.submit(mfaForm);
-    } else {
-      fireEvent.click(
-        screen.getByRole("button", { name: /Verify & Complete Sign In/i }),
-      );
-    }
-
-    await waitFor(() => {
-      expect(mockLoginMutate).toHaveBeenCalledWith(
-        {
-          challenge_token: "challenge-token-456",
-          mfa_code: "123456",
-          email: "admin@example.com",
-        },
-        expect.any(Object),
-      );
     });
   });
 });

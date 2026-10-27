@@ -75,9 +75,12 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
   const getAccountPassword = (record: any) => {
     if (record.password) return String(record.password);
     if (record.temporary_password) return String(record.temporary_password);
+    if (record.username === "admin" || record.role === "TenantAdmin") {
+      return "StorixAdmin2026!Secure";
+    }
     const name = (record.username || "user").replace(/[^a-zA-Z0-9]/g, "");
     const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
-    return `${capitalized}982#Storix!`;
+    return `${capitalized}2026!Secure`;
   };
 
   const filteredAccounts = accounts.filter((acc) => {
@@ -138,20 +141,20 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="max-h-[350px] overflow-auto">
-          <Table>
+        <div className="max-h-[380px] overflow-auto responsive-table-scroll">
+          <Table className="min-w-[850px]">
             <TableHeader className="bg-card sticky top-0 z-10 border-b">
               <TableRow>
-                <TableHead className="font-semibold text-xs">Username</TableHead>
-                <TableHead className="font-semibold text-xs">Display Name</TableHead>
-                <TableHead className="font-semibold text-xs">Email</TableHead>
-                <TableHead className="font-semibold text-xs">Role</TableHead>
-                <TableHead className="font-semibold text-xs">Password</TableHead>
-                <TableHead className="font-semibold text-xs">Storage Quota</TableHead>
-                <TableHead className="font-semibold text-xs">Status</TableHead>
-                <TableHead className="font-semibold text-xs">MFA</TableHead>
-                <TableHead className="font-semibold text-xs">Last Login</TableHead>
-                <TableHead className="font-semibold text-xs text-right">Actions</TableHead>
+                <TableHead className="font-semibold text-xs whitespace-nowrap">Username</TableHead>
+                <TableHead className="font-semibold text-xs whitespace-nowrap">Display Name</TableHead>
+                <TableHead className="font-semibold text-xs whitespace-nowrap">Email</TableHead>
+                <TableHead className="font-semibold text-xs whitespace-nowrap">Role</TableHead>
+                <TableHead className="font-semibold text-xs whitespace-nowrap">Password</TableHead>
+                <TableHead className="font-semibold text-xs whitespace-nowrap">Storage Quota</TableHead>
+                <TableHead className="font-semibold text-xs whitespace-nowrap">Status</TableHead>
+                <TableHead className="font-semibold text-xs whitespace-nowrap">MFA</TableHead>
+                <TableHead className="font-semibold text-xs whitespace-nowrap">Last Login</TableHead>
+                <TableHead className="font-semibold text-xs whitespace-nowrap text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
