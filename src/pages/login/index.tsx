@@ -89,13 +89,13 @@ export const LoginPage: React.FC = () => {
           <form onSubmit={handleCredentialsSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="admin-email" className="font-semibold text-foreground">
-                Administrator Email
+                Administrator Username / Email
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                 <Input
                   id="admin-email"
-                  type="email"
+                  type="text"
                   required
                   placeholder="admin@example.com"
                   value={email}
