@@ -2,6 +2,29 @@ import { DataProvider } from "@refinedev/core";
 
 const API_BASE = (import.meta.env.VITE_API_URL as string) || "/api";
 
+async function safeJson(res: any): Promise<any> {
+  if (typeof res.json === "function") {
+    try {
+      return await res.json();
+    } catch {
+      // If json parsing fails (e.g. HTML returned by CloudFront)
+    }
+  }
+  if (typeof res.text === "function") {
+    const text = await res.text();
+    if (!text) return {};
+    try {
+      return JSON.parse(text);
+    } catch {
+      if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+        throw new Error(`Resource not found (HTTP ${res.status})`);
+      }
+      throw new Error(text);
+    }
+  }
+  return {};
+}
+
 function getHeaders(): HeadersInit {
   const token = localStorage.getItem("saas_admin_token");
   const headers: HeadersInit = {
@@ -24,7 +47,7 @@ export const dataProvider: DataProvider = {
         body: JSON.stringify({ action: "LIST" }),
       });
       if (res.status === 401) throw { status: 401, message: "Unauthorized" };
-      const data = await res.json();
+      const data = await safeJson(res);
       const rawTenants = data.tenants || data.items || data.data || [];
       const tenants = rawTenants.map((t: any) => ({
         id: t.tenant_id,
@@ -44,7 +67,7 @@ export const dataProvider: DataProvider = {
         body: JSON.stringify({ action: "AUDIT_LOGS" }),
       });
       if (res.status === 401) throw { status: 401, message: "Unauthorized" };
-      const data = await res.json();
+      const data = await safeJson(res);
       const logs = (data.audit_logs || []).map((l: any, idx: number) => ({
         id: l.event_id || `log-${idx}`,
         ...l,
@@ -72,7 +95,7 @@ export const dataProvider: DataProvider = {
         }),
       });
       if (res.status === 401) throw { status: 401, message: "Unauthorized" };
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) {
         throw new Error(data.error || "Failed to load tenant details");
       }
@@ -106,7 +129,7 @@ export const dataProvider: DataProvider = {
           ...variables,
         }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) {
         throw new Error(data.error || "Provisioning failed");
       }
@@ -130,7 +153,7 @@ export const dataProvider: DataProvider = {
           ...rest,
         }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) {
         throw new Error(data.error || "Operation failed");
       }
@@ -152,7 +175,7 @@ export const dataProvider: DataProvider = {
           tenant_id: id,
         }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) {
         throw new Error(data.error || "Delete action failed");
       }
