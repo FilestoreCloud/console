@@ -66,6 +66,10 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
 
   const handleCopyPassword = (e: React.MouseEvent, pwd: string, username: string) => {
     e.stopPropagation();
+    if (!pwd) {
+      toast.info(`Password for '${username}' is hashed. Use 'Reset Password' to generate a new password.`);
+      return;
+    }
     navigator.clipboard.writeText(pwd);
     setCopiedUser(username);
     toast.success(`Copied password for '${username}'`);
@@ -78,9 +82,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
     if (record.username === "admin" || record.role === "TenantAdmin") {
       return "StorixAdmin2026!Secure";
     }
-    const name = (record.username || "user").replace(/[^a-zA-Z0-9]/g, "");
-    const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
-    return `${capitalized}2026!Secure`;
+    return "";
   };
 
   const filteredAccounts = accounts.filter((acc) => {
@@ -192,55 +194,64 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                       </TableCell>
 
                       <TableCell className="font-mono text-xs">
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              togglePasswordReveal(record.username)
-                            }
-                            aria-label={
-                              isRevealed
-                                ? `Hide password for ${record.username}`
-                                : `Show password for ${record.username}`
-                            }
-                            className="inline-flex items-center gap-1 text-[11px] bg-muted/70 hover:bg-muted px-2 py-0.5 rounded transition-colors group"
-                            title={
-                              isRevealed ? "Click to hide" : "Click to reveal"
-                            }
+                        {pwd ? (
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                togglePasswordReveal(record.username)
+                              }
+                              aria-label={
+                                isRevealed
+                                  ? `Hide password for ${record.username}`
+                                  : `Show password for ${record.username}`
+                              }
+                              className="inline-flex items-center gap-1 text-[11px] bg-muted/70 hover:bg-muted px-2 py-0.5 rounded transition-colors group"
+                              title={
+                                isRevealed ? "Click to hide" : "Click to reveal"
+                              }
+                            >
+                              {isRevealed ? (
+                                <>
+                                  <EyeOff className="h-3 w-3 text-muted-foreground group-hover:text-foreground shrink-0" />
+                                  <span className="font-semibold text-emerald-600 dark:text-emerald-400 font-mono tracking-normal">
+                                    {pwd}
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <Eye className="h-3 w-3 text-muted-foreground group-hover:text-foreground shrink-0" />
+                                  <span className="tracking-widest text-muted-foreground group-hover:text-foreground font-mono">
+                                    {masked}
+                                  </span>
+                                </>
+                              )}
+                            </button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                              onClick={(e) =>
+                                handleCopyPassword(e, pwd, record.username)
+                              }
+                              title="Copy password to clipboard"
+                              aria-label={`Copy password for ${record.username}`}
+                            >
+                              {copiedUser === record.username ? (
+                                <Check className="h-3 w-3 text-emerald-600" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                        ) : (
+                          <span
+                            className="text-muted-foreground font-mono text-[11px] italic"
+                            title="Password stored securely as hash in Nextcloud"
                           >
-                            {isRevealed ? (
-                              <>
-                                <EyeOff className="h-3 w-3 text-muted-foreground group-hover:text-foreground shrink-0" />
-                                <span className="font-semibold text-emerald-600 dark:text-emerald-400 font-mono tracking-normal">
-                                  {pwd}
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <Eye className="h-3 w-3 text-muted-foreground group-hover:text-foreground shrink-0" />
-                                <span className="tracking-widest text-muted-foreground group-hover:text-foreground font-mono">
-                                  {masked}
-                                </span>
-                              </>
-                            )}
-                          </button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                            onClick={(e) =>
-                              handleCopyPassword(e, pwd, record.username)
-                            }
-                            title="Copy password to clipboard"
-                            aria-label={`Copy password for ${record.username}`}
-                          >
-                            {copiedUser === record.username ? (
-                              <Check className="h-3 w-3 text-emerald-600" />
-                            ) : (
-                              <Copy className="h-3 w-3" />
-                            )}
-                          </Button>
-                        </div>
+                            •••••••• (Hashed)
+                          </span>
+                        )}
                       </TableCell>
 
                       <TableCell>
