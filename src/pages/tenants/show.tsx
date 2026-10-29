@@ -43,6 +43,7 @@ export const TenantShow: React.FC = () => {
   const { mutate: deleteTenant, isLoading: isDeleting } = useDelete();
 
   const [createAccountModalVisible, setCreateAccountModalVisible] = useState(false);
+  const [resetTargetUser, setResetTargetUser] = useState<string | null>(null);
   const [resetPasswordModalVisible, setResetPasswordModalVisible] = useState(false);
   const [tempPasswordInfo, setTempPasswordInfo] = useState<{ username: string; password: string } | null>(null);
 
@@ -161,18 +162,7 @@ export const TenantShow: React.FC = () => {
   };
 
   const handleResetPassword = (username: string) => {
-    updateTenant(
-      { resource: "tenants", id: tenantId, values: { action: "RESET_TENANT_ACCOUNT_PASSWORD", username } },
-      {
-        onSuccess: (res: any) => {
-          const tempPwd = res?.data?.temporary_password || res?.data?.password || "Tmp_Secret987!";
-          setTempPasswordInfo({ username, password: tempPwd });
-          setResetPasswordModalVisible(true);
-          toast.success(`Password reset generated for '${username}'`);
-        },
-        onError: (err: any) => toast.error(err?.message || "Failed to reset password"),
-      }
-    );
+    setResetTargetUser(username);
   };
 
   const handleToggleAccountStatus = (username: string, currentAccountStatus: string) => {
@@ -295,6 +285,8 @@ export const TenantShow: React.FC = () => {
         refetch={refetch}
         createAccountModalVisible={createAccountModalVisible}
         setCreateAccountModalVisible={setCreateAccountModalVisible}
+        resetTargetUser={resetTargetUser}
+        setResetTargetUser={setResetTargetUser}
         resetPasswordModalVisible={resetPasswordModalVisible}
         setResetPasswordModalVisible={setResetPasswordModalVisible}
         tempPasswordInfo={tempPasswordInfo}

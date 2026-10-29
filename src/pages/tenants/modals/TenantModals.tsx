@@ -3,6 +3,7 @@ import { useUpdate } from "@refinedev/core";
 import { toast } from "sonner";
 import { CreateAccountModal } from "./CreateAccountModal";
 import { ResetPasswordModal } from "./ResetPasswordModal";
+import { ResetPasswordFormModal } from "./ResetPasswordFormModal";
 
 export interface TenantModalsProps {
   tenantId: string;
@@ -10,6 +11,8 @@ export interface TenantModalsProps {
   refetch: () => void;
   createAccountModalVisible: boolean;
   setCreateAccountModalVisible: (v: boolean) => void;
+  resetTargetUser: string | null;
+  setResetTargetUser: (v: string | null) => void;
   resetPasswordModalVisible: boolean;
   setResetPasswordModalVisible: (v: boolean) => void;
   tempPasswordInfo: { username: string; password: string } | null;
@@ -22,6 +25,8 @@ export const TenantModals: React.FC<TenantModalsProps> = ({
   refetch,
   createAccountModalVisible,
   setCreateAccountModalVisible,
+  resetTargetUser,
+  setResetTargetUser,
   resetPasswordModalVisible,
   setResetPasswordModalVisible,
   tempPasswordInfo,
@@ -64,12 +69,49 @@ export const TenantModals: React.FC<TenantModalsProps> = ({
     );
   };
 
+  const handleResetPasswordSubmit = (username: string, newPassword: string) => {
+    updateTenant(
+      {
+        resource: "tenants",
+        id: tenantId,
+        values: {
+          action: "RESET_TENANT_ACCOUNT_PASSWORD",
+          username,
+          new_password: newPassword,
+        },
+      },
+      {
+        onSuccess: (res: any) => {
+          const tempPwd =
+            res?.data?.temporary_password ||
+            res?.data?.password ||
+            newPassword ||
+            "Tmp_Secret987!";
+          setTempPasswordInfo({ username, password: tempPwd });
+          setResetTargetUser(null);
+          setResetPasswordModalVisible(true);
+          toast.success(`Password reset successful for '${username}'`);
+          refetch();
+        },
+        onError: (err: any) =>
+          toast.error(err?.message || "Failed to reset password"),
+      }
+    );
+  };
+
   return (
     <>
       <CreateAccountModal
         open={createAccountModalVisible}
         onCancel={() => setCreateAccountModalVisible(false)}
         onSubmit={handleCreateAccount}
+        confirmLoading={isUpdating}
+      />
+      <ResetPasswordFormModal
+        open={!!resetTargetUser}
+        username={resetTargetUser}
+        onCancel={() => setResetTargetUser(null)}
+        onSubmit={handleResetPasswordSubmit}
         confirmLoading={isUpdating}
       />
       <ResetPasswordModal
